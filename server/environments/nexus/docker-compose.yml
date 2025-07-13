@@ -1,9 +1,0 @@
-services:
-  nexus:
-    container_name: nexus-java-libs
-    image: sonatype/nexus3
-    # Change to "8083:8081" on personal machine
-    ports:
-      - "8081:8081"
-    volumes:
-      - ./nexus-data:/nexus-data

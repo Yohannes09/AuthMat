@@ -10,7 +10,7 @@
         <relativePath/>
     </parent>
 
-    <groupId>com.payme</groupId>
+    <groupId>com.AuthMat</groupId>
     <artifactId>authentication</artifactId>
     <version>1.0</version>
     <name>authentication</name>

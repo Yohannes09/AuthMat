@@ -1,6 +1,6 @@
 package com.payme.tests.service;
 
-import com.payme.authentication.PaymeApplication;
+import com.authmat.authentication.PaymeApplication;
 //import com.payme.authentication.service.token.JwtService;
 
 import lombok.extern.slf4j.Slf4j;
