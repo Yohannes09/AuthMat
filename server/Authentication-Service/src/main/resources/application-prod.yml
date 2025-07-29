@@ -21,12 +21,18 @@ spring:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 application:
-  name: PayMe
+  name: Authentication
 
-  security:
-    jwt:
-      secret: T9GKvpb3oX5qqo3sd6+OJ2iqldexr32h7FHMpkgON+6yAtr2gfJOQkjt4mR9b7rCPL3wip8vgXzkr2LOpbAnitVQvHnIO2tlaQdnPo+xc10/KtcEBDMQV6nPn41+ScZ9wbvTIQn2+FUoJkQhXFcWRe4r4CbDKzZ73Z4ZyhMmJ4n8crYDl7dR3XjScLq4sO0BXYHK1qj6u7JPABoqQXv83uycysTt/TtDIxSl5r5+M7U/99hHvdLmfWBUlCoorhGodggZow/6qlSql7jRLENwebcxrd9Ggxaf5BA+oR6FJ1gwCEIPOoSs+Cbk7SQwIgOIw8Xmmn+nbZzPoDugv80Diy/QRUQ0rs/F8lgBG8P3dq7mLWaJknSlOquxBCcnkBaMHvtPARqrnNhlfXl5pTXvuGl+wbwDLi5WGOb0go+b+gv2Z/xtOu72t41sf/PjNkDQPiCzoSmagQA/aRAg2z5Mfewl16eeB96h8MHeDUjSzsVNpw8/NySUnVbRKXjxeZG2P6IsRoGMPeufEz/2uexIvoLCb76t+IjCDWwwdULrofFFMyb2wv3+7mpTlCkyAJp5x7SMFiBjqGRfa1Ziy1iq8uHxzVLJTKZp0w2EDzGI/uvn95b8gEtckWFkPmACi7ESXxVDRgWEFHW6Hr742uPl6walIEEZvxbIrgpaszaSonM=
-      validity: 86_400_000
+cache:
+  host: ${CACHE_HOST}
+  port: ${CACHE_PORT}
 
-    gateway:
-      api-key: ur4Oa8sqOiq3XpJEbW5jFD9iNoOHE+RuKiuYtm/Zn4c=
+db:
+  jdbc-url: ${DB_JDBC_URL}
+  username: ${DB_USERNAME}
+  password: ${DB_PASSWORD}
+  driver: ${DB_DRIVER}
+  max-pool-size: ${DB_MAX_POOL_SIZE}
+  min-idle-connections: ${DB_MIN_IDLE_CONNECTIONS}
+  idle-timeout-ms: ${DB_IDLE_TIMEOUT_MS}
+  max-lifetime-ms: ${DB_MAX_LIFETIME_MS}

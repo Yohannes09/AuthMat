@@ -1,6 +1,6 @@
 //package com.payme.tests.repository;
 //
-//import com.payme.authentication.PaymeApplication;
+//import com.payme.authentication.AuthenticationApplication;
 //import com.payme.authentication.repository.UserRepository;
 //import lombok.extern.slf4j.Slf4j;
 //import org.junit.jupiter.api.AfterEach;
@@ -16,7 +16,7 @@
 //import com.payme.tests.MockedUsers;
 //
 //@Slf4j
-//@SpringBootTest(classes = PaymeApplication.class)
+//@SpringBootTest(classes = AuthenticationApplication.class)
 //@ActiveProfiles("test")
 //public class UserRepositoryTests {
 //

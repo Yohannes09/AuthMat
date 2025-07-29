@@ -1,6 +1,6 @@
 package com.payme.tests.service;
 
-import com.authmat.authentication.PaymeApplication;
+import com.authmat.authentication.AuthenticationApplication;
 //import com.payme.authentication.service.token.JwtService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -11,7 +11,7 @@ import org.springframework.test.context.ActiveProfiles;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 @Slf4j
-@SpringBootTest(classes = PaymeApplication.class)
+@SpringBootTest(classes = AuthenticationApplication.class)
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 @ActiveProfiles("test")
 public class JwtAuthenticationServiceTests {

@@ -1,6 +1,6 @@
 //package RepositoryTests;
 //
-//import com.payme.app.PaymeApplication;
+//import com.payme.app.AuthenticationApplication;
 //import org.junit.jupiter.api.Test;
 //import org.junit.jupiter.api.TestInstance;
 //import org.junit.jupiter.api.extension.ExtendWith;
@@ -19,7 +19,7 @@
 //import static org.junit.jupiter.api.Assertions.assertNotNull;
 //
 //@Testcontainers
-//@SpringBootTest(classes = PaymeApplication.class)
+//@SpringBootTest(classes = AuthenticationApplication.class)
 //@ExtendWith(SpringExtension.class)
 //@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
 //@TestInstance(TestInstance.Lifecycle.PER_CLASS)
