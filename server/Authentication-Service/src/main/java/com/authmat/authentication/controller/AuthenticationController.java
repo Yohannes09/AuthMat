@@ -1,10 +1,9 @@
 package com.authmat.authentication.controller;
 
-import com.authmat.authentication.constant.Endpoints;
+import com.authmat.authentication.dto.authentication.AuthenticationResponse;
 import com.authmat.authentication.dto.authentication.LoginRequest;
 import com.authmat.authentication.dto.authentication.RegistrationRequest;
 import com.authmat.authentication.service.auth.AuthenticationService;
-import com.authmat.authentication.dto.authentication.AuthenticationResponse;
 import com.authmat.authentication.service.auth.CookieService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -21,11 +20,12 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5500"})
-@RequestMapping(Endpoints.Auth.BASE)
+@RequestMapping("${endpoints.auth.base:/api}")
 @Slf4j
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final CookieService cookieService;
+
 
     public AuthenticationController(
             @Qualifier("jwtAuthenticationService") AuthenticationService authenticationService,
@@ -36,7 +36,7 @@ public class AuthenticationController {
     }
 
 
-    @PostMapping(path = Endpoints.Auth.LOGIN)
+    @PostMapping("${endpoints.auth.login:/auth}")
     @Operation(
             summary = "Authenticate user credentials and issue access and refresh tokens. ",
             responses = {
@@ -57,7 +57,7 @@ public class AuthenticationController {
     }
 
 
-    @PostMapping(path = Endpoints.Auth.REGISTER)
+    @PostMapping("${endpoints.auth.register:/register}")
     @Operation(
             summary = "Create a new user. ",
             responses = {
@@ -72,7 +72,7 @@ public class AuthenticationController {
     }
 
 
-    @PostMapping(path = Endpoints.Auth.TOKEN_REFRESH + "/{id}")
+    @PostMapping("${endpoints.auth.refresh:/refresh}/{id}")
     @Operation(
             summary = "Issue new access and refresh tokens. Valid refresh token must come attached to request.",
             responses = {
@@ -89,7 +89,7 @@ public class AuthenticationController {
     }
 
 
-    @PostMapping(path = Endpoints.Auth.LOGOUT)
+    @PostMapping("${endpoints.auth.logout:/logout}")
     @Operation(
             summary = "Terminate the user's authenticated session by black-listing the refresh token. ",
             responses = {

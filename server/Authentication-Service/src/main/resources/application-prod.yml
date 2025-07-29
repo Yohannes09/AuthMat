@@ -23,6 +23,7 @@ spring:
 application:
   name: Authentication
 
+
 cache:
   host: ${CACHE_HOST}
   port: ${CACHE_PORT}
@@ -36,3 +37,17 @@ db:
   min-idle-connections: ${DB_MIN_IDLE_CONNECTIONS}
   idle-timeout-ms: ${DB_IDLE_TIMEOUT_MS}
   max-lifetime-ms: ${DB_MAX_LIFETIME_MS}
+
+endpoints:
+  auth:
+    base: ${AUTH_BASE_ENDPOINT}
+    login: ${AUTH_LOGIN_ENDPOINT}
+    register: ${AUTH_REGISTER_ENDPOINT}
+    refresh: ${AUTH_REFRESH_ENDPOINT}
+    logout: ${AUTH_LOGOUT_ENDPOINT}
+  credentials:
+    base: ${CREDENTIALS_BASE_ENDPOINT}
+    username: ${CREDENTIALS_USERNAME_ENDPOINT}
+    email: ${CREDENTIALS_EMAIL_ENDPOINT}
+    password: ${CREDENTIALS_PASSWORD_ENDPOINT}
+  roles:

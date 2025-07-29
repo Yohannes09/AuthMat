@@ -1,7 +1,6 @@
 package com.authmat.authentication.controller;
 
 import com.authmat.authentication.component.privileged.SigningKeyHandler;
-import com.authmat.authentication.constant.Endpoints;
 import com.authmat.authentication.dto.privileged.KeyRotationRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -14,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-@RequestMapping(Endpoints.SigningKey.BASE)
+@RequestMapping("${}")
 @RequiredArgsConstructor
 public class SigningKeyController {
     private final SigningKeyHandler signingKeyHandler;

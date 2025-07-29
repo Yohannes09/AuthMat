@@ -2,43 +2,43 @@ package com.authmat.authentication.controller;
 
 import com.authmat.authentication.component.RoleProvider;
 import com.authmat.authentication.component.UserAccountManager;
-import com.authmat.authentication.constant.Endpoints;
-import com.authmat.authentication.dto.privileged.RoleAssignmentRequest;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @PreAuthorize("hasAnyRole('ADMIN', 'SUPER_ADMIN')")
-@RequestMapping(Endpoints.Role.BASE)
+@RequestMapping("${endpoints.roles.base:/api/roles}")
 @RequiredArgsConstructor
 public class RoleController {
     private final RoleProvider roleProvider;
     private final UserAccountManager userAccountManager;
 
-    @PostMapping(Endpoints.Role.DomainRole)
+    @PostMapping("${endpoints.roles.create:}")
     public ResponseEntity<Void> addRole(){
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
-    @DeleteMapping(Endpoints.Role.DomainRole)
+    @DeleteMapping("${endpoints.roles.remove:}")
     public ResponseEntity<Void> removeRole(){
         return ResponseEntity.noContent().build();
     }
 
-    @PostMapping(Endpoints.Role.AddUserRoles)
-    public ResponseEntity<Void> addUserRoles(@RequestBody @Valid RoleAssignmentRequest request){
-        userAccountManager.addRoles(request);
-        return ResponseEntity.noContent().build();
-    }
-
-    @DeleteMapping(Endpoints.Role.AddUserRoles)
-    public ResponseEntity<Void> removeUserRoles(@RequestBody @Valid RoleAssignmentRequest request){
-        userAccountManager.removeRoles(request);
-        return ResponseEntity.noContent().build();
-    }
+//    @PostMapping("${endpoints.roles.attach-to-user:}")
+//    public ResponseEntity<Void> addUserRoles(@RequestBody @Valid RoleAssignmentRequest request){
+//        userAccountManager.addRoles(request);
+//        return ResponseEntity.noContent().build();
+//    }
+//
+//    @DeleteMapping("${endpoints.roles.remove-from-user.:}")
+//    public ResponseEntity<Void> removeUserRoles(@RequestBody @Valid RoleAssignmentRequest request){
+//        userAccountManager.removeRoles(request);
+//        return ResponseEntity.noContent().build();
+//    }
 
 }

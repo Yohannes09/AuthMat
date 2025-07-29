@@ -1,10 +1,9 @@
 package com.authmat.authentication.controller;
 
-import com.authmat.authentication.service.UserCredentialsService;
-import com.authmat.authentication.constant.Endpoints;
 import com.authmat.authentication.dto.credentialupdate.EmailUpdateRequest;
 import com.authmat.authentication.dto.credentialupdate.PasswordUpdateRequest;
 import com.authmat.authentication.dto.credentialupdate.UsernameUpdateRequest;
+import com.authmat.authentication.service.UserCredentialsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
@@ -17,14 +16,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController
-@RequestMapping(Endpoints.CredentialUpdate.BASE)
+@RequestMapping("${endpoints.credentials.base:/api/credentials}")
 @RequiredArgsConstructor
 @Slf4j(topic = "CREDENTIALS_CONTROLLER")
 public class CredentialsController {
     private final UserCredentialsService credentialsService;
 
 
-    @PostMapping(Endpoints.CredentialUpdate.UPDATE_USERNAME)
+    @PostMapping("${endpoints.credentials.username:/username}")
     @Operation(
             description = "Update username endpoint.",
             responses = {
@@ -38,7 +37,7 @@ public class CredentialsController {
     }
 
 
-    @PostMapping(Endpoints.CredentialUpdate.UPDATE_EMAIL)
+    @PostMapping("${endpoints.credentials.email:/email}")
     @Operation(
             description = "Update email endpoint.",
             responses = {
@@ -52,7 +51,7 @@ public class CredentialsController {
     }
 
 
-    @PostMapping(Endpoints.CredentialUpdate.UPDATE_PASSWORD)
+    @PostMapping("${endpoints.credentials.password:/password}")
     @Operation(
             description = "Update password endpoint.",
             responses = {
@@ -64,5 +63,6 @@ public class CredentialsController {
         credentialsService.updatePassword(updateRequest);
         return ResponseEntity.noContent().build();
     }
+
 
 }
