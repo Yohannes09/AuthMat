@@ -1,0 +1,2 @@
+This should contain any logic, config, etc. related to
+disabling, restricting, banning, etc. a user.

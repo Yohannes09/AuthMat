@@ -23,21 +23,26 @@ spring:
 application:
   name: Authentication
 
+default-roles:
 
+# All required
 cache:
   host: ${CACHE_HOST}
   port: ${CACHE_PORT}
 
+# The first four variables ARE required, the rest, optional.
 db:
   jdbc-url: ${DB_JDBC_URL}
   username: ${DB_USERNAME}
   password: ${DB_PASSWORD}
   driver: ${DB_DRIVER}
+  # Each variable below has a default value.
   max-pool-size: ${DB_MAX_POOL_SIZE}
   min-idle-connections: ${DB_MIN_IDLE_CONNECTIONS}
   idle-timeout-ms: ${DB_IDLE_TIMEOUT_MS}
   max-lifetime-ms: ${DB_MAX_LIFETIME_MS}
 
+# Not required, each endpoint has a default.
 endpoints:
   auth:
     base: ${AUTH_BASE_ENDPOINT}
