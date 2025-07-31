@@ -1,7 +1,7 @@
 package com.authmat.application.util;
 
-import com.authmat.application.authorization.RoleProvider;
-import com.authmat.application.authorization.Role;
+import com.authmat.application.authorization.DefaultRoleInitializer;
+import com.authmat.application.authorization.entity.Role;
 import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,13 +18,13 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/dummy")
 @RequiredArgsConstructor
 public class DummyController {
-    private final RoleProvider roleProvider;
+    private final DefaultRoleInitializer defaultRoleInitializer;
 
 
     @GetMapping("/{role}")
     public ResponseEntity<Role> getRole(@PathVariable String role){
         log.info("fetching role...");
-        return ResponseEntity.ok(roleProvider.findRole(role));
+        return ResponseEntity.ok(defaultRoleInitializer.findRole(role));
     }
 
     @GetMapping("/boom")

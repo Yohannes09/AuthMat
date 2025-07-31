@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("${endpoints.roles.base:/api/roles}")
 @RequiredArgsConstructor
 public class RoleController {
-    private final RoleProvider roleProvider;
+    private final DefaultRoleInitializer defaultRoleInitializer;
     private final UserAccountManager userAccountManager;
 
     @PostMapping("${endpoints.roles.create:}")

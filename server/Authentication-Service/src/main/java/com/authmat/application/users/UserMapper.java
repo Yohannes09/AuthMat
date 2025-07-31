@@ -1,12 +1,7 @@
-package com.authmat.application.util;
+package com.authmat.application.users;
 
-import com.authmat.application.users.UserDto;
-import com.authmat.application.authorization.Role;
-import com.authmat.application.users.User;
-import com.authmat.application.users.UserPrincipal;
-import jakarta.annotation.PostConstruct;
+import com.authmat.application.authorization.entity.Role;
 import lombok.RequiredArgsConstructor;
-import org.modelmapper.ModelMapper;
 import org.springframework.stereotype.Component;
 
 import java.util.Set;
@@ -14,22 +9,22 @@ import java.util.stream.Collectors;
 
 @Component
 @RequiredArgsConstructor
-public class Mapper {
-    private final ModelMapper modelMapper;
-
-    private static Mapper instance;
-
-    @PostConstruct
-    public void initialize(){
-        instance = new Mapper(modelMapper);
-    }
-
-    public static <T> T map(Object sourceType, Class<T> destinationType){
-        if(instance == null || instance.modelMapper == null){
-            throw new IllegalStateException("Failed to initialize Mapper. ");
-        }
-        return instance.modelMapper.map(sourceType, destinationType);
-    }
+public class UserMapper {
+//    private final ModelMapper modelMapper;
+//
+//    private static UserMapper instance;
+//
+//    @PostConstruct
+//    public void initialize(){
+//        instance = new UserMapper(modelMapper);
+//    }
+//
+//    public static <T> T map(Object sourceType, Class<T> destinationType){
+//        if(instance == null || instance.modelMapper == null){
+//            throw new IllegalStateException("Failed to initialize UserMapper. ");
+//        }
+//        return instance.modelMapper.map(sourceType, destinationType);
+//    }
 
     public static UserDto entityToDto(User user){
         Set<String> roles = user.getRoles().stream()

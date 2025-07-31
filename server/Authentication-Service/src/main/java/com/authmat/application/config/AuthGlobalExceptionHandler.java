@@ -1,11 +1,13 @@
 package com.authmat.application.config;
 
 import com.authmat.application.authentication.DuplicateCredentialException;
+import com.authmat.application.authorization.exception.PermissionNotFoundException;
 import com.authmat.application.credentials.exception.CredentialUpdateException;
-import com.authmat.application.authorization.RoleNotFoundException;
+import com.authmat.application.authorization.exception.RoleNotFoundException;
 import com.authmat.application.users.UserNotFoundException;
 import com.payme.internal.exception.BaseGlobalExceptionHandler;
 import com.payme.internal.exception.ErrorResponse;
+import io.lettuce.core.RedisConnectionException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -20,7 +22,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 public class AuthGlobalExceptionHandler extends BaseGlobalExceptionHandler {
     // Errors that should not be returned for the client for various reasons like
     // security and UX.
-    @ExceptionHandler({RoleNotFoundException.class, IllegalStateException.class})
+    @ExceptionHandler({RoleNotFoundException.class, PermissionNotFoundException.class, IllegalStateException.class})
     public ResponseEntity<ErrorResponse> handleInternalExceptions(
             Exception exception, HttpServletRequest request
     ){
@@ -88,6 +90,34 @@ public class AuthGlobalExceptionHandler extends BaseGlobalExceptionHandler {
             DuplicateCredentialException exception, HttpServletRequest request
     ){
         log.warn("Credential conflict detected: {}", exception.getMessage());
+
+        return generateErrorResponse(
+                "Username/Email taken.",
+                HttpStatus.BAD_REQUEST,
+                request
+        );
+
+    }
+
+    @ExceptionHandler(NullPointerException.class)
+    public ResponseEntity<ErrorResponse> handleNullPointerException(
+            DuplicateCredentialException exception, HttpServletRequest request
+    ){
+        log.warn("Null Pointer Exception: {}", exception.getMessage());
+
+        return generateErrorResponse(
+                "Username/Email taken.",
+                HttpStatus.BAD_REQUEST,
+                request
+        );
+
+    }
+
+    @ExceptionHandler(RedisConnectionException.class)
+    public ResponseEntity<ErrorResponse> handleRedisConnectionException(
+            DuplicateCredentialException exception, HttpServletRequest request
+    ){
+        log.warn("Redis connection error: {}", exception.getMessage());
 
         return generateErrorResponse(
                 "Username/Email taken.",

@@ -1,5 +1,6 @@
-package com.authmat.application.authorization;
+package com.authmat.application.authorization.entity;
 
+import com.authmat.application.authorization.constant.DefaultRoles;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -8,10 +9,11 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @Table(name = "roles")
-//@JsonIgnoreProperties(ignoreUnknown = true)
 @Entity
 @Getter
 @NoArgsConstructor
@@ -25,7 +27,8 @@ public class Role {
     @SequenceGenerator(
             name = "role_id_sequence",
             sequenceName = "role_id_sequence",
-            initialValue = 3456
+            initialValue = 3456,
+            allocationSize = 63
     )
     private Long id;
 
@@ -45,8 +48,16 @@ public class Role {
     @Column(name = "is_system_role", nullable = false)
     private boolean isSystemRole = false;
 
+    @ManyToMany
+    @JoinTable(
+            name = "role_permissions",
+            joinColumns = @JoinColumn(name = "role_id"),
+            inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
+    private Set<Permission> permissions = new HashSet<>();
+
     public Role(DefaultRoles defaultRole){
-        this.role = defaultRole.getRole();
+        this.role = defaultRole.getName();
         this.description = defaultRole.getDescription();
     }
 

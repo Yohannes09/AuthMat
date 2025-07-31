@@ -1,4 +1,4 @@
-package com.authmat.application.authorization;
+package com.authmat.application.authorization.exception;
 
 public class RoleNotFoundException extends RuntimeException {
     public RoleNotFoundException(String message) {

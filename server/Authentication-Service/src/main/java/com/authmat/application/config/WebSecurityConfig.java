@@ -1,6 +1,6 @@
 package com.authmat.application.config;
 
-import com.authmat.application.authorization.DefaultRoles;
+import com.authmat.application.authorization.constant.DefaultRoles;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,9 +40,9 @@ public class WebSecurityConfig {
                                 .requestMatchers("/api/v1/auth/**").permitAll()
                                 .anyRequest().authenticated()
                                 .requestMatchers("/swagger-ui/**","/v3/api-docs/**").hasAnyRole(
-                                        DefaultRoles.DEV.getRole(),
-                                        DefaultRoles.ADMIN.getRole(),
-                                        DefaultRoles.SUPER_ADMIN.getRole()
+                                        DefaultRoles.DEV.getName(),
+                                        DefaultRoles.ADMIN.getName(),
+                                        DefaultRoles.SUPER_ADMIN.getName()
                                 )
                 )
                 .sessionManagement(session->

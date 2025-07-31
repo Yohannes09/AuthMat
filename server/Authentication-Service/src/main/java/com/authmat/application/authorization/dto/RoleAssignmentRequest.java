@@ -1,4 +1,4 @@
-package com.authmat.application.authorization;
+package com.authmat.application.authorization.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;

@@ -23,7 +23,9 @@ spring:
 application:
   name: Authentication
 
-default-roles:
+# Name not final.
+#domain:
+#  name: ${DOMAIN_NAME}
 
 # All required
 cache:

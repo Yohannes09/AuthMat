@@ -1,10 +1,9 @@
 package com.authmat.application.users;
 
-import com.authmat.application.authorization.RoleProvider;
-import com.authmat.application.authorization.DefaultRoles;
-import com.authmat.application.authorization.RoleAssignmentRequest;
-import com.authmat.application.util.Mapper;
-import com.authmat.application.authorization.Role;
+import com.authmat.application.authorization.DefaultRoleInitializer;
+import com.authmat.application.authorization.constant.DefaultRoles;
+import com.authmat.application.authorization.dto.RoleAssignmentRequest;
+import com.authmat.application.authorization.entity.Role;
 import com.authmat.application.authentication.DuplicateCredentialException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -23,7 +22,7 @@ import java.util.stream.Collectors;
 public class UserAccountManager {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final RoleProvider roleProvider;
+    private final DefaultRoleInitializer defaultRoleInitializer;
 
 
     /**
@@ -40,7 +39,7 @@ public class UserAccountManager {
         }
 
         Set<Role> defaultRoles = new HashSet<>();
-        Role userRole = roleProvider.findRole(DefaultRoles.USER.getRole());
+        Role userRole = defaultRoleInitializer.findRole(DefaultRoles.USER.getName());
         defaultRoles.add(userRole);
 
         userRepository.save(
@@ -80,12 +79,10 @@ public class UserAccountManager {
 
     }
 
-
-    @Cacheable(cacheNames = "user", key = "#userId")
     public UserDto findById(Long userId){
         return userRepository
                 .findById(userId)
-                .map(Mapper::entityToDto)
+                .map(UserMapper::entityToDto)
                 .orElseThrow(()-> new UserNotFoundException("User not found: " + userId));
     }
 
@@ -94,7 +91,7 @@ public class UserAccountManager {
     public UserDto findByUsernameOrEmail(String usernameOrEmail){
         return userRepository
                 .findByUsernameOrEmail(usernameOrEmail)
-                .map(Mapper::entityToDto)
+                .map(UserMapper::entityToDto)
                 .orElseThrow(() -> new UserNotFoundException("User not found: " + usernameOrEmail));
     }
 
@@ -130,7 +127,7 @@ public class UserAccountManager {
         User user = findEntityById(request.userId());
 
         Set<Role> roles = request.roleNames().stream()
-                .map(roleProvider::findRole)
+                .map(defaultRoleInitializer::findRole)
                 .collect(Collectors.toSet());
 
         boolean changed = user.getRoles().addAll(roles);

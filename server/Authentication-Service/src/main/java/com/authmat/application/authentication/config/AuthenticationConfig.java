@@ -1,7 +1,7 @@
 package com.authmat.application.authentication.config;
 
 import com.authmat.application.users.UserAccountManager;
-import com.authmat.application.util.Mapper;
+import com.authmat.application.users.UserMapper;
 import com.authmat.application.users.UserDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,7 +38,7 @@ public class AuthenticationConfig {
     public UserDetailsService userDetailsService(){
         return usernameOrEmail -> {
             UserDto user = userAccountManager.findByUsernameOrEmail(usernameOrEmail);
-            return Mapper.dtoToPrincipal(user);
+            return UserMapper.dtoToPrincipal(user);
         };
     }
 

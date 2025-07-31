@@ -2,7 +2,7 @@ package com.authmat.application.authentication.service;
 
 import com.authmat.application.authentication.LoginAttemptManager;
 import com.authmat.application.authentication.TokenProvider;
-import com.authmat.application.util.Mapper;
+import com.authmat.application.users.UserMapper;
 import com.authmat.application.users.UserDto;
 import com.authmat.application.authentication.dto.LoginRequest;
 import com.authmat.application.authentication.dto.RegistrationRequest;
@@ -66,7 +66,7 @@ public class JwtAuthenticationService implements AuthenticationService {
 
             log.info("Successful login: {}", user.getId());
             loginAttemptManager.loginSucceeded(identifier);
-            return generateAuthenticationResponse(Mapper.principalToDto(user));
+            return generateAuthenticationResponse(UserMapper.principalToDto(user));
         } catch (AuthenticationException e) {
             loginAttemptManager.loginFailed(identifier);
             throw e;
