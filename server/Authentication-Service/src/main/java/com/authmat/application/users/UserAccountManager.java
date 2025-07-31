@@ -1,10 +1,10 @@
 package com.authmat.application.users;
 
-import com.authmat.application.authorization.DefaultRoleInitializer;
+import com.authmat.application.authentication.DuplicateCredentialException;
+import com.authmat.application.authorization.config.DefaultRolesAndPermissionsInitializer;
 import com.authmat.application.authorization.constant.DefaultRoles;
 import com.authmat.application.authorization.dto.RoleAssignmentRequest;
 import com.authmat.application.authorization.entity.Role;
-import com.authmat.application.authentication.DuplicateCredentialException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -12,9 +12,7 @@ import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
-import java.util.HashSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Component
 @Slf4j
@@ -22,7 +20,7 @@ import java.util.stream.Collectors;
 public class UserAccountManager {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final DefaultRoleInitializer defaultRoleInitializer;
+    private final DefaultRolesAndPermissionsInitializer defaultRolesAndPermissionsInitializer;
 
 
     /**
@@ -32,34 +30,7 @@ public class UserAccountManager {
      * @param password
      * @throws DuplicateCredentialException if the username or email already exists.
      */
-    public void createNewUser(String username, String email, String password){
-
-        if(userRepository.existsByUsernameOrEmail(username, email)){
-            throw new DuplicateCredentialException("Username or Email already registered. ");
-        }
-
-        Set<Role> defaultRoles = new HashSet<>();
-        Role userRole = defaultRoleInitializer.findRole(DefaultRoles.USER.getName());
-        defaultRoles.add(userRole);
-
-        userRepository.save(
-                User.builder()
-                        .username(username)
-                        .email(email)
-                        .password(passwordEncoder.encode(password))
-                        .roles(defaultRoles)
-                        .accountNonExpired(true)
-                        .accountNonLocked(true)
-                        .credentialsNonExpired(true)
-                        .enabled(true)
-                        .build()
-        );
-
-    }
-
-    // Not for production use, just to easily create default profiles.
     public void createNewUser(String username, String email, String password, Set<Role> roles){
-
         if(userRepository.existsByUsernameOrEmail(username, email)){
             throw new DuplicateCredentialException("Username or Email already registered. ");
         }
@@ -79,10 +50,9 @@ public class UserAccountManager {
 
     }
 
-    public UserDto findById(Long userId){
+    public User findById(Long userId){
         return userRepository
                 .findById(userId)
-                .map(UserMapper::entityToDto)
                 .orElseThrow(()-> new UserNotFoundException("User not found: " + userId));
     }
 
@@ -126,15 +96,15 @@ public class UserAccountManager {
     public void addRoles(RoleAssignmentRequest request){
         User user = findEntityById(request.userId());
 
-        Set<Role> roles = request.roleNames().stream()
-                .map(defaultRoleInitializer::findRole)
-                .collect(Collectors.toSet());
-
-        boolean changed = user.getRoles().addAll(roles);
-        if (changed) {
-            userRepository.save(user);
-            log.info("Role(s) successfully added. ID: {}, New roles: {}", user.getId(), user.getRoles());
-        }
+//        Set<Role> roles = request.roleNames().stream()
+//                .map(defaultRolesAndPermissionsInitializer::findRole)
+//                .collect(Collectors.toSet());
+//
+//        boolean changed = user.getRoles().addAll(roles);
+//        if (changed) {
+//            userRepository.save(user);
+//            log.info("Role(s) successfully added. ID: {}, New roles: {}", user.getId(), user.getRoles());
+//        }
 
     }
 
@@ -143,7 +113,7 @@ public class UserAccountManager {
         User user = findEntityById(request.userId());
 
         boolean changed = user.getRoles().removeIf(role ->
-                !request.roleNames().contains(role.getRole()) && !role.getRole().equals(DefaultRoles.USER.name())
+                !request.roleNames().contains(role.getName()) && !role.getName().equals(DefaultRoles.USER.name())
         );
 
         if (changed) {

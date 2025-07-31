@@ -1,11 +1,12 @@
 package com.authmat.application.authorization.constant;
 
-import com.authmat.application.config.GeneralApplicationConfig;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
+import java.util.EnumSet;
+import java.util.Set;
+
 @RequiredArgsConstructor
-@Getter
 public enum DefaultPermissions {
     USER_ACCESS_RESOURCES("AUTH_USER_ACCESS", "Basic permission for regular users."),
     ROLE_FULL_ACCESS("AUTH_FULL_ACCESS", "Read, Update, Delete, and Create roles."),
@@ -15,10 +16,16 @@ public enum DefaultPermissions {
     ROLE_READ("AUTH_ROLE_READ", "Read an existing role.");
 
     private final String name;
+
+    @Getter
     private final String description;
 
-    public String getFormattedName(){
+    public String getName(){
         return name.replace("_",":").toLowerCase();
+    }
+
+    public static Set<DefaultPermissions> getAll(){
+        return EnumSet.allOf(DefaultPermissions.class);
     }
 
 }

@@ -1,4 +1,4 @@
-package com.authmat.application.authentication;
+package com.authmat.application.authentication.component;
 
 import com.payme.internal.security.constant.TokenRecipient;
 import com.payme.internal.security.constant.TokenType;

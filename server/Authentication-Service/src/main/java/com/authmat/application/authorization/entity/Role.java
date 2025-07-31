@@ -3,6 +3,7 @@ package com.authmat.application.authorization.entity;
 import com.authmat.application.authorization.constant.DefaultRoles;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
@@ -16,6 +17,7 @@ import java.util.Set;
 @Table(name = "roles")
 @Entity
 @Getter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class Role {
@@ -33,7 +35,7 @@ public class Role {
     private Long id;
 
     @Column(nullable = false)
-    private String role;
+    private String name;
 
     private String description;
 
@@ -57,7 +59,7 @@ public class Role {
     private Set<Permission> permissions = new HashSet<>();
 
     public Role(DefaultRoles defaultRole){
-        this.role = defaultRole.getName();
+        this.name = defaultRole.getName();
         this.description = defaultRole.getDescription();
     }
 

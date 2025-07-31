@@ -1,14 +1,12 @@
 package com.authmat.application.authentication.service;
 
-import com.authmat.application.authentication.LoginAttemptManager;
-import com.authmat.application.authentication.TokenProvider;
-import com.authmat.application.users.UserMapper;
-import com.authmat.application.users.UserDto;
+import com.authmat.application.authentication.component.LoginAttemptManager;
+import com.authmat.application.authentication.component.TokenProvider;
+import com.authmat.application.authentication.dto.AuthenticationResponse;
 import com.authmat.application.authentication.dto.LoginRequest;
 import com.authmat.application.authentication.dto.RegistrationRequest;
-import com.authmat.application.users.UserAccountManager;
-import com.authmat.application.authentication.dto.AuthenticationResponse;
-import com.authmat.application.users.UserPrincipal;
+import com.authmat.application.authorization.persistence.RolePermissionRepository;
+import com.authmat.application.users.*;
 import com.payme.internal.security.constant.TokenRecipient;
 import com.payme.internal.security.model.UserTokenSubject;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +17,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Set;
 
 @Service("jwtAuthenticationService")
 @Slf4j
@@ -29,10 +27,12 @@ public class JwtAuthenticationService implements AuthenticationService {
     private final TokenProvider tokenProvider;
     private final AuthenticationManager authenticationManager;
     private final LoginAttemptManager loginAttemptManager;
+    private final RolePermissionRepository rolePermissionRepository;
 
     @Override
     @Transactional
     public void register(RegistrationRequest registrationRequest) {
+        rolePermissionRepository.findRoleById()
         userAccountManager.createNewUser(
                 registrationRequest.username(),
                 registrationRequest.email(),
@@ -66,7 +66,7 @@ public class JwtAuthenticationService implements AuthenticationService {
 
             log.info("Successful login: {}", user.getId());
             loginAttemptManager.loginSucceeded(identifier);
-            return generateAuthenticationResponse(UserMapper.principalToDto(user));
+            return generateAuthenticationResponse(UserMapper.principalToEntity(user));
         } catch (AuthenticationException e) {
             loginAttemptManager.loginFailed(identifier);
             throw e;
@@ -77,7 +77,7 @@ public class JwtAuthenticationService implements AuthenticationService {
 
     @Override
     public AuthenticationResponse refresh(Long id){
-        UserDto user = userAccountManager.findById(id);
+        User user = userAccountManager.findById(id);
         validateUserAccount(user);
 
         log.info("Token refresh: {}", user.getId());
@@ -91,7 +91,7 @@ public class JwtAuthenticationService implements AuthenticationService {
     }
 
 
-    private AuthenticationResponse generateAuthenticationResponse(UserDto user){
+    private AuthenticationResponse generateAuthenticationResponse(User user){
         Long id = user.getId();
         Set<String> roles = user.getRoles();
 
@@ -112,7 +112,7 @@ public class JwtAuthenticationService implements AuthenticationService {
     }
 
 
-    private void validateUserAccount(UserDto user) {
+    private void validateUserAccount(User user) {
         if (!user.isAccountNonLocked()) {
             throw new LockedException("Account is locked");
         }

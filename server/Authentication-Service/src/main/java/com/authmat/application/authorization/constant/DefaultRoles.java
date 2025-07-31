@@ -3,9 +3,8 @@ package com.authmat.application.authorization.constant;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
-import java.util.Arrays;
+import java.util.EnumSet;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Getter
 @RequiredArgsConstructor
@@ -38,10 +37,10 @@ public enum DefaultRoles {
 
     private final String name;
     private final String description;
-    private final Set<DefaultPermissions> defaultPermissions;
+    private final Set<DefaultPermissions> permissions;
 
     public static Set<DefaultRoles> getAll(){
-        return Arrays.stream(DefaultRoles.values()).collect(Collectors.toSet());
+        return EnumSet.allOf(DefaultRoles.class);
     }
 
 }

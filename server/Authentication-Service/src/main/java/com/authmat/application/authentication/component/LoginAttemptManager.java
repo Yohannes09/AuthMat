@@ -1,4 +1,4 @@
-package com.authmat.application.authentication;
+package com.authmat.application.authentication.component;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;

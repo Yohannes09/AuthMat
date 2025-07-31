@@ -27,67 +27,38 @@ public class UserPrincipal implements UserDetails {
     private boolean credentialsNonExpired;
     private boolean enabled;
 
-
-    /**
-     * @return
-     */
     @Override
-//    @JsonIgnore
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return roles.stream()
                 .map(role-> new SimpleGrantedAuthority("ROLE_" + role))
                 .toList();
     }
 
-
-    /**
-     * @return
-     */
     @Override
     public String getPassword() {
         return password;
     }
 
-
-    /**
-     * @return
-     */
     @Override
     public String getUsername() {
         return username;
     }
 
-
-    /**
-     * @return
-     */
     @Override
     public boolean isAccountNonExpired() {
         return accountNonExpired;
     }
 
-
-    /**
-     * @return
-     */
     @Override
     public boolean isAccountNonLocked() {
         return accountNonLocked;
     }
 
-
-    /**
-     * @return
-     */
     @Override
     public boolean isCredentialsNonExpired() {
         return credentialsNonExpired;
     }
 
-
-    /**
-     * @return
-     */
     @Override
     public boolean isEnabled() {
         return enabled;
