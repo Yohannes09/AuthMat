@@ -1,6 +1,7 @@
-package com.authmat.application.config;
+package com.authmat.application.authentication.config;
 
 import com.authmat.application.authorization.constant.DefaultRoles;
+import com.authmat.application.config.AuthenticationFilterConfig;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

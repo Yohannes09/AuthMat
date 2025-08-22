@@ -1,4 +1,4 @@
-package com.authmat.application.signingkey;
+package com.authmat.application.token.signingkey;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;

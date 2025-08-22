@@ -1,14 +1,15 @@
 package com.authmat.application.authentication.service;
 
 import com.authmat.application.authentication.component.LoginAttemptManager;
-import com.authmat.application.authentication.component.TokenProvider;
+import com.authmat.application.token.service.TokenService;
 import com.authmat.application.authentication.dto.AuthenticationResponse;
 import com.authmat.application.authentication.dto.LoginRequest;
 import com.authmat.application.authentication.dto.RegistrationRequest;
 import com.authmat.application.authorization.persistence.RolePermissionRepository;
-import com.authmat.application.users.*;
-import com.payme.internal.security.constant.TokenRecipient;
-import com.payme.internal.security.model.UserTokenSubject;
+import com.authmat.application.users.User;
+import com.authmat.application.users.UserAccountManager;
+import com.authmat.application.users.UserMapper;
+import com.authmat.application.users.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.*;
@@ -17,14 +18,12 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Set;
-
 @Service("jwtAuthenticationService")
 @Slf4j
 @RequiredArgsConstructor
-public class JwtAuthenticationService implements AuthenticationService {
+public class AuthenticationServiceImp implements AuthenticationService {
     private final UserAccountManager userAccountManager;
-    private final TokenProvider tokenProvider;
+    private final TokenService tokenService;
     private final AuthenticationManager authenticationManager;
     private final LoginAttemptManager loginAttemptManager;
     private final RolePermissionRepository rolePermissionRepository;
@@ -32,12 +31,12 @@ public class JwtAuthenticationService implements AuthenticationService {
     @Override
     @Transactional
     public void register(RegistrationRequest registrationRequest) {
-        rolePermissionRepository.findRoleById()
-        userAccountManager.createNewUser(
-                registrationRequest.username(),
-                registrationRequest.email(),
-                registrationRequest.password()
-        );
+//        rolePermissionRepository.findRoleById();
+//        userAccountManager.createNewUser(
+//                registrationRequest.username(),
+//                registrationRequest.email(),
+//                registrationRequest.password()
+//        );
 
         log.info("Successful registration: {}", registrationRequest.username());
     }
@@ -92,23 +91,24 @@ public class JwtAuthenticationService implements AuthenticationService {
 
 
     private AuthenticationResponse generateAuthenticationResponse(User user){
-        Long id = user.getId();
-        Set<String> roles = user.getRoles();
-
-        String accessToken = tokenProvider.generateAccessToken(
-                new UserTokenSubject(id.toString(), roles), TokenRecipient.USER
-        );
-
-        String refreshToken = tokenProvider.generateRefreshToken(
-                new UserTokenSubject(id.toString(), roles), TokenRecipient.USER
-        );
-
-        return AuthenticationResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .usernameOrEmail(user.getUsername())
-                .userId(id)
-                .build();
+//        Long id = user.getId();
+//        Set<String> roles = user.getRoles();
+//
+//        String accessToken = tokenProvider.generateAccessToken(
+//                new UserTokenSubject(id.toString(), roles), TokenRecipient.USER
+//        );
+//
+//        String refreshToken = tokenProvider.generateRefreshToken(
+//                new UserTokenSubject(id.toString(), roles), TokenRecipient.USER
+//        );
+//
+//        return AuthenticationResponse.builder()
+//                .accessToken(accessToken)
+//                .refreshToken(refreshToken)
+//                .usernameOrEmail(user.getUsername())
+//                .userId(id)
+//                .build();
+        return null;
     }
 
 

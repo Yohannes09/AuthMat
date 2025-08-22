@@ -1,8 +1,7 @@
 package com.authmat.application.users;
 
-import com.authmat.application.authorization.entity.Permission;
-import com.authmat.application.constant.ValidationConstants;
 import com.authmat.application.authorization.entity.Role;
+import com.authmat.application.constant.ValidationConstants;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Pattern;
@@ -60,14 +59,6 @@ public class User{
     )
     private Set<Role> roles = new HashSet<>();
 
-    @ManyToMany
-    @JoinTable(
-            name = "user_permissions",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "permission_id")
-    )
-    private Set<Permission> permissions = new HashSet<>();
-
     @CreationTimestamp
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
@@ -93,4 +84,13 @@ public class User{
     @Version
     private Long version;
 
+    //GitHub, Google, Local
+    @Column(name = "provider")
+    private String provider;
+
+    @Column(name = "provider_id")
+    private String providerId;
+
+    @Column(name = "external_id", unique = true)
+    private String externalId;
 }

@@ -1,4 +1,4 @@
-package com.authmat.application.signingkey;
+package com.authmat.application.token.signingkey;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +18,7 @@ public class SigningKeyController {
 
     @PostMapping
     public ResponseEntity<Void> rotateSigningKey(@RequestBody @Valid KeyRotationRequest request){
-        signingKeyHandler.rotateSigningKey(request);
+        //signingKeyHandler.rotateSigningKey(request);
         return ResponseEntity.noContent().build();
     }
 

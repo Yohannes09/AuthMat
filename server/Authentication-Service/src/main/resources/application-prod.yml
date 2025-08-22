@@ -23,9 +23,22 @@ spring:
 application:
   name: Authentication
 
-# Name not final.
-#domain:
-#  name: ${DOMAIN_NAME}
+management:
+  endpoints:
+    web:
+      # Changing the base endpoint from /actuator -> /manage-auth
+      base-path: /manage-auth
+      exposure:
+        # Specific endpoints can be selected, in this case, all endpoints are accessible.
+        include: *
+
+  endpoint:
+    # enables just the /shutdown endpoint
+    shutdown:
+      enabled: true
+    # Disabling the /info endpoint
+    info:
+      enabled: false
 
 # All required
 cache:

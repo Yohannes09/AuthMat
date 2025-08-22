@@ -15,12 +15,7 @@ import java.util.Set;
 public class UserDto {
     private Long id;
     private String username;
-    private String password;
     private String email;
-    private Set<String> roles;
+    private Set<String> permissions;
     private LocalDateTime updatedAt;
-    private boolean accountNonExpired;
-    private boolean accountNonLocked;
-    private boolean credentialsNonExpired;
-    private boolean enabled;
 }

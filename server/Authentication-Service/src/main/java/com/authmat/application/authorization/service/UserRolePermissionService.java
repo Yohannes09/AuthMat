@@ -36,7 +36,7 @@ public class UserRolePermissionService {
 
         Set<Permission> permissions = rolePermissionRepository.findPermissionsById(ids);
 
-        user.getPermissions().addAll(permissions);
+        //user.getPermissions().addAll(permissions);
         userRepository.save(user);
 
         return UserMapper.entityToDto(user);

@@ -1,14 +1,9 @@
 package com.authmat.application.users;
 
 import com.authmat.application.authentication.DuplicateCredentialException;
-import com.authmat.application.authorization.config.DefaultRolesAndPermissionsInitializer;
-import com.authmat.application.authorization.constant.DefaultRoles;
-import com.authmat.application.authorization.dto.RoleAssignmentRequest;
 import com.authmat.application.authorization.entity.Role;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.cache.annotation.Cacheable;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
@@ -20,7 +15,7 @@ import java.util.Set;
 public class UserAccountManager {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
-    private final DefaultRolesAndPermissionsInitializer defaultRolesAndPermissionsInitializer;
+    //private final DefaultRolesAndPermissionsInitializer defaultRolesAndPermissionsInitializer;
 
 
     /**
@@ -57,7 +52,6 @@ public class UserAccountManager {
     }
 
 
-    @Cacheable(cacheNames = "user", key = "#usernameOrEmail")
     public UserDto findByUsernameOrEmail(String usernameOrEmail){
         return userRepository
                 .findByUsernameOrEmail(usernameOrEmail)
@@ -80,7 +74,6 @@ public class UserAccountManager {
     }
 
 
-    // Provides encapsulation and allows for future enhancements. (caching, logging, etc.)
     public boolean existsByUsername(String username){
         if(username.isBlank())
             throw new NullPointerException("Provided null/empty username parameter to existsByUsername()");
@@ -92,35 +85,35 @@ public class UserAccountManager {
     }
 
 
-    @Transactional
-    public void addRoles(RoleAssignmentRequest request){
-        User user = findEntityById(request.userId());
-
-//        Set<Role> roles = request.roleNames().stream()
-//                .map(defaultRolesAndPermissionsInitializer::findRole)
-//                .collect(Collectors.toSet());
+//    @Transactional
+//    public void addRoles(RoleAssignmentRequest request){
+//        User user = findEntityById(request.userId());
 //
-//        boolean changed = user.getRoles().addAll(roles);
+////        Set<Role> roles = request.roleNames().stream()
+////                .map(defaultRolesAndPermissionsInitializer::findRole)
+////                .collect(Collectors.toSet());
+////
+////        boolean changed = user.getRoles().addAll(roles);
+////        if (changed) {
+////            userRepository.save(user);
+////            log.info("Role(s) successfully added. ID: {}, New roles: {}", user.getId(), user.getRoles());
+////        }
+//
+//    }
+//
+//    @Transactional
+//    public void removeRoles(RoleAssignmentRequest request){
+//        User user = findEntityById(request.userId());
+//
+//        boolean changed = user.getRoles().removeIf(role ->
+//                !request.roleNames().contains(role.getName()) && !role.getName().equals(DefaultRoles.USER.name())
+//        );
+//
 //        if (changed) {
 //            userRepository.save(user);
-//            log.info("Role(s) successfully added. ID: {}, New roles: {}", user.getId(), user.getRoles());
+//            log.info("Role(s) successfully removed. ID: {}, New roles: {}", user.getId(), user.getRoles());
 //        }
-
-    }
-
-    @Transactional
-    public void removeRoles(RoleAssignmentRequest request){
-        User user = findEntityById(request.userId());
-
-        boolean changed = user.getRoles().removeIf(role ->
-                !request.roleNames().contains(role.getName()) && !role.getName().equals(DefaultRoles.USER.name())
-        );
-
-        if (changed) {
-            userRepository.save(user);
-            log.info("Role(s) successfully removed. ID: {}, New roles: {}", user.getId(), user.getRoles());
-        }
-
-    }
+//
+//    }
 
 }
