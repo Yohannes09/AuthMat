@@ -1,15 +1,15 @@
 package com.authmat.application.authentication.service;
 
 import com.authmat.application.authentication.component.LoginAttemptManager;
-import com.authmat.application.token.service.TokenService;
 import com.authmat.application.authentication.dto.AuthenticationResponse;
 import com.authmat.application.authentication.dto.LoginRequest;
 import com.authmat.application.authentication.dto.RegistrationRequest;
 import com.authmat.application.authorization.persistence.RolePermissionRepository;
-import com.authmat.application.users.User;
-import com.authmat.application.users.UserAccountManager;
+import com.authmat.application.token.service.TokenService;
+import com.authmat.application.users.model.User;
+import com.authmat.application.users.UserService;
+import com.authmat.application.users.model.UserPrincipal;
 import com.authmat.application.users.UserMapper;
-import com.authmat.application.users.UserPrincipal;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.*;
@@ -22,7 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Slf4j
 @RequiredArgsConstructor
 public class AuthenticationServiceImp implements AuthenticationService {
-    private final UserAccountManager userAccountManager;
+    private final UserService userService;
     private final TokenService tokenService;
     private final AuthenticationManager authenticationManager;
     private final LoginAttemptManager loginAttemptManager;
@@ -76,7 +76,7 @@ public class AuthenticationServiceImp implements AuthenticationService {
 
     @Override
     public AuthenticationResponse refresh(Long id){
-        User user = userAccountManager.findById(id);
+        User user = userService.findEntityById(id);
         validateUserAccount(user);
 
         log.info("Token refresh: {}", user.getId());

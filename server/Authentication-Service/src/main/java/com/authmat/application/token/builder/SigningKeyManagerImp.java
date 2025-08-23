@@ -61,7 +61,8 @@ public class SigningKeyManagerImp implements SigningKeyManager{
      * @return the current active public key record of type {@code T}.
      * @throws KeyInitializationException if the public key has not been initialized.
      */
-    public PublicKeyMetaData getActivePublicKey(){
+    @Override
+    public PublicKeyMetaData getCurrentKeyMetaData(){
         validateKeyIsInitialized();
         return activeKeyPair.publicKeyMetaData();
     }

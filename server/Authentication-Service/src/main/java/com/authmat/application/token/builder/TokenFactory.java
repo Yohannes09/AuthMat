@@ -1,5 +1,6 @@
 package com.authmat.application.token.builder;
 
+import com.authmat.application.token.model.PublicKeyMetaData;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -9,6 +10,7 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.Date;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Component
@@ -56,5 +58,8 @@ public class TokenFactory {
                 .compact();
     }
 
+    public Optional<PublicKeyMetaData> currentKeyMetaData(){
+        return Optional.of(signingKeyManager.getCurrentKeyMetaData());
+    }
 
 }

@@ -1,62 +1,37 @@
 spring:
-  mvc:
-    throw-exception-if-no-handler-found: true
-  web:
-    resources:
-      add-mappings: false
+
   profiles:
     active: dev
+
   application:
     name: authentication-service
-  datasource:
-    driver-class-name: org.postgresql.Driver
+
   jackson:
     deserialization:
       fail-on-unknown-properties: true
 
-sentry:
-  dsn: https://6f39834fb7758b3febdbe15a42abad93@o4509417075900416.ingest.us.sentry.io/4509417078194176
-  # Add data like request headers and IP for users,
-  # see https://docs.sentry.io/platforms/java/guides/spring-boot/data-management/data-collected/ for more info
-  send-default-pii: true
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_OAUTH2_CLIENT_ID}
+            client-secret: ${GOOGLE_OAUTH2_CLIENT_SECRET}
+            scope:
+              - openid
+              - profile
+              - email
+        provider:
+          google:
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
 
-token:
-  signing:
-    algorithm: RSA
-    key-size: 2048
-    key-id: payme.auth.id
-    rotation-interval-minutes: 60
+Token:
 
-  encoding:
-    type: JWT
-    compress: false
+#sentry:
+#  dsn: https://6f39834fb7758b3febdbe15a42abad93@o4509417075900416.ingest.us.sentry.io/4509417078194176
+#  # Add data like request headers and IP for users,
+#  # see https://docs.sentry.io/platforms/java/guides/spring-boot/data-management/data-collected/ for more info
+#  send-default-pii: true
 
-  validation:
-    clock-skew-seconds: 60
-
-  default-claims:
-    audience: payme.internal
-    issuer: auth.payme.internal
-
-  templates:
-    short-lived:
-      validity-minutes: 15
-    standard:
-      validity-minutes: 60
-    long-lived:
-      validity-minutes: 120
-
-  profiles:
-    user:
-      access-token:
-        template: short-lived
-      refresh-token:
-        template: standard
-
-    service:
-      access-token:
-        template: short-lived
-      refresh-token:
-        template: standard
-      initialization-token:
-        template: long-lived

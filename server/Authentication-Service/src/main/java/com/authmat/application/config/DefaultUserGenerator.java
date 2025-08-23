@@ -1,7 +1,7 @@
 package com.authmat.application.config;
 
 import com.authmat.application.authorization.config.DefaultRolesAndPermissionsInitializer;
-import com.authmat.application.users.UserAccountManager;
+import com.authmat.application.users.UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
@@ -15,7 +15,7 @@ public class DefaultUserGenerator {
 
     @Bean
     public CommandLineRunner createDefaultUsers(
-            UserAccountManager userAccountManager, DefaultRolesAndPermissionsInitializer defaultRolesAndPermissionsInitializer
+            UserService userService, DefaultRolesAndPermissionsInitializer defaultRolesAndPermissionsInitializer
     ){
         return args -> {
             log.info("Creating default Admin and User accounts.");

@@ -1,7 +1,7 @@
 package com.authmat.application.authorization.controller;
 
 import com.authmat.application.authorization.config.DefaultRolesAndPermissionsInitializer;
-import com.authmat.application.users.UserAccountManager;
+import com.authmat.application.users.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequiredArgsConstructor
 public class RoleController {
     private final DefaultRolesAndPermissionsInitializer defaultRolesAndPermissionsInitializer;
-    private final UserAccountManager userAccountManager;
+    private final UserService userService;
 
     @PostMapping("${endpoints.roles.create:}")
     public ResponseEntity<Void> addRole(){

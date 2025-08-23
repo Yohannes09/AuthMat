@@ -4,7 +4,7 @@ import com.authmat.application.credentials.dto.EmailUpdateRequest;
 import com.authmat.application.credentials.dto.PasswordUpdateRequest;
 import com.authmat.application.credentials.dto.UsernameUpdateRequest;
 import com.authmat.application.credentials.exception.CredentialUpdateException;
-import com.authmat.application.users.User;
+import com.authmat.application.users.model.User;
 import com.authmat.application.users.UserNotFoundException;
 import com.authmat.application.users.UserRepository;
 import lombok.RequiredArgsConstructor;

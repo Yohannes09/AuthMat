@@ -1,55 +1,38 @@
 package com.authmat.application.users;
 
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
+import com.authmat.application.authorization.entity.Permission;
+import com.authmat.application.authorization.entity.Role;
+import com.authmat.application.users.model.User;
+import com.authmat.application.users.model.UserDto;
+import com.authmat.application.users.model.UserPrincipal;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.Named;
+import org.mapstruct.ReportingPolicy;
+import org.mapstruct.factory.Mappers;
 
-@Component
-@RequiredArgsConstructor
-public class UserMapper {
+import java.util.Set;
+import java.util.stream.Collectors;
 
-    public static UserDto entityToDto(User user){
-//        Set<String> permissions = user.getPermissions().stream()
-//                .map(Permission::getName)
-//                .collect(Collectors.toSet());
+@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
+public interface UserMapper {
+    UserMapper userMapper = Mappers.getMapper(UserMapper.class);
 
-        return UserDto.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                //.permissions(permissions)
-//                .accountNonExpired(user.isAccountNonExpired())
-//                .accountNonLocked(user.isAccountNonLocked())
-//                .credentialsNonExpired(user.isCredentialsNonExpired())
-//                .enabled(user.isEnabled())
-                .build();
+    @Mapping(target = "permissions", source = "roles", qualifiedByName = "rolesToPermissionNames")
+    UserDto entityToDto(User user);
+
+    @Mapping(target = "roles", source = "roles")
+    UserPrincipal entityToPrincipal(User user);
+
+    @Named("rolesToPermissionNames")
+    default Set<String> mapRolesToPermissions(Set<Role> roles){
+        return roles
+                .stream()
+                .flatMap(role -> role
+                        .getPermissions()
+                        .stream()
+                        .map(Permission::getName))
+                .collect(Collectors.toSet());
     }
 
-    public static UserPrincipal dtoToPrincipal(UserDto user){
-        return UserPrincipal.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-//                .password(user.getPassword())
-//                //.roles(user.getRoles())
-//                .accountNonExpired(user.isAccountNonExpired())
-//                .accountNonLocked(user.isAccountNonLocked())
-//                .credentialsNonExpired(user.isCredentialsNonExpired())
-//                .enabled(user.isEnabled())
-                .build();
-    }
-
-
-    public static User principalToEntity(UserPrincipal user){
-        return User.builder()
-                .id(user.getId())
-                .username(user.getUsername())
-                .email(user.getEmail())
-                .password(user.getPassword())
-                //.roles(user.getRoles())
-                .accountNonExpired(user.isAccountNonExpired())
-                .accountNonLocked(user.isAccountNonLocked())
-                .credentialsNonExpired(user.isCredentialsNonExpired())
-                .enabled(user.isEnabled())
-                .build();
-    }
 }

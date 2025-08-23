@@ -4,6 +4,8 @@ import com.authmat.application.authorization.entity.Permission;
 import com.authmat.application.authorization.entity.Role;
 import com.authmat.application.authorization.persistence.RolePermissionRepository;
 import com.authmat.application.users.*;
+import com.authmat.application.users.model.User;
+import com.authmat.application.users.model.UserDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
