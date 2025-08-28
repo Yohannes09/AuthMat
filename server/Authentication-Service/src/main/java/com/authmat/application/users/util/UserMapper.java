@@ -1,4 +1,4 @@
-package com.authmat.application.users;
+package com.authmat.application.users.util;
 
 import com.authmat.application.authorization.entity.Permission;
 import com.authmat.application.authorization.entity.Role;
@@ -14,7 +14,7 @@ import org.mapstruct.factory.Mappers;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Mapper(unmappedTargetPolicy = ReportingPolicy.IGNORE)
+@Mapper(componentModel = "spring", unmappedTargetPolicy = ReportingPolicy.IGNORE)
 public interface UserMapper {
     UserMapper userMapper = Mappers.getMapper(UserMapper.class);
 

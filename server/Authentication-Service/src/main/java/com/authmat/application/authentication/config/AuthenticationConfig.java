@@ -1,6 +1,6 @@
 package com.authmat.application.authentication.config;
 
-import com.authmat.application.users.UserMapper;
+import com.authmat.application.users.util.UserMapper;
 import com.authmat.application.users.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

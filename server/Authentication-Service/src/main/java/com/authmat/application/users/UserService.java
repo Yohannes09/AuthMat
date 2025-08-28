@@ -4,9 +4,12 @@ import com.authmat.application.authentication.DuplicateCredentialException;
 import com.authmat.application.authorization.entity.Role;
 import com.authmat.application.users.model.User;
 import com.authmat.application.users.model.UserDto;
+import com.authmat.application.users.util.UserMapper;
+import com.authmat.tool.events.NewUserEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
@@ -23,8 +26,9 @@ public class UserService {
     private static final String USER_DATA_LOOKUP = "userData:lookup:";
 
     private final UserRepository userRepository;
-    private final RedisTemplate<String, Object> redisTemplate;
     private final UserMapper userMapper;
+    private final RedisTemplate<String, Object> redisTemplate;
+    private final KafkaTemplate<String,Object> kafkaTemplate;
 
 
     /**
@@ -35,25 +39,22 @@ public class UserService {
      * @param roles
      * @throws DuplicateCredentialException if the username or email already exists.
      */
-    public void createNewUser(
-            String username, String email, String encodedPassword, Set<Role> roles
-    ){
+    public void createNewUser(String username, String email, String encodedPassword){
         if(userRepository.existsByUsernameOrEmail(username, email)){
             throw new DuplicateCredentialException("Username or Email already registered. ");
         }
 
-        userRepository.save(User.builder()
+        User user = userRepository.save(User.builder()
                         .username(username)
                         .email(email)
                         .password(encodedPassword)
-                        .roles(roles)
                         .accountNonExpired(true)
                         .accountNonLocked(true)
                         .credentialsNonExpired(true)
                         .enabled(true)
-                        .build()
-        );
+                        .build());
 
+        kafkaTemplate.send("user-created-events", new NewUserEvent(user.getId(), username, email));
     }
 
     public User findEntityById(Long userId){

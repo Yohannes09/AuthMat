@@ -34,7 +34,7 @@ public class CachingConfig {
 
     @Bean("devRedisConnectionFactory")
     @Profile("dev")
-    public RedisConnectionFactory redisConnectionFactory() {
+    public RedisConnectionFactory devRedisConnectionFactory() {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(
                 "10.0.0.222", 6379
         );

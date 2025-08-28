@@ -1,5 +1,6 @@
 package com.authmat.application.authorization.entity;
 
+import com.authmat.application.authorization.constant.DefaultPermission;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -41,4 +42,9 @@ public class Permission {
     @Column(name = "updated_at", nullable = false)
     @UpdateTimestamp
     private LocalDateTime updatedAt;
+
+    public Permission(DefaultPermission defaultPermission){
+        this.name = defaultPermission.getName();
+        this.description = defaultPermission.getDescription();
+    }
 }

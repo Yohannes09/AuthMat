@@ -41,7 +41,7 @@ public class WebSecurityConfig {
                                 .requestMatchers("/api/v1/auth/**").permitAll()
                                 .anyRequest().authenticated()
                                 .requestMatchers("/swagger-ui/**","/v3/api-docs/**").hasAnyRole(
-                                        DefaultRoles.DEV.getName(),
+                                        //DefaultRoles.DEV.getName(),
                                         DefaultRoles.ADMIN.getName(),
                                         DefaultRoles.SUPER_ADMIN.getName()
                                 )

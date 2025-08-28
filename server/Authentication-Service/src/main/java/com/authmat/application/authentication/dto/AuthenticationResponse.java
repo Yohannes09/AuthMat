@@ -13,19 +13,6 @@ public record AuthenticationResponse(
         String accessToken,
 
         @Schema(description = "Long-lived token used to fetch a new access token. ")
-        String refreshToken,
-
-        @Schema(description = "ID of the authenticated user. ")
-        Long userId,
-
-        @Schema
-        String usernameOrEmail
+        String refreshToken
 ){
-        public AuthenticationResponse trimmed(){
-                return AuthenticationResponse.builder()
-                        .userId(this.userId)
-                        .usernameOrEmail(this.usernameOrEmail)
-                        .build();
-        }
-
 }

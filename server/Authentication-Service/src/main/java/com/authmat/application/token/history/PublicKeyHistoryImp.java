@@ -17,7 +17,7 @@ import java.util.List;
  * <p><strong>Note:</strong> This implementation does not persist key history and will
  * reset on application restart.
  */
-@Component
+//@Component
 @Validated
 @RequiredArgsConstructor
 public class PublicKeyHistoryImp implements PublicKeyHistory{

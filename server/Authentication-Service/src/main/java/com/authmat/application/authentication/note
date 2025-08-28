@@ -1,0 +1,7 @@
+@RestController
+public class AuthController {
+
+    public ResponseEntity<?> login(OAuth2AuthenticationToken authenticationToken){
+
+    }
+}

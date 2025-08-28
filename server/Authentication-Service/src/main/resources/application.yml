@@ -27,8 +27,18 @@ spring:
             token-uri: https://oauth2.googleapis.com/token
             user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
 
-Token:
+# allow for external config
+messaging:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
 
+token:
+  refresh:
+    token-validity-minutes: ${REFRESH_TOKEN_VALIDITY_MINUTES}
+    key-history-trace: ${REFRESH_TOKEN_HISTORY_TRACE}
+  access:
+    token-validity-minutes: ${ACCESS_TOKEN_VALIDITY_MINUTES}
+    key-history-trace: ${ACCESS_TOKEN_HISTORY_TRACE}
 #sentry:
 #  dsn: https://6f39834fb7758b3febdbe15a42abad93@o4509417075900416.ingest.us.sentry.io/4509417078194176
 #  # Add data like request headers and IP for users,

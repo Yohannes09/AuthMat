@@ -87,17 +87,17 @@
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
-            <version>0.11.1</version>
+            <version>${jjwt.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
-            <version>0.11.1</version>
+            <version>${jjwt.version}</version>
         </dependency>
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
-            <version>0.11.1</version>
+            <version>${jjwt.version}</version>
         </dependency>
 
         <!-- Redis -->
@@ -169,16 +169,10 @@
         </dependency>
 
         <!--shared models dependency-->
-<!--        <dependency>-->
-<!--            <groupId>com.authmat</groupId>-->
-<!--            <artifactId>internal-tools</artifactId>-->
-<!--            <version>1.0.1</version>-->
-<!--        </dependency>-->
-
         <dependency>
             <groupId>com.authmat</groupId>
-            <artifactId>token-provider</artifactId>
-            <version>1.0.3</version>
+            <artifactId>internal-tools</artifactId>
+            <version>1.0.1</version>
         </dependency>
 
         <!-- MAPPER -->
@@ -192,6 +186,11 @@
             <groupId>org.mapstruct</groupId>
             <artifactId>mapstruct-processor</artifactId>
             <version>${mapstruct.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.kafka</groupId>
+            <artifactId>spring-kafka</artifactId>
         </dependency>
 
     </dependencies>

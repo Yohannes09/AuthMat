@@ -21,6 +21,7 @@ import java.util.stream.Collectors;
 public class UserPrincipal implements UserDetails {
     private Long id;
     private String username;
+    private String password;
     private String email;
     private Set<Role> roles;
     private boolean accountNonExpired;

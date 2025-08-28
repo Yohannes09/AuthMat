@@ -4,19 +4,23 @@ import com.authmat.application.authentication.component.LoginAttemptManager;
 import com.authmat.application.authentication.dto.AuthenticationResponse;
 import com.authmat.application.authentication.dto.LoginRequest;
 import com.authmat.application.authentication.dto.RegistrationRequest;
-import com.authmat.application.authorization.persistence.RolePermissionRepository;
 import com.authmat.application.token.service.TokenService;
-import com.authmat.application.users.model.User;
 import com.authmat.application.users.UserService;
 import com.authmat.application.users.model.UserPrincipal;
-import com.authmat.application.users.UserMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.HashSet;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service("jwtAuthenticationService")
 @Slf4j
@@ -26,17 +30,15 @@ public class AuthenticationServiceImp implements AuthenticationService {
     private final TokenService tokenService;
     private final AuthenticationManager authenticationManager;
     private final LoginAttemptManager loginAttemptManager;
-    private final RolePermissionRepository rolePermissionRepository;
 
     @Override
     @Transactional
     public void register(RegistrationRequest registrationRequest) {
-//        rolePermissionRepository.findRoleById();
-//        userAccountManager.createNewUser(
-//                registrationRequest.username(),
-//                registrationRequest.email(),
-//                registrationRequest.password()
-//        );
+        userService.createNewUser(
+                registrationRequest.username(),
+                registrationRequest.email(),
+                registrationRequest.password()
+        );
 
         log.info("Successful registration: {}", registrationRequest.username());
     }
@@ -50,22 +52,22 @@ public class AuthenticationServiceImp implements AuthenticationService {
         }
 
         try {
-            UserPrincipal user;
-            Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(
-                            loginRequest.usernameOrEmail(), loginRequest.password()
-                    )
-            );
+            UsernamePasswordAuthenticationToken token =
+                    new UsernamePasswordAuthenticationToken(loginRequest.usernameOrEmail(), loginRequest.password());
 
-            Object principal = authentication.getPrincipal();
-            if(principal instanceof UserPrincipal u)
-                user =  u;
-            else
-                throw new IllegalStateException("Error - Incompatible types\n -Expected: User\n -Returned: " + principal.getClass());
+            Authentication authentication = authenticationManager.authenticate(token);
+            Object object = authentication.getPrincipal();
 
-            log.info("Successful login: {}", user.getId());
-            loginAttemptManager.loginSucceeded(identifier);
-            return generateAuthenticationResponse(UserMapper.principalToEntity(user));
+            if(object instanceof UserPrincipal principal) {
+                loginAttemptManager.loginSucceeded(identifier);
+                validateUserAccount(principal);
+
+                log.info("Successful login: {}", principal.getId());
+                return generateAuthenticationResponse(principal.getId().toString(), new HashSet<>(principal.getAuthorities()));
+            }
+
+            throw new IllegalStateException("Incompatible type mapping during authentication.");
+
         } catch (AuthenticationException e) {
             loginAttemptManager.loginFailed(identifier);
             throw e;
@@ -76,11 +78,11 @@ public class AuthenticationServiceImp implements AuthenticationService {
 
     @Override
     public AuthenticationResponse refresh(Long id){
-        User user = userService.findEntityById(id);
-        validateUserAccount(user);
+        UserPrincipal principal = (UserPrincipal) SecurityContextHolder.getContext().getAuthentication();
+        validateUserAccount(principal);
 
-        log.info("Token refresh: {}", user.getId());
-        return generateAuthenticationResponse(user);
+        log.info("Access Token refresh: {}", principal.getId());
+        return generateAuthenticationResponse(principal.getId().toString(), new HashSet<>(principal.getAuthorities()));
     }
 
 
@@ -90,29 +92,23 @@ public class AuthenticationServiceImp implements AuthenticationService {
     }
 
 
-    private AuthenticationResponse generateAuthenticationResponse(User user){
-//        Long id = user.getId();
-//        Set<String> roles = user.getRoles();
-//
-//        String accessToken = tokenProvider.generateAccessToken(
-//                new UserTokenSubject(id.toString(), roles), TokenRecipient.USER
-//        );
-//
-//        String refreshToken = tokenProvider.generateRefreshToken(
-//                new UserTokenSubject(id.toString(), roles), TokenRecipient.USER
-//        );
-//
-//        return AuthenticationResponse.builder()
-//                .accessToken(accessToken)
-//                .refreshToken(refreshToken)
-//                .usernameOrEmail(user.getUsername())
-//                .userId(id)
-//                .build();
-        return null;
+    private AuthenticationResponse generateAuthenticationResponse(String subject, Set<GrantedAuthority> grantedAuthorities){
+        Set<String> authorities = grantedAuthorities
+                .stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toSet());
+
+        String accessToken = tokenService.generateAccessToken(subject, authorities);
+        String refreshToken = tokenService.generateRefreshToken(subject);
+
+        return AuthenticationResponse.builder()
+                .accessToken(accessToken)
+                .refreshToken(refreshToken)
+                .build();
     }
 
 
-    private void validateUserAccount(User user) {
+    private void validateUserAccount(UserDetails user) {
         if (!user.isAccountNonLocked()) {
             throw new LockedException("Account is locked");
         }

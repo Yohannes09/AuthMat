@@ -3,7 +3,6 @@ package com.authmat.application.token.builder;
 import com.authmat.application.token.model.PublicKeyMetaData;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 
 import java.security.PrivateKey;
 import java.time.Duration;
@@ -13,7 +12,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-@Component
+//@Component
 @RequiredArgsConstructor
 public class TokenFactory {
     private final SigningKeyManager signingKeyManager;

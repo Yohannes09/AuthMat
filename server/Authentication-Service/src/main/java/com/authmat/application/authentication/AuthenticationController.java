@@ -114,7 +114,7 @@ public class AuthenticationController {
                 servletResponse
         );
 
-        return ResponseEntity.ok(authResponse.trimmed());
+        return ResponseEntity.ok(authResponse);
     }
 
 }

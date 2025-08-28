@@ -1,9 +1,9 @@
 package com.authmat.application.authentication.component;
 
-import com.authmat.application.InternalTypeException;
+import com.authmat.application.util.InternalTypeException;
 import com.authmat.application.authentication.service.CookieService;
 import com.authmat.application.token.service.TokenService;
-import com.authmat.application.users.UserMapper;
+import com.authmat.application.users.util.UserMapper;
 import com.authmat.application.users.UserNotFoundException;
 import com.authmat.application.users.UserRepository;
 import com.authmat.application.users.model.UserPrincipal;
