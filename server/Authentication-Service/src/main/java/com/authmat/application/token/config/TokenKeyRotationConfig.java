@@ -9,6 +9,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 @Configuration
 @Slf4j
 public class TokenKeyRotationConfig {
+    public static final int BEAN_CREATION_DELAY_MS = 3000;
+
     private final SigningKeyManager accessTokenKeyManager;
     private final SigningKeyManager refreshTokenKeyManager;
 
@@ -22,14 +24,20 @@ public class TokenKeyRotationConfig {
         this.refreshTokenKeyManager = refreshTokenKeyManager;
     }
 
-    @Scheduled(fixedRateString = "${token.access.key-rotation-rate:10}")
+    @Scheduled(
+            fixedRateString = "#{${token.access.key-rotation-rate:10}*60*1000}",
+            initialDelay = BEAN_CREATION_DELAY_MS
+    )
     public void rotateAccessTokenSigningKey(){
 
         log.info("Rotating Access Token signing key.");
         accessTokenKeyManager.rotateSigningKey();
     }
 
-    @Scheduled(fixedRateString = "${token.refresh.key-rotation-rate:10}")
+    @Scheduled(
+            fixedRateString = "#{${token.refresh.key-rotation-rate:10}*60*1000}",
+            initialDelay = BEAN_CREATION_DELAY_MS
+    )
     public void rotateRefreshTokenSigningKey(){
         log.info("Rotating Refresh Token signing key.");
         refreshTokenKeyManager.rotateSigningKey();

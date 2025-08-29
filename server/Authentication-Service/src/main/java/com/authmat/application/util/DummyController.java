@@ -2,7 +2,6 @@ package com.authmat.application.util;
 
 import com.authmat.application.authorization.config.DefaultRolesAndPermissionsInitializer;
 import com.authmat.application.authorization.entity.Role;
-import io.sentry.Sentry;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
@@ -29,11 +28,11 @@ public class DummyController {
 
     @GetMapping("/boom")
     public ResponseEntity<String> boom() {
-        try {
-            throw new RuntimeException("Simulated failure");
-        }catch (Exception e){
-            Sentry.captureException(e);
-        }
+//        try {
+//            throw new RuntimeException("Simulated failure");
+//        }catch (Exception e){
+//            Sentry.captureException(e);
+//        }4
         return ResponseEntity.ok("hello");
     }
 

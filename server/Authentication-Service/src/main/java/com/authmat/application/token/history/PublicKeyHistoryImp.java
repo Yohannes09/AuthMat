@@ -1,10 +1,7 @@
 package com.authmat.application.token.history;
 
 import com.authmat.application.token.model.PublicKeyMetaData;
-import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Component;
 import org.springframework.validation.annotation.Validated;
 
 import java.util.Comparator;
@@ -36,7 +33,7 @@ public class PublicKeyHistoryImp implements PublicKeyHistory{
      * @param publicKeyMetaData the public key metadata to store
      */
     @Override
-    public void addKey(@NotNull PublicKeyMetaData publicKeyMetaData) {
+    public void addKey(PublicKeyMetaData publicKeyMetaData) {
         if(keyHistory.size() >= maxKeysTraced){
             keyHistory.pollFirst();
         }
@@ -46,7 +43,7 @@ public class PublicKeyHistoryImp implements PublicKeyHistory{
 
 
     @Override
-    public void addKeys(@NotNull @NotEmpty List<@NotEmpty PublicKeyMetaData> publicKeyMetaData) {
+    public void addKeys(List<PublicKeyMetaData> publicKeyMetaData) {
         publicKeyMetaData.forEach(this::addKey);
     }
 

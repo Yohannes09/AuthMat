@@ -3,6 +3,7 @@ package com.authmat.application.authentication.config;
 import com.authmat.application.authorization.constant.DefaultRoles;
 import com.authmat.application.config.AuthenticationFilterConfig;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -25,6 +26,7 @@ import java.util.List;
 @EnableWebSecurity
 @EnableMethodSecurity
 @RequiredArgsConstructor
+@Slf4j
 public class WebSecurityConfig {
     private final AuthenticationProvider authenticationProvider;
 
@@ -32,13 +34,13 @@ public class WebSecurityConfig {
     @Bean
     @Profile("prod")
     public SecurityFilterChain securityFilterChain(HttpSecurity http, AuthenticationFilterConfig authenticationFilterConfig) throws Exception {
-
+        log.info("loading secured filter chain.");
         http
                 .cors(cors-> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request ->
                         request
-                                .requestMatchers("/api/v1/auth/**").permitAll()
+                                .requestMatchers("/auth/**").permitAll()
                                 .anyRequest().authenticated()
                                 .requestMatchers("/swagger-ui/**","/v3/api-docs/**").hasAnyRole(
                                         //DefaultRoles.DEV.getName(),
@@ -58,7 +60,7 @@ public class WebSecurityConfig {
     @Bean
     @Profile("dev")
     public SecurityFilterChain noSecurityFilterChain(HttpSecurity http, AuthenticationFilterConfig authenticationFilterConfig) throws Exception {
-
+        log.info("loading no-security filter chain.");
         http
                 .cors(cors-> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
@@ -67,8 +69,8 @@ public class WebSecurityConfig {
                 )
                 .sessionManagement(session->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                )
-                .addFilterBefore(authenticationFilterConfig, UsernamePasswordAuthenticationFilter.class);
+                );
+                //.addFilterBefore(authenticationFilterConfig, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

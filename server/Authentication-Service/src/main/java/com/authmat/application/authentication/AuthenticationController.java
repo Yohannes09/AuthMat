@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 @RestController
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5500"})
-@RequestMapping("${endpoints.auth.base:/api}")
+@RequestMapping("${endpoints.auth.base:/auth/v1}")
 @Slf4j
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
@@ -36,7 +36,8 @@ public class AuthenticationController {
     }
 
 
-    @PostMapping("${endpoints.auth.login:/auth}")
+    //@PostMapping("${endpoints.auth.login:/login}")
+    @PostMapping("/login")
     @Operation(
             summary = "Authenticate user credentials and issue access and refresh tokens. ",
             responses = {
@@ -57,7 +58,8 @@ public class AuthenticationController {
     }
 
 
-    @PostMapping("${endpoints.auth.register:/register}")
+    //@PostMapping("${endpoints.auth.register:/register}")
+    @PostMapping("/register")
     @Operation(
             summary = "Create a new user. ",
             responses = {
@@ -72,7 +74,7 @@ public class AuthenticationController {
     }
 
 
-    @PostMapping("${endpoints.auth.refresh:/refresh}/{id}")
+    @PostMapping("/refresh/{id}")
     @Operation(
             summary = "Issue new access and refresh tokens. Valid refresh token must come attached to request.",
             responses = {
@@ -81,7 +83,7 @@ public class AuthenticationController {
             }
     )
     public ResponseEntity<AuthenticationResponse> refresh(
-            @PathVariable Long id, HttpServletResponse servletResponse
+            @PathVariable("id") Long id, HttpServletResponse servletResponse
     ){
         AuthenticationResponse authResponse = authenticationService.refresh(id);
 
