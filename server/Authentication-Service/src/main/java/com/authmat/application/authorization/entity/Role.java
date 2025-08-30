@@ -1,7 +1,8 @@
 package com.authmat.application.authorization.entity;
 
-import com.authmat.application.authorization.constant.DefaultRoles;
+import com.authmat.application.authorization.constant.DefaultRole;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -35,6 +36,7 @@ public class Role {
     private Long id;
 
     @Column(nullable = false)
+    @Size(min = 4, max = 25)
     private String name;
 
     private String description;
@@ -58,7 +60,7 @@ public class Role {
     )
     private Set<Permission> permissions = new HashSet<>();
 
-    public Role(DefaultRoles defaultRole){
+    public Role(DefaultRole defaultRole){
         this.name = defaultRole.getName();
         this.description = defaultRole.getDescription();
     }

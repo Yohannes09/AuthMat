@@ -2,6 +2,7 @@ package com.authmat.application.authorization.entity;
 
 import com.authmat.application.authorization.constant.DefaultPermission;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
@@ -30,8 +31,8 @@ public class Permission {
     private Long id;
 
     @Column(nullable = false, unique = true)
+    @Size(min = 4, max = 50)
     private String name;
-
 
     private String description;
 

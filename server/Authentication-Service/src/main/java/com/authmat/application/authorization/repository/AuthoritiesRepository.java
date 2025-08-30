@@ -1,9 +1,7 @@
 package com.authmat.application.authorization.repository;
 
 import com.authmat.application.authorization.entity.Permission;
-import com.authmat.application.authorization.entity.Role;
 import com.authmat.application.authorization.exception.PermissionNotFoundException;
-import com.authmat.application.authorization.exception.RoleNotFoundException;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,20 +23,21 @@ public class AuthoritiesRepository {
     private static final String ROLE_PREFIX = "auth:role:";
 
 
-    public Optional<Role> findRoleByName(@NonNull String name){
-        String key = PERMISSION_PREFIX + name;
-        Object cachedRole = redisTemplate.opsForValue().get(key);
-
-        if(cachedRole instanceof Role role){
-            return Optional.of(role);
-        }
-
-        Role dbRole = roleRepository.findByName(name)
-                .orElseThrow(() -> new RoleNotFoundException("Role not found in DB. "));
-        redisTemplate.opsForValue().set(key, dbRole);
-
-        return Optional.of(dbRole);
-    }
+//    public <V> Optional<V> findRoleByName(@NonNull String name, Function<User, V> userMapperFunction){
+//        String key = PERMISSION_PREFIX + name;
+//        Object cachedRole = redisTemplate.opsForValue().get(key);
+//
+//        if(cachedRole instanceof Role role){
+//            return Optional.of(role);
+//        }
+//
+//        Role dbRole = roleRepository.findByName(name)
+//                .orElseThrow(() -> new RoleNotFoundException("Role not found in DB. "));
+//        log.info("Fetched Role from database.");
+//        redisTemplate.opsForValue().set(key, dbRole);
+//
+//        return Optional.of(userMapperFunction.apply(dbRole));
+//    }
 
     public Optional<Permission> findPermissionById(@NonNull Long id){
         String key = ROLE_PREFIX + id;

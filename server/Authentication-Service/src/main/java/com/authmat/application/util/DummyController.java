@@ -1,6 +1,6 @@
 package com.authmat.application.util;
 
-import com.authmat.application.authorization.config.DefaultRolesAndPermissionsInitializer;
+import com.authmat.application.authorization.config.DefaultAuthoritiesInitializer;
 import com.authmat.application.authorization.entity.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/dummy")
 @RequiredArgsConstructor
 public class DummyController {
-    private final DefaultRolesAndPermissionsInitializer defaultRolesAndPermissionsInitializer;
+    private final DefaultAuthoritiesInitializer defaultAuthoritiesInitializer;
 
 
     @GetMapping("/{role}")

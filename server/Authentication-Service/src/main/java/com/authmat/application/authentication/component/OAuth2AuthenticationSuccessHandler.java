@@ -1,12 +1,11 @@
 package com.authmat.application.authentication.component;
 
-import com.authmat.application.util.InternalTypeException;
-import com.authmat.application.authentication.service.CookieService;
-import com.authmat.application.token.service.TokenService;
-import com.authmat.application.users.util.UserMapper;
-import com.authmat.application.users.UserNotFoundException;
+import com.authmat.application.authentication.token.service.TokenService;
 import com.authmat.application.users.UserRepository;
+import com.authmat.application.users.exception.UserNotFoundException;
 import com.authmat.application.users.model.UserPrincipal;
+import com.authmat.application.users.util.UserMapper;
+import com.authmat.application.util.InternalTypeException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
@@ -25,7 +24,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
     private final UserRepository userRepository;
-    private final CookieService cookieService;
     private final TokenService tokenService;
     private final UserMapper userMapper;
 
@@ -64,8 +62,6 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
 
         String accessToken = tokenService.generateAccessToken(user.getId().toString(), authorities);
         String refreshToken = tokenService.generateRefreshToken(user.getId().toString());
-
-        cookieService.setTokenCookies(accessToken, refreshToken, response);
     }
 
 }

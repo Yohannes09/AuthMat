@@ -30,14 +30,11 @@ public class AuthenticationConfig {
 
     }
 
-
     @Bean
     public AuthenticationManager authenticationManager(
-            AuthenticationConfiguration authConfiguration
-    ) throws Exception {
+            AuthenticationConfiguration authConfiguration) throws Exception {
         return authConfiguration.getAuthenticationManager();
     }
-
 
 //    @Bean
 //    public AuthenticationFilterConfig jwtAuthenticationFilter(){

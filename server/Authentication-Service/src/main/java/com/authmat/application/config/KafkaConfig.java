@@ -1,6 +1,5 @@
 package com.authmat.application.config;
 
-import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -64,11 +63,6 @@ public class KafkaConfig {
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory);
         return factory;
-    }
-
-    @Bean
-    public NewTopic userCreatedTopic() {
-        return new NewTopic("user-created-events", 1, (short) 1);
     }
 
 }

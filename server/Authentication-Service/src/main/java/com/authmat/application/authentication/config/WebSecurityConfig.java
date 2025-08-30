@@ -1,6 +1,6 @@
 package com.authmat.application.authentication.config;
 
-import com.authmat.application.authorization.constant.DefaultRoles;
+import com.authmat.application.authorization.constant.DefaultRole;
 import com.authmat.application.config.AuthenticationFilterConfig;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -44,8 +44,8 @@ public class WebSecurityConfig {
                                 .anyRequest().authenticated()
                                 .requestMatchers("/swagger-ui/**","/v3/api-docs/**").hasAnyRole(
                                         //DefaultRoles.DEV.getName(),
-                                        DefaultRoles.ADMIN.getName(),
-                                        DefaultRoles.SUPER_ADMIN.getName()
+                                        DefaultRole.ADMIN.getName(),
+                                        DefaultRole.SUPER_ADMIN.getName()
                                 )
                 )
                 .sessionManagement(session->
