@@ -1,8 +1,8 @@
 package com.authmat.application.authentication.token.builder;
 
+import com.authmat.model.publickey.PublicKeyMetadata;
+import com.authmat.model.publickey.PublicKeyMetadataImp;
 import com.authmat.application.authentication.token.exception.KeyInitializationException;
-import com.authmat.application.authentication.token.model.PublicKeyMetaData;
-import com.authmat.application.authentication.token.model.PublicKeyMetaDataImp;
 import com.authmat.application.authentication.token.history.PublicKeyHistory;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -41,7 +41,7 @@ public class SigningKeyManagerImp implements SigningKeyManager{
      * @return an immutable {@link List} of base64-encoded public keys.
      * @throws KeyInitializationException if no signing key has been initialized.
      */
-    public List<PublicKeyMetaData> getPublicKeyHistory(){
+    public List<PublicKeyMetadata> getPublicKeyHistory(){
         validateKeyIsInitialized();
         return List.copyOf(publicKeyHistory.getKeyHistoryAscending());
     }
@@ -62,7 +62,7 @@ public class SigningKeyManagerImp implements SigningKeyManager{
      * @throws KeyInitializationException if the public key has not been initialized.
      */
     @Override
-    public PublicKeyMetaData getCurrentKeyMetaData(){
+    public PublicKeyMetadata getCurrentKeyMetaData(){
         validateKeyIsInitialized();
         return activeKeyPair.publicKeyMetaData();
     }
@@ -79,7 +79,7 @@ public class SigningKeyManagerImp implements SigningKeyManager{
                     .getEncoder()
                     .encodeToString(keyPair.getPublic().getEncoded());
 
-            PublicKeyMetaData keyMetaData = new PublicKeyMetaDataImp(
+            PublicKeyMetadata keyMetaData = new PublicKeyMetadataImp(
                     encodedPublicKey, keyAlgorithm, jwtAlgorithm);
 
             this.activeKeyPair = new ActiveKeyPair(
@@ -119,7 +119,7 @@ public class SigningKeyManagerImp implements SigningKeyManager{
     * Holds the active signing key pair, including public key metadata and the private key.
     */
     private record ActiveKeyPair(
-            PublicKeyMetaData publicKeyMetaData, PrivateKey privateKey
+            PublicKeyMetadata publicKeyMetaData, PrivateKey privateKey
     ) {
 
     }

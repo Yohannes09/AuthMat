@@ -4,9 +4,9 @@ import com.authmat.application.authentication.DuplicateCredentialException;
 import com.authmat.application.authorization.exception.PermissionNotFoundException;
 import com.authmat.application.authorization.exception.RoleNotFoundException;
 import com.authmat.application.users.exception.CredentialUpdateException;
-import com.authmat.application.users.exception.UserNotFoundException;
 import com.authmat.tool.exception.BaseGlobalExceptionHandler;
 import com.authmat.tool.exception.ErrorResponse;
+import com.authmat.tool.exception.UserNotFoundException;
 import io.lettuce.core.RedisConnectionException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -42,11 +42,11 @@ public class AuthGlobalExceptionHandler extends BaseGlobalExceptionHandler {
         log.error("Authentication failed: {}", exception.getMessage());
 
         String message = switch (exception){
-            case DisabledException _ -> "Account is disabled.";
-            case LockedException _ -> "Account is locked.";
-            case BadCredentialsException _ -> "Invalid username or password.";
-            case AccountExpiredException _ -> "Account has expired.";
-            case CredentialsExpiredException _ -> "Your password has expired.";
+            case DisabledException disabledException-> "Account is disabled.";
+            case LockedException lockedException -> "Account is locked.";
+            case BadCredentialsException badCredentialsException -> "Invalid username or password.";
+            case AccountExpiredException accountExpiredException -> "Account has expired.";
+            case CredentialsExpiredException credentialsExpiredException -> "Your password has expired.";
             default -> "Authentication failed.";
         };
 

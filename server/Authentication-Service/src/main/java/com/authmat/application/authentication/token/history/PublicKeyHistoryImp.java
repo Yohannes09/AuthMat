@@ -1,6 +1,6 @@
 package com.authmat.application.authentication.token.history;
 
-import com.authmat.application.authentication.token.model.PublicKeyMetaData;
+import com.authmat.model.publickey.PublicKeyMetadata;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
 
@@ -19,11 +19,11 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PublicKeyHistoryImp implements PublicKeyHistory{
     private final Integer maxKeysTraced;
-    private final Deque<PublicKeyMetaData> keyHistory;
+    private final Deque<PublicKeyMetadata> keyHistory;
 
 
     /**
-     * Adds a new {@link PublicKeyMetaData} to the key history queue.
+     * Adds a new {@link PublicKeyMetadata} to the key history queue.
      * <p>
      * If the queue has reached its configured maximum size, the oldest
      * key is automatically evicted to make room for the new one.
@@ -33,7 +33,7 @@ public class PublicKeyHistoryImp implements PublicKeyHistory{
      * @param publicKeyMetaData the public key metadata to store
      */
     @Override
-    public void addKey(PublicKeyMetaData publicKeyMetaData) {
+    public void addKey(PublicKeyMetadata publicKeyMetaData) {
         if(keyHistory.size() >= maxKeysTraced){
             keyHistory.pollFirst();
         }
@@ -43,7 +43,7 @@ public class PublicKeyHistoryImp implements PublicKeyHistory{
 
 
     @Override
-    public void addKeys(List<PublicKeyMetaData> publicKeyMetaData) {
+    public void addKeys(List<PublicKeyMetadata> publicKeyMetaData) {
         publicKeyMetaData.forEach(this::addKey);
     }
 
@@ -51,12 +51,12 @@ public class PublicKeyHistoryImp implements PublicKeyHistory{
     /**
      * Retrieves a reverse-chronological list of all retained public key records.
      *
-     * @return a sorted list of {@link PublicKeyMetaData} entries, newest first
+     * @return a sorted list of {@link PublicKeyMetadata} entries, newest first
      */
     @Override
-    public List<PublicKeyMetaData> getKeyHistoryAscending() {
+    public List<PublicKeyMetadata> getKeyHistoryAscending() {
         return keyHistory.stream()
-                .sorted(Comparator.comparing(PublicKeyMetaData::getCreatedAt).reversed())
+                .sorted(Comparator.comparing(PublicKeyMetadata::getCreatedAt).reversed())
                 .toList();
     }
 

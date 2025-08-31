@@ -1,12 +1,12 @@
 package com.authmat.application.users.service;
 
+import com.authmat.application.users.UserRepository;
 import com.authmat.application.users.dto.EmailUpdateRequest;
 import com.authmat.application.users.dto.PasswordUpdateRequest;
 import com.authmat.application.users.dto.UsernameUpdateRequest;
 import com.authmat.application.users.exception.CredentialUpdateException;
 import com.authmat.application.users.model.User;
-import com.authmat.application.users.exception.UserNotFoundException;
-import com.authmat.application.users.UserRepository;
+import com.authmat.tool.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;

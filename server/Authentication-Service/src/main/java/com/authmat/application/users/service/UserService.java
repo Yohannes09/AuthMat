@@ -3,11 +3,11 @@ package com.authmat.application.users.service;
 import com.authmat.application.authentication.DuplicateCredentialException;
 import com.authmat.application.authorization.entity.Role;
 import com.authmat.application.users.UserRepository;
-import com.authmat.application.users.exception.UserNotFoundException;
 import com.authmat.application.users.model.User;
 import com.authmat.application.users.model.UserDto;
 import com.authmat.application.users.util.UserMapper;
-import com.authmat.tool.events.NewUserEvent;
+import com.authmat.events.NewUserEvent;
+import com.authmat.tool.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -15,6 +15,7 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Optional;
@@ -50,7 +51,7 @@ public class UserService {
 
     public void createAndPublishUser(String username, String email, String encodedPassword, Collection<Role> roles){
         User user = createAndSaveUser(username, email, encodedPassword, roles);
-        kafkaTemplate.send("user-created-events", new NewUserEvent(user.getId(), username, email));
+        kafkaTemplate.send("user-created-events", new NewUserEvent(user.getId(), username, email, Instant.now()));
     }
 
 

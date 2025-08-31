@@ -1,6 +1,6 @@
 package com.authmat.application.authentication.token.history;
 
-import com.authmat.application.authentication.token.model.PublicKeyMetaData;
+import com.authmat.model.publickey.PublicKeyMetadata;
 
 import java.util.List;
 
@@ -17,10 +17,10 @@ import java.util.List;
  * <p><strong>Implementations:</strong> The backing store may be in-memory, persistent,
  * or distributed depending on the application's needs and security posture.
  *
- * @see PublicKeyMetaData
+ * @see com.authmat.model.publickey.PublicKeyMetadata
  */
 public interface PublicKeyHistory {
-    void addKey(PublicKeyMetaData publicKeyMetaData);
-    void addKeys(List<PublicKeyMetaData> publicKeyMetaData);
-    List<PublicKeyMetaData> getKeyHistoryAscending();
+    void addKey(PublicKeyMetadata publicKeyMetaData);
+    void addKeys(List<PublicKeyMetadata> publicKeyMetaData);
+    List<PublicKeyMetadata> getKeyHistoryAscending();
 }

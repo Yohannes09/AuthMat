@@ -2,10 +2,10 @@ package com.authmat.application.authentication.component;
 
 import com.authmat.application.authentication.token.service.TokenService;
 import com.authmat.application.users.UserRepository;
-import com.authmat.application.users.exception.UserNotFoundException;
 import com.authmat.application.users.model.UserPrincipal;
 import com.authmat.application.users.util.UserMapper;
-import com.authmat.application.util.InternalTypeException;
+import com.authmat.exception.InternalTypeException;
+import com.authmat.tool.exception.UserNotFoundException;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;

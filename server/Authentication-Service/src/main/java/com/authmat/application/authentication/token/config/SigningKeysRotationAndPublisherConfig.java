@@ -1,23 +1,26 @@
 package com.authmat.application.authentication.token.config;
 
 import com.authmat.application.authentication.token.builder.SigningKeyManager;
-import com.authmat.tool.events.PublicKeyRotationEvent;
+import com.authmat.events.PublicKeyRotationEvent;
+import com.authmat.model.publickey.PublicKeyMetadata;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 
+import java.time.ZoneId;
+
 @Configuration
 @Slf4j
-public class TokenKeyRotationConfig {
+public class SigningKeysRotationAndPublisherConfig {
     public static final int BEAN_CREATION_DELAY_MS = 10000;
 
     private final SigningKeyManager accessTokenKeyManager;
     private final SigningKeyManager refreshTokenKeyManager;
     private final KafkaTemplate<String,Object> kafkaTemplate;
 
-    public TokenKeyRotationConfig(
+    public SigningKeysRotationAndPublisherConfig(
             @Qualifier(TokenSigningConfig.ACCESS_KEY_MANAGER_BEAN_NAME)
             SigningKeyManager accessTokenKeyManager,
 
@@ -38,19 +41,24 @@ public class TokenKeyRotationConfig {
 
         accessTokenKeyManager.rotateSigningKey();
 
-        Object id = accessTokenKeyManager.getCurrentKeyMetaData().getId();
-        String key = accessTokenKeyManager.getCurrentKeyMetaData().getEncodedPublicKey();
-        String issuer = "authmat";
+        PublicKeyMetadata metadata = accessTokenKeyManager.getCurrentKeyMetaData();
+        log.info(metadata.getEncodedPublicKey());
 
         kafkaTemplate.send(
                 "token-rotation-event",
-                new PublicKeyRotationEvent(issuer, key, id.toString()));
+                PublicKeyRotationEvent.builder()
+                        .kid(metadata.getId().toString())
+                        .publicKey(metadata.getEncodedPublicKey())
+                        .signingKeyAlgorithm(metadata.getKeyAlgorithm())
+                        .jwtAlgorithm(metadata.getJwtAlgorithm())
+                        .issuedAt(metadata.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant())
+                        .issuer("authmat")
+                        .build());
     }
 
     @Scheduled(
             fixedRateString = "#{${token.refresh.key-rotation-rate:10}*60*1000}",
-            initialDelay = BEAN_CREATION_DELAY_MS
-    )
+            initialDelay = BEAN_CREATION_DELAY_MS)
     public void rotateRefreshTokenSigningKey(){
         log.info("Rotating Refresh Token signing key.");
         refreshTokenKeyManager.rotateSigningKey();

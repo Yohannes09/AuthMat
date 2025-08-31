@@ -1,6 +1,6 @@
 package com.authmat.application.authentication.token.builder;
 
-import com.authmat.application.authentication.token.model.PublicKeyMetaData;
+import com.authmat.model.publickey.PublicKeyMetadata;
 import io.jsonwebtoken.Jwts;
 import lombok.RequiredArgsConstructor;
 
@@ -22,8 +22,8 @@ public class TokenFactory {
             String subject,
             String audience,
             Map<String, Object> claims,
-            Map<String, Object> headerParams
-    ){
+            Map<String, Object> headerParams){
+
         Instant issuedAt = Instant.now();
         Instant expiresAt = issuedAt.plus(Duration.ofMinutes(tokenValidityMinutes));
         PrivateKey privateKey = signingKeyManager.getActiveSigningKey();
@@ -57,7 +57,7 @@ public class TokenFactory {
                 .compact();
     }
 
-    public Optional<PublicKeyMetaData> currentKeyMetaData(){
+    public Optional<PublicKeyMetadata> currentKeyMetaData(){
         return Optional.of(signingKeyManager.getCurrentKeyMetaData());
     }
 

@@ -4,7 +4,7 @@ import com.authmat.application.authentication.token.builder.TokenFactory;
 import com.authmat.application.authentication.token.config.TokenSigningConfig;
 import com.authmat.application.authentication.token.constant.TokenType;
 import com.authmat.application.authentication.token.exception.KeyInitializationException;
-import com.authmat.application.authentication.token.model.PublicKeyMetaData;
+import com.authmat.model.publickey.PublicKeyMetadata;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -24,8 +24,7 @@ public class TokenService {
             TokenFactory accessTokenFactory,
 
             @Qualifier(TokenSigningConfig.REFRESH_TOKEN_FACTORY_BEAN_NAME)
-            TokenFactory refreshTokenFactory
-    ) {
+            TokenFactory refreshTokenFactory) {
         this.accessTokenFactory = accessTokenFactory;
         this.refreshTokenFactory = refreshTokenFactory;
     }
@@ -39,24 +38,16 @@ public class TokenService {
             defaultHeaderParams(accessTokenFactory
                     .currentKeyMetaData()
                     .orElseThrow(() ->
-                            new KeyInitializationException("Failed to retrieve Access Token Signing Key MetaData, key was not initialized. ")
-                    )
-            )
-        );
+                            new KeyInitializationException("Failed to retrieve Access Token Signing Key MetaData, key was not initialized. "))));
     }
 
     public String generateRefreshToken(String subject){
-
         return refreshTokenFactory.generateNewToken(
                 buildClaims(subject, TokenType.REFRESH.name()),
-                defaultHeaderParams(refreshTokenFactory
-                        .currentKeyMetaData()
-                        .orElseThrow(() ->
-                                new KeyInitializationException("Failed to retrieve Refresh Token Signing Key MetaData, key was not initialized. ")
-                        )
-                )
-        );
-
+                defaultHeaderParams(
+                        refreshTokenFactory
+                                .currentKeyMetaData()
+                                .orElseThrow(() -> new KeyInitializationException("Failed to retrieve Refresh Token Signing Key MetaData, key was not initialized. "))));
     }
 
     private Map<String, Object> buildClaims(String subject, String tokenType){
@@ -64,16 +55,14 @@ public class TokenService {
                 "sub", subject,
                 "aud", Set.of("authmat", "dockeep"),
                 "iss", "authmat",
-                "type", tokenType
-        );
+                "type", tokenType);
     }
 
-    private Map<String, Object> defaultHeaderParams(PublicKeyMetaData publicKeyMetaData){
+    private Map<String, Object> defaultHeaderParams(PublicKeyMetadata publicKeyMetadata){
         return Map.of(
-                "alg", publicKeyMetaData.getJwtAlgorithm(),
-                "kid", publicKeyMetaData.getId(),
-                "type", "JWT"
-        );
+                "alg", publicKeyMetadata.getJwtAlgorithm(),
+                "kid", publicKeyMetadata.getId(),
+                "type", "JWT");
     }
 
 }
