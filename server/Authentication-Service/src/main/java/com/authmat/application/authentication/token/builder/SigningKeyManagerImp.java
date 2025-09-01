@@ -110,7 +110,7 @@ public class SigningKeyManagerImp implements SigningKeyManager{
     private void validateKeyIsInitialized(){
         if(activeKeyPair == null || publicKeyHistory.getKeyHistoryAscending().isEmpty()){
             log.error("ERROR no active Signing Key initialized. ");
-            throw new KeyInitializationException("Failed to initialize public key. ");
+            throw new KeyInitializationException("Failed to initialize public key.");
         }
     }
 

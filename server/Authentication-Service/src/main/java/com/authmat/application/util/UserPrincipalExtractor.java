@@ -1,6 +1,6 @@
-package com.authmat.application.authentication;
+package com.authmat.application.util;
 
-import com.authmat.application.users.model.UserPrincipal;
+import com.authmat.application.authentication.models.UserPrincipal;
 
 import java.util.Optional;
 

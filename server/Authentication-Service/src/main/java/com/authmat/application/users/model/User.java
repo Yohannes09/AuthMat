@@ -66,16 +66,16 @@ public class User{
     private LocalDateTime updatedAt;
 
     @Column(name = "account_non_expired", nullable = false)
-    private boolean accountNonExpired;
+    private boolean accountNonExpired = true;
 
     @Column(name = "account_non_locked", nullable = false)
-    private boolean accountNonLocked;
+    private boolean accountNonLocked = true;
 
     @Column(name = "credentials_non_expired", nullable = false)
-    private boolean credentialsNonExpired;
+    private boolean credentialsNonExpired = true;
 
     @Column(name = "enabled", nullable = false)
-    private boolean enabled;
+    private boolean enabled = true;
 
     // Suggested improvement for concurrency. Prevents another thread from
     // overriding.

@@ -4,8 +4,10 @@ import com.authmat.application.authentication.component.LoginAttemptManager;
 import com.authmat.application.authentication.dto.AuthenticationResponse;
 import com.authmat.application.authentication.dto.LoginRequest;
 import com.authmat.application.authentication.dto.RegistrationRequest;
+import com.authmat.application.authentication.exception.FailedAuthencticationException;
 import com.authmat.application.authentication.token.service.TokenService;
-import com.authmat.application.users.model.UserPrincipal;
+import com.authmat.application.users.model.User;
+import com.authmat.application.authentication.models.UserPrincipal;
 import com.authmat.application.users.service.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -13,7 +15,6 @@ import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,7 +24,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Service("jwtAuthenticationService")
+@Service("internalAuthenticationService")
 @Slf4j
 @RequiredArgsConstructor
 public class InternalAuthenticationService implements AuthenticationService {
@@ -35,16 +36,16 @@ public class InternalAuthenticationService implements AuthenticationService {
 
     @Override
     @Transactional
-    public void register(
-            RegistrationRequest registrationRequest, PasswordEncoder passwordEncoder){
-
-        userService.createAndPublishUser(
-                registrationRequest.username(),
-                registrationRequest.email(),
-                passwordEncoder.encode(registrationRequest.password()),
-                Set.of());
+    public boolean register(RegistrationRequest registrationRequest, PasswordEncoder passwordEncoder){
+        boolean isUserCreated = userService.createAndPublishUser(
+                User.builder()
+                        .username(registrationRequest.username())
+                        .email(registrationRequest.email())
+                        .password(passwordEncoder.encode(registrationRequest.password()))
+                        .build());
 
         log.info("Successful registration: {}", registrationRequest.username());
+        return isUserCreated;
     }
 
 
@@ -66,7 +67,7 @@ public class InternalAuthenticationService implements AuthenticationService {
 
             if(object instanceof UserPrincipal principal) {
                 loginAttemptManager.loginSucceeded(identifier);
-                validateUserAccount(principal);
+                principal.validateAccount();
 
                 log.info("Successful login: {}", principal.getId());
                 return generateAuthenticationResponse(
@@ -94,21 +95,26 @@ public class InternalAuthenticationService implements AuthenticationService {
 
     @Override
     public AuthenticationResponse refresh(UserPrincipal userPrincipal){
-        validateUserAccount(userPrincipal);
+        try {
+            userPrincipal.validateAccount();
 
-        log.info("Access Token refresh: {}", userPrincipal.getId());
-        return generateAuthenticationResponse(
-                userPrincipal.getId().toString(), new HashSet<>(userPrincipal.getAuthorities()));
+            log.info("Access Token refresh: {}", userPrincipal.getId());
+            return generateAuthenticationResponse(
+                    userPrincipal.getId().toString(),
+                    new HashSet<>(userPrincipal.getAuthorities()));
+        } catch (Exception e) {
+            log.info("Failed token refresh: {}", e.getMessage());
+            throw new FailedAuthencticationException("Could not reauthencticate user.");
+        }
     }
-
 
     @Override
     public void logout(String token){
         // No logic here yet.
+        tokenService.blackListToken(token);
     }
 
-
-    private AuthenticationResponse generateAuthenticationResponse(
+    public AuthenticationResponse generateAuthenticationResponse(
             String subject, Set<GrantedAuthority> grantedAuthorities){
 
         Set<String> authorities = grantedAuthorities
@@ -123,23 +129,6 @@ public class InternalAuthenticationService implements AuthenticationService {
                 .accessToken(accessToken)
                 .refreshToken(refreshToken)
                 .build();
-    }
-
-
-    private void validateUserAccount(UserDetails user) {
-        if (!user.isAccountNonLocked()) {
-            throw new LockedException("Account is locked");
-        }
-        if (!user.isEnabled()) {
-            throw new DisabledException("Account is disabled");
-        }
-        if (!user.isAccountNonExpired()) {
-            throw new AccountExpiredException("Account has expired");
-        }
-        if (!user.isCredentialsNonExpired()) {
-            throw new CredentialsExpiredException("Credentials have expired");
-        }
-
     }
 
 }

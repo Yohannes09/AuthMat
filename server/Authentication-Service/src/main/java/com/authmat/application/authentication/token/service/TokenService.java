@@ -7,6 +7,7 @@ import com.authmat.application.authentication.token.exception.KeyInitializationE
 import com.authmat.application.authorization.constant.DefaultRole;
 import com.authmat.model.publickey.PublicKeyMetadata;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -16,19 +17,25 @@ import java.util.Set;
 
 @Service
 public class TokenService {
+    private final String TOKEN_BLACK_LIST_ID = "token:blacklist:";
+
     private final TokenFactory accessTokenFactory;
     private final TokenFactory refreshTokenFactory;
-
+    private final RedisTemplate<String,Object> redisTemplate;
 
     public TokenService(
             @Qualifier(TokenSigningConfig.ACCESS_TOKEN_FACTORY_BEAN_NAME)
             TokenFactory accessTokenFactory,
 
             @Qualifier(TokenSigningConfig.REFRESH_TOKEN_FACTORY_BEAN_NAME)
-            TokenFactory refreshTokenFactory) {
+            TokenFactory refreshTokenFactory,
+
+            RedisTemplate<String, Object> redisTemplate) {
         this.accessTokenFactory = accessTokenFactory;
         this.refreshTokenFactory = refreshTokenFactory;
+        this.redisTemplate = redisTemplate;
     }
+
 
     public String generateAccessToken(String subject, Set<String> authorities){
         Map<String, Object> extraClaims = new HashMap<>(buildClaims(subject, TokenType.ACCESS.name()));
@@ -50,6 +57,14 @@ public class TokenService {
                         refreshTokenFactory
                                 .currentKeyMetaData()
                                 .orElseThrow(() -> new KeyInitializationException("Failed to retrieve Refresh Token Signing Key MetaData, key was not initialized. "))));
+    }
+
+    public void blackListToken(String token){
+        redisTemplate.opsForValue().set(TOKEN_BLACK_LIST_ID + token, token);
+    }
+
+    public boolean isBlacklisted(String token){
+        return redisTemplate.hasKey(TOKEN_BLACK_LIST_ID + token);
     }
 
     private Map<String, Object> buildClaims(String subject, String tokenType){

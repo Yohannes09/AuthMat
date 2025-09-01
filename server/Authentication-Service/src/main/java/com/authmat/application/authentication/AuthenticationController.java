@@ -4,7 +4,8 @@ import com.authmat.application.authentication.dto.AuthenticationResponse;
 import com.authmat.application.authentication.dto.LoginRequest;
 import com.authmat.application.authentication.dto.RegistrationRequest;
 import com.authmat.application.authentication.service.AuthenticationService;
-import com.authmat.application.users.model.UserPrincipal;
+import com.authmat.application.authentication.models.UserPrincipal;
+import com.authmat.application.util.UserPrincipalExtractor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -29,7 +30,7 @@ public class AuthenticationController {
     private final PasswordEncoder passwordEncoder;
 
     public AuthenticationController(
-            @Qualifier("jwtAuthenticationService")
+            @Qualifier("internalAuthenticationService")
             AuthenticationService authenticationService,
 
             UserPrincipalExtractor userPrincipalExtractor,

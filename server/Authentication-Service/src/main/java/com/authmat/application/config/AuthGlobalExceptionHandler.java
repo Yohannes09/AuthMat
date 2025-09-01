@@ -1,6 +1,6 @@
 package com.authmat.application.config;
 
-import com.authmat.application.authentication.DuplicateCredentialException;
+import com.authmat.application.authentication.exception.DuplicateCredentialException;
 import com.authmat.application.authorization.exception.PermissionNotFoundException;
 import com.authmat.application.authorization.exception.RoleNotFoundException;
 import com.authmat.application.users.exception.CredentialUpdateException;

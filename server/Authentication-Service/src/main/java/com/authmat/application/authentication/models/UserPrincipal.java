@@ -1,10 +1,14 @@
-package com.authmat.application.users.model;
+package com.authmat.application.authentication.models;
 
 import com.authmat.application.authorization.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.springframework.security.authentication.AccountExpiredException;
+import org.springframework.security.authentication.CredentialsExpiredException;
+import org.springframework.security.authentication.DisabledException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -81,6 +85,21 @@ public class UserPrincipal implements UserDetails {
     @Override
     public boolean isEnabled() {
         return enabled;
+    }
+
+    public void validateAccount(){
+        if (isAccountNonLocked()) {
+            throw new LockedException("Account is locked");
+        }
+        if (isEnabled()) {
+            throw new DisabledException("Account is disabled");
+        }
+        if (isAccountNonExpired()) {
+            throw new AccountExpiredException("Account has expired");
+        }
+        if (isCredentialsNonExpired()) {
+            throw new CredentialsExpiredException("Credentials have expired");
+        }
     }
 
 }

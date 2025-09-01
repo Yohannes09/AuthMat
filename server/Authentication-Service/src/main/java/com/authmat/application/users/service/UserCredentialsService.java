@@ -1,6 +1,6 @@
 package com.authmat.application.users.service;
 
-import com.authmat.application.users.UserRepository;
+import com.authmat.application.users.repository.UserRepository;
 import com.authmat.application.users.dto.EmailUpdateRequest;
 import com.authmat.application.users.dto.PasswordUpdateRequest;
 import com.authmat.application.users.dto.UsernameUpdateRequest;

@@ -37,11 +37,7 @@ public class DefaultAuthoritiesInitializer {
             List<Permission> permissions = DefaultPermission
                     .getAll()
                     .stream()
-                    .map(defaultPermission -> {
-                                Permission permission = new Permission(defaultPermission);
-                                log.info("New permission created: {}", permission.getName());
-                                return permission;
-                    })
+                    .map(Permission::new)
                     .toList();
 
             Map<String, Permission> permissionMap = permissionRepository
@@ -61,7 +57,6 @@ public class DefaultAuthoritiesInitializer {
                                                     permissionMap.get(defaultPermission.getName())
                                             )
                                             .collect(Collectors.toSet());
-                        log.info("Role: {} initialized with permissions: {}", defaultRole.getName(), rolePermissions.toString());
                         return Role.builder()
                                 .name(defaultRole.getName())
                                 .description(defaultRole.getDescription())

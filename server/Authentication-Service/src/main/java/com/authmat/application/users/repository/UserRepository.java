@@ -1,4 +1,4 @@
-package com.authmat.application.users;
+package com.authmat.application.users.repository;
 
 import com.authmat.application.users.model.User;
 import org.springframework.data.jpa.repository.EntityGraph;

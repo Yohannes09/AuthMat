@@ -1,7 +1,7 @@
 package com.authmat.application.authentication.component;
 
-import com.authmat.application.authentication.UserPrincipalExtractor;
-import com.authmat.application.users.model.UserPrincipal;
+import com.authmat.application.util.UserPrincipalExtractor;
+import com.authmat.application.authentication.models.UserPrincipal;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

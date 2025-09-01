@@ -10,12 +10,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.repository.cdi.Eager;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
 import java.util.concurrent.ConcurrentLinkedDeque;
 
 @Configuration
 @EnableScheduling
+@Eager
 @Slf4j
 public class TokenSigningConfig {
     public static final String ACCESS_KEY_MANAGER_BEAN_NAME = "accessKeyManager";

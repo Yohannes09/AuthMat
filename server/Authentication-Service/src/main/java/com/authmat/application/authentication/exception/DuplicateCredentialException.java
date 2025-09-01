@@ -1,4 +1,4 @@
-package com.authmat.application.authentication;
+package com.authmat.application.authentication.exception;
 
 public class DuplicateCredentialException extends RuntimeException{
     public DuplicateCredentialException(String message){
