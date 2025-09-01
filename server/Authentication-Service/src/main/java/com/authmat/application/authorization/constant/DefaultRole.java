@@ -11,23 +11,35 @@ import java.util.Set;
 public enum DefaultRole {
     BASIC(
             "ROLE_BASIC",
-            "",
+            "Baseline access.",
             Set.of(DefaultPermission.BASIC_USER)),
 
     ELEVATED(
             "ROLE_ELEVATED",
-            "",
-            Set.of(DefaultPermission.BASIC_USER, DefaultPermission.ACTUATOR_VIEW)),
+            "Developer type access to view system performance.",
+            Set.of(
+                    DefaultPermission.BASIC_USER,
+                    DefaultPermission.ACTUATOR_VIEW,
+                    DefaultPermission.API_DOCS_VIEW)),
 
     ADMIN(
             "ROLE_ADMIN",
-            "",
-            Set.of()),
+            "Developer + Basic + Sensitive operations.",
+            Set.of(
+                    DefaultPermission.ROLE_MANAGE,
+                    DefaultPermission.ROLE_ASSIGN,
+                    DefaultPermission.ACCOUNT_MANAGE,
+                    DefaultPermission.PERMISSION_MANAGE)),
 
     SUPER_ADMIN(
             "ROLE_SUPER_ADMIN",
             "Highest authority.",
-            Set.of());
+            Set.of(
+                    DefaultPermission.ROLE_MANAGE,
+                    DefaultPermission.ROLE_ASSIGN,
+                    DefaultPermission.ACCOUNT_MANAGE,
+                    DefaultPermission.PERMISSION_MANAGE,
+                    DefaultPermission.SYSTEM_CONFIG));
 
 
     private final String name;

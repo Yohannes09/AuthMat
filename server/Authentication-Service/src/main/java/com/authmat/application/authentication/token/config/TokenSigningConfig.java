@@ -32,14 +32,12 @@ public class TokenSigningConfig {
             @Qualifier(ACCESS_KEY_HISTORY_BEAN_NAME)PublicKeyHistory publicKeyHistory,
             @Value("${token.access.key-size:2048}") int keySize,
             @Value("${token.access.key-algorithm:RSA}") String keyAlgorithm,
-            @Value("${token.access.jwt-algorithm:RS256}") String jwtAlgorithm
-    ){
+            @Value("${token.access.jwt-algorithm:RS256}") String jwtAlgorithm){
         return new SigningKeyManagerImp(
                 publicKeyHistory,
                 keyAlgorithm,
                 jwtAlgorithm,
-                keySize
-        );
+                keySize);
     }
 
     @Bean(REFRESH_KEY_MANAGER_BEAN_NAME)
@@ -47,56 +45,46 @@ public class TokenSigningConfig {
             @Qualifier(REFRESH_KEY_HISTORY_BEAN_NAME)PublicKeyHistory publicKeyHistory,
             @Value("${token.refresh.key-size:2048}") int keySize,
             @Value("${token.refresh.key-algorithm:RSA}") String keyAlgorithm,
-            @Value("${token.refresh.jwt-algorithm:RS256}") String jwtAlgorithm
-    ){
+            @Value("${token.refresh.jwt-algorithm:RS256}") String jwtAlgorithm){
         return new SigningKeyManagerImp(
                 publicKeyHistory,
                 keyAlgorithm,
                 jwtAlgorithm,
-                keySize
-        );
+                keySize);
     }
 
     @Bean(ACCESS_KEY_HISTORY_BEAN_NAME)
     public PublicKeyHistory accessTokenPublicKeyHistory(
-            @Value("${token.access.key-history-trace:10}") Integer maxKeysTraced
-    ){
+            @Value("${token.access.key-history-trace:10}") Integer maxKeysTraced){
         return new PublicKeyHistoryImp(
                 maxKeysTraced,
-                new ConcurrentLinkedDeque<>()
-        );
+                new ConcurrentLinkedDeque<>());
     }
 
     @Bean(REFRESH_KEY_HISTORY_BEAN_NAME)
     public PublicKeyHistory refreshTokenPublicKeyHistory(
-            @Value("${token.refresh.key-history-trace:10}") Integer maxKeysTraced
-    ){
+            @Value("${token.refresh.key-history-trace:10}") Integer maxKeysTraced){
         return new PublicKeyHistoryImp(
                 maxKeysTraced,
-                new ConcurrentLinkedDeque<>()
-        );
+                new ConcurrentLinkedDeque<>());
     }
 
     @Bean(ACCESS_TOKEN_FACTORY_BEAN_NAME)
     public TokenFactory accessTokenFactory(
             @Qualifier(ACCESS_KEY_MANAGER_BEAN_NAME) SigningKeyManager signingKeyManager,
-            @Value("${token.access.token-validity-minutes}") Integer accessTokenValidityMinutes
-    ){
+            @Value("${token.access.token-validity-minutes}") Integer accessTokenValidityMinutes){
         return new TokenFactory(
                 signingKeyManager,
-                accessTokenValidityMinutes
-        );
+                accessTokenValidityMinutes);
     }
 
     @Bean(REFRESH_TOKEN_FACTORY_BEAN_NAME)
     public TokenFactory refreshTokenFactory(
             @Qualifier(REFRESH_KEY_MANAGER_BEAN_NAME) SigningKeyManager signingKeyManager,
-            @Value("${token.refresh.token-validity-minutes}") Integer refreshTokenValidityMinutes
-    ){
+            @Value("${token.refresh.token-validity-minutes}") Integer refreshTokenValidityMinutes){
         return new TokenFactory(
                 signingKeyManager,
-                refreshTokenValidityMinutes
-        );
+                refreshTokenValidityMinutes);
     }
 
 }

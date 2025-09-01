@@ -88,7 +88,7 @@ public class SigningKeyManagerImp implements SigningKeyManager{
             publicKeyHistory.addKey(keyMetaData);
 
         } catch (Exception e) {
-            log.error("Failed to rotate signing key. {}", e.getMessage(), e);
+            log.error("Failed to rotate signing key. {}", e.getMessage());
             throw new KeyInitializationException("Failed to rotate signing key. " + e.getMessage());
         }
 

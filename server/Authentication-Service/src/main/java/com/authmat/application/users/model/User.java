@@ -30,14 +30,12 @@ public class User{
     @Id
     @GeneratedValue(
             strategy = GenerationType.SEQUENCE,
-            generator = "user_id_sequence"
-    )
+            generator = "user_id_sequence")
     @SequenceGenerator(
             name = "user_id_sequence",
             sequenceName = "user_id_sequence",
             initialValue = 11_957_103,
-            allocationSize = 9
-    )
+            allocationSize = 9)
     private Long id;
 
     @Pattern(regexp = ValidationConstants.USERNAME_PATTERN)
@@ -48,7 +46,7 @@ public class User{
     private String password;
 
     @Email(message = ValidationConstants.EMAIL_VALIDATION_MESSAGE)
-    @Column(unique = true, nullable = false)
+    @Column(unique = true)
     private String email;
 
     @ManyToMany(fetch = FetchType.EAGER)

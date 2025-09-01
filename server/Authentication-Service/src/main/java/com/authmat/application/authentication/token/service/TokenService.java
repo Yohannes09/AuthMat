@@ -4,6 +4,7 @@ import com.authmat.application.authentication.token.builder.TokenFactory;
 import com.authmat.application.authentication.token.config.TokenSigningConfig;
 import com.authmat.application.authentication.token.constant.TokenType;
 import com.authmat.application.authentication.token.exception.KeyInitializationException;
+import com.authmat.application.authorization.constant.DefaultRole;
 import com.authmat.model.publickey.PublicKeyMetadata;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
@@ -31,6 +32,7 @@ public class TokenService {
 
     public String generateAccessToken(String subject, Set<String> authorities){
         Map<String, Object> extraClaims = new HashMap<>(buildClaims(subject, TokenType.ACCESS.name()));
+        authorities.add(DefaultRole.BASIC.getName());
         extraClaims.put("scope", authorities);
 
         return accessTokenFactory.generateNewToken(
