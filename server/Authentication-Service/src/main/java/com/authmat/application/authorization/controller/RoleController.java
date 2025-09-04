@@ -1,7 +1,7 @@
 package com.authmat.application.authorization.controller;
 
-import com.authmat.application.authorization.config.DefaultAuthoritiesInitializer;
-import com.authmat.application.users.service.UserService;
+import com.authmat.application.util.DefaultAuthoritiesInitializer;
+import com.authmat.application.users.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

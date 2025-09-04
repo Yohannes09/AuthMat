@@ -1,6 +1,5 @@
 package com.authmat.application.util;
 
-import com.authmat.application.authorization.config.DefaultAuthoritiesInitializer;
 import com.authmat.application.authorization.entity.Role;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

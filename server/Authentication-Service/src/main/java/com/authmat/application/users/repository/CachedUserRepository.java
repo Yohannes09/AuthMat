@@ -2,7 +2,7 @@ package com.authmat.application.users.repository;
 
 import com.authmat.application.users.model.User;
 import com.authmat.application.users.model.UserDto;
-import com.authmat.application.users.util.UserMapper;
+import com.authmat.application.util.UserMapper;
 import com.authmat.tool.exception.UserNotFoundException;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -19,7 +19,7 @@ import java.util.function.Predicate;
 @RequiredArgsConstructor
 public class CachedUserRepository {
     private static final String USERNAME_OR_EMAIL_KEY = "users:usernameOrEmail:";
-    private static final String ID_KEY = "users:id";
+    private static final String ID_KEY = "users:currentPassword";
 
     private final UserMapper userMapper;
     private final UserRepository userRepository;
@@ -34,6 +34,16 @@ public class CachedUserRepository {
                 identifier -> userRepository
                         .findByUsernameOrEmail(identifier)
                         .orElseThrow(() -> new UserNotFoundException("User not found " + usernameOrEmail)));
+    }
+
+    public Optional<UserDto> findById(Long id){
+        return findUser(
+                id,
+                ID_KEY + id,
+                identifier ->
+                        userRepository
+                                .findById(identifier)
+                                .orElseThrow(() -> new UserNotFoundException("User not found " + id)));
     }
 
     public <V> Optional<V> findByUsernameOrEmail(String usernameOrEmail, Function<User,V> mapperFunction){
@@ -78,8 +88,21 @@ public class CachedUserRepository {
                 identifier -> userRepository.existsByUsernameOrEmail(identifier, email));
     }
 
+    public boolean existsByUsername(String username){
+        return existsByIdentifier(
+                username,
+                USERNAME_OR_EMAIL_KEY + username,
+                userRepository::existsByUsernameIgnoreCase);
+    }
 
-    private  <I> boolean existsByIdentifier(
+    public boolean existsByEmail(String email){
+        return existsByIdentifier(
+                email,
+                USERNAME_OR_EMAIL_KEY + email,
+                userRepository::existsByEmailIgnoreCase);
+    }
+
+    private <I> boolean existsByIdentifier(
             I identifier, String key, Predicate<I> repositoryFunction){
 
         return redisTemplate.hasKey(key + identifier.toString()) &&

@@ -1,21 +1,20 @@
 package com.authmat.application.authentication.service;
 
-import com.authmat.application.authentication.component.LoginAttemptManager;
+import com.authmat.application.authentication.LoginAttemptManager;
 import com.authmat.application.authentication.dto.AuthenticationResponse;
 import com.authmat.application.authentication.dto.LoginRequest;
 import com.authmat.application.authentication.dto.RegistrationRequest;
 import com.authmat.application.authentication.exception.FailedAuthencticationException;
-import com.authmat.application.authentication.token.service.TokenService;
+import com.authmat.application.token.service.TokenService;
 import com.authmat.application.users.model.User;
 import com.authmat.application.authentication.models.UserPrincipal;
-import com.authmat.application.users.service.UserService;
+import com.authmat.application.users.UserService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,12 +35,12 @@ public class InternalAuthenticationService implements AuthenticationService {
 
     @Override
     @Transactional
-    public boolean register(RegistrationRequest registrationRequest, PasswordEncoder passwordEncoder){
+    public boolean register(RegistrationRequest registrationRequest){
         boolean isUserCreated = userService.createAndPublishUser(
                 User.builder()
                         .username(registrationRequest.username())
                         .email(registrationRequest.email())
-                        .password(passwordEncoder.encode(registrationRequest.password()))
+                        .password(registrationRequest.password())
                         .build());
 
         log.info("Successful registration: {}", registrationRequest.username());
@@ -71,7 +70,8 @@ public class InternalAuthenticationService implements AuthenticationService {
 
                 log.info("Successful login: {}", principal.getId());
                 return generateAuthenticationResponse(
-                        principal.getId().toString(), new HashSet<>(principal.getAuthorities()));
+                        principal.getId().toString(),
+                        new HashSet<>(principal.getAuthorities()));
             }
 
             throw new IllegalStateException("Incompatible type mapping during authentication.");
@@ -93,7 +93,8 @@ public class InternalAuthenticationService implements AuthenticationService {
 
     }
 
-    @Override
+    // need to blacklist their current refresh token
+    @Override                                                       //,String refreshToken
     public AuthenticationResponse refresh(UserPrincipal userPrincipal){
         try {
             userPrincipal.validateAccount();

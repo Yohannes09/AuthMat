@@ -3,14 +3,14 @@ package com.authmat.application.config;
 import com.authmat.application.authentication.exception.FailedAuthencticationException;
 import com.authmat.application.authentication.models.CustomOAuth2User;
 import com.authmat.application.authentication.models.UserPrincipal;
-import com.authmat.application.authentication.token.config.TokenSigningConfig;
-import com.authmat.application.authentication.token.history.PublicKeyHistory;
-import com.authmat.application.authentication.token.service.TokenService;
 import com.authmat.application.authorization.constant.DefaultRole;
+import com.authmat.application.token.config.TokenSigningConfig;
+import com.authmat.application.token.history.PublicKeyHistory;
+import com.authmat.application.token.service.TokenService;
 import com.authmat.application.users.model.User;
 import com.authmat.application.users.model.UserDto;
 import com.authmat.application.users.repository.CachedUserRepository;
-import com.authmat.application.users.util.UserMapper;
+import com.authmat.application.util.UserMapper;
 import com.authmat.client.PublicKeyResolver;
 import com.authmat.filter.SimpleJwtAuthenticationFilter;
 import com.authmat.tool.exception.UserNotFoundException;
@@ -72,6 +72,7 @@ public class SecurityConfig {
         this.publicKeyHistory = publicKeyHistory;
     }
 
+
     @Bean
     @Profile("prod")
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -102,6 +103,7 @@ public class SecurityConfig {
     @Bean
     @Profile("prod")
     public SecurityFilterChain oAuth2SecurityFilterChain(HttpSecurity http) throws Exception{
+        log.info("Secured OAuth2SecurityFilter loaded");
         return http
                 .securityMatcher("/oauth2/**", "/login/oauth2/**")
                 .authorizeHttpRequests(request -> request
@@ -110,32 +112,36 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider(
                         passwordEncoder(), userDetailsService()))
                 .oauth2Login(loginConfigurer -> loginConfigurer
+                        //.loginPage("http://localhost:8080/oauth2/authorization/google")
                         .userInfoEndpoint(userInfo -> userInfo
                                 .userService(oAuth2UserService()))
-                        .successHandler(oAuth2SuccessHandler())
-                        .loginPage("http://localhost:8080/oauth2/authorization/google"))
+                        .successHandler(oAuth2SuccessHandler()))
                 .sessionManagement(sessionConfigurer -> sessionConfigurer
                         .sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
                 .build();
     }
 
-    @Bean
-    @Profile("dev")
-    public SecurityFilterChain noSecurityFilterChain(HttpSecurity http) throws Exception {
-        log.info("Unsecured filter chain loaded");
-        return http
-                .cors(cors-> cors.configurationSource(corsConfigurationSource()))
-                .csrf(AbstractHttpConfigurer::disable)
-                .authorizeHttpRequests(request ->
-                        request.anyRequest().permitAll())
-                .sessionManagement(session->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-                .build();
-    }
+//    @Bean
+//    @Order(1)
+//    @Profile("dev")
+//    public SecurityFilterChain noSecurityFilterChain(HttpSecurity http) throws Exception {
+//        log.info("Unsecured filter chain loaded");
+//        return http
+//                .cors(cors-> cors.configurationSource(corsConfigurationSource()))
+//                .csrf(AbstractHttpConfigurer::disable)
+//                .authorizeHttpRequests(request ->
+//                        request.anyRequest().permitAll())
+//                .sessionManagement(session->
+//                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+//                .build();
+//    }
 
     @Bean("noSecurityOAuth2FilterChain")
     @Profile("dev")
-    public SecurityFilterChain oAuth2NoSecurityFilterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain oAuth2NoSecurityFilterChain(
+            HttpSecurity http,
+            OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService) throws Exception {
+
         log.info("Loaded OAuth2 no security filter chain");
         return http
                 .securityMatcher("/oauth2/**", "/login/oauth2/**")
@@ -143,9 +149,8 @@ public class SecurityConfig {
                         request -> request
                                 .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll())
                 .oauth2Login(loginConfigurer -> loginConfigurer
-                        .userInfoEndpoint(userInfoEndpointConfig -> userInfoEndpointConfig
-                                .userService(oAuth2UserService()))
-                        .loginPage("http://localhost:8080/oauth2/authorization/google")
+                        .userInfoEndpoint(userInfoEndpointConfig ->
+                                userInfoEndpointConfig.userService(oAuth2UserService))
                         .successHandler(oAuth2SuccessHandler()))
                 .sessionManagement(sessionConfigurer -> sessionConfigurer
                         .sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
@@ -217,6 +222,8 @@ public class SecurityConfig {
     @Bean
     public OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService(){
         return userRequest -> {
+            log.info("Hello from OAuth2UserService");
+
             OAuth2User oAuth2User = new DefaultOAuth2UserService().loadUser(userRequest);
 
             String provider = userRequest.getClientRegistration().getRegistrationId();
@@ -224,7 +231,9 @@ public class SecurityConfig {
 
             String email = Optional.ofNullable(oAuth2User.getAttribute("email"))
                     .map(String.class::cast)
-                    .orElseThrow(() -> new FailedAuthencticationException(""));
+                    .orElseThrow(() -> new FailedAuthencticationException("""
+                            Field 'email' was not provided in attributes.
+                            """));
 
             UserDto userDto = userRepository.findByUsernameOrEmail(email)
                     .orElseGet(()-> {
@@ -252,12 +261,12 @@ public class SecurityConfig {
     @Bean
     public AuthenticationSuccessHandler oAuth2SuccessHandler(){
         return (request, response, authentication) -> {
+            log.info("Hello from Success Handler");
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
 
             try {
-                if(authentication.getPrincipal() instanceof CustomOAuth2User auth2User &&
-                        !auth2User.getId().isBlank()) {
+                if(authentication.getPrincipal() instanceof CustomOAuth2User auth2User) {
 
                     String accessToken = tokenService.generateAccessToken(
                             auth2User.getId(),

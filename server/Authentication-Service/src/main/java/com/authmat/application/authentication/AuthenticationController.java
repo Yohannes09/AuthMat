@@ -3,43 +3,30 @@ package com.authmat.application.authentication;
 import com.authmat.application.authentication.dto.AuthenticationResponse;
 import com.authmat.application.authentication.dto.LoginRequest;
 import com.authmat.application.authentication.dto.RegistrationRequest;
-import com.authmat.application.authentication.service.AuthenticationService;
 import com.authmat.application.authentication.models.UserPrincipal;
+import com.authmat.application.authentication.service.AuthenticationService;
 import com.authmat.application.util.UserPrincipalExtractor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
 
 @RestController
+@RequiredArgsConstructor
 @CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5500"})
 @RequestMapping("${endpoints.auth.base:/auth/v1}")
 @Slf4j
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
     private final UserPrincipalExtractor userPrincipalExtractor;
-    private final PasswordEncoder passwordEncoder;
-
-    public AuthenticationController(
-            @Qualifier("internalAuthenticationService")
-            AuthenticationService authenticationService,
-
-            UserPrincipalExtractor userPrincipalExtractor,
-
-            PasswordEncoder passwordEncoder) {
-        this.authenticationService = authenticationService;
-        this.userPrincipalExtractor = userPrincipalExtractor;
-        this.passwordEncoder = passwordEncoder;
-    }
 
 
     @PostMapping("/login")
@@ -66,7 +53,7 @@ public class AuthenticationController {
     public ResponseEntity<String> register(
             @Valid @RequestBody RegistrationRequest registrationRequest){
         log.info("New registration request received. ");
-        authenticationService.register(registrationRequest, passwordEncoder);
+        authenticationService.register(registrationRequest);
         return ResponseEntity.status(HttpStatus.CREATED).body("User registration success.");
     }
 
