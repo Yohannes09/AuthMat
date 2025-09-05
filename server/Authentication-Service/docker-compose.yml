@@ -1,33 +1,43 @@
+
 services:
-  authentication-db:
-    image: "postgres:latest"
-    restart: always
-    ports:
-      - 5433:5432
+  database:
+    image: ${DB_IMAGE}
     environment:
-      POSTGRES_DB: auth_service_db
-      POSTGRES_USER: user
-      POSTGRES_PASSWORD: 1234
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "${DB_PORT}"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - db_data:/var/lib/${DB_IMAGE}:${DB_NAME}/data
 
   authentication-service:
       build: .
       restart: always
       ports:
-        - 8081:8080
+        - "${APP_PORT}:8080"
+      environment:
+        KAFKA_BOOTSTRAP_SERVERS: ${KAFKA_BOOTSTRAP_SERVERS}
+        REDIS_HOST: ${REDIS_HOST}
+        REDIS_PORT: ${REDIS_PORT}
+        DB_URL: ${DB_URL}
+        DB_USERNAME: ${DB_USERNAME}
+        DB_PASSWORD: ${DB_PASSWORD}
+        DB_DRIVER: ${DB_DRIVER}
+        DB_MAX_POOL_SIZE: ${DB_MAX_POOL_SIZE}
+        DB_MIN_IDLE_CONNECTIONS: ${DB_MIN_IDLE_CONNECTIONS}
+        DB_IDLE_TIMEOUT_MS: ${DB_IDLE_TIMEOUT_MS}
+        DB_MAX_LIFETIME_MS: ${DB_MAX_LIFETIME_MS}
+        ACCESS_TOKEN_VALIDITY_MINUTES: ${ACCESS_TOKEN_VALIDITY_MINUTES}
+        ACCESS_TOKEN_HISTORY_TRACE: ${ACCESS_TOKEN_HISTORY_TRACE}
+        ACCESS_TOKEN_KEY_SIZE: ${ACCESS_TOKEN_KEY_SIZE}
+        ACCESS_TOKEN_KEY_ALGORITHM: ${ACCESS_TOKEN_KEY_ALGORITHM}
+        ACCESS_TOKEN_JWT_ALGORITHM: ${ACCESS_TOKEN_JWT_ALGORITHM}
+        REFRESH_TOKEN_VALIDITY_MINUTES: ${REFRESH_TOKEN_VALIDITY_MINUTES}
+        REFRESH_TOKEN_HISTORY_TRACE: ${REFRESH_TOKEN_HISTORY_TRACE}
+        REFRESH_TOKEN_KEY_SIZE: ${REFRESH_TOKEN_KEY_SIZE}
+        REFRESH_TOKEN_KEY_ALGORITHM: ${REFRESH_TOKEN_KEY_ALGORITHM}
+        REFRESH_TOKEN_JWT_ALGORITHM: ${REFRESH_TOKEN_JWT_ALGORITHM}
+
       depends_on:
-        - authentication-db
-        - redis
-
-  redis:
-    image: "redis:7-alpine"
-    restart: always
-    ports:
-      - 6379:6379
-    volumes:
-      - redis_data:/data
-
-volumes:
-  postgres_data:
-  redis_data:
+        - database

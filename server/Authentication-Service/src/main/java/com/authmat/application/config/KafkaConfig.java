@@ -51,14 +51,12 @@ public class KafkaConfig {
                         ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class
                 ),
                 new StringDeserializer(),
-                deserializer
-        );
+                deserializer);
     }
 
     @Bean
     public ConcurrentKafkaListenerContainerFactory<String, Object> kafkaListenerContainerFactory(
-            ConsumerFactory<String, Object> consumerFactory
-    ) {
+            ConsumerFactory<String, Object> consumerFactory) {
         ConcurrentKafkaListenerContainerFactory<String, Object> factory =
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory);

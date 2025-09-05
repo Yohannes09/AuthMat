@@ -1,13 +1,13 @@
 FROM maven:3.9.9 as builder
 WORKDIR /build
+# COPY <local machine> <docker working dir>
 COPY . .
-COPY settings.xml /root/.m2/settings.xml
-RUN mvn clean package -DskipTests
+RUN mvn clean package
 
-FROM openjdk:21-slim as runtime
+FROM eclipse-temurin:21-jre-alpine as runtime
 RUN useradd -ms /bin/bash appuser
 WORKDIR /app
-COPY --from=builder /build/target/authentication-1.0.jar app.jar
+COPY --from=builder /build/target/*.jar app.jar
 EXPOSE 8080
 USER appuser
 ENTRYPOINT ["java", "-jar", "app.jar"]
