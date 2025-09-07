@@ -1,0 +1,95 @@
+application:
+  name: AuthMat
+
+spring:
+  profiles:
+    active: prod
+
+  application:
+    name: authentication-service
+
+  jackson:
+    deserialization:
+      fail-on-unknown-properties: true
+
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            client-id: ${GOOGLE_OAUTH2_CLIENT_ID}
+            client-secret: ${GOOGLE_OAUTH2_CLIENT_SECRET}
+            scope:
+              - openid
+              - profile
+              - email
+        provider:
+          google:
+            issuer-uri: https://accounts.google.com
+            authorization-uri: https://accounts.google.com/o/oauth2/v2/auth
+            token-uri: https://oauth2.googleapis.com/token
+            user-info-uri: https://www.googleapis.com/oauth2/v3/userinfo
+
+messaging:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+
+cache:
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
+
+db:
+  jdbc-url: ${DB_URL}
+  username: ${DB_USERNAME}
+  password: ${DB_PASSWORD}
+  driver: ${DB_DRIVER}
+  max-pool-size: ${DB_MAX_POOL_SIZE}
+  min-idle-connections: ${DB_MIN_IDLE_CONNECTIONS}
+  idle-timeout-ms: ${DB_IDLE_TIMEOUT_MS}
+  max-lifetime-ms: ${DB_MAX_LIFETIME_MS}
+
+token:
+  refresh:
+    token-validity-minutes: ${REFRESH_TOKEN_VALIDITY_MINUTES}
+    key-history-trace: ${REFRESH_TOKEN_HISTORY_TRACE}
+    key-size: ${REFRESH_TOKEN_KEY_SIZE}
+    key-algorithm: ${REFRESH_TOKEN_KEY_ALGORITHM}
+    jwt-algorithm: ${REFRESH_TOKEN_JWT_ALGORITHM}
+    signing-key-rotation-rate: ${REFRESH_TOKEN_SIGNING_KEY_ROTATION_RATE_MINUTES}
+  access:
+    token-validity-minutes: ${ACCESS_TOKEN_VALIDITY_MINUTES}
+    key-history-trace: ${ACCESS_TOKEN_HISTORY_TRACE}
+    key-size: ${ACCESS_TOKEN_KEY_SIZE}
+    key-algorithm: ${ACCESS_TOKEN_KEY_ALGORITHM}
+    jwt-algorithm: ${ACCESS_TOKEN_JWT_ALGORITHM}
+    signing-key-rotation-rate: ${ACCESS_TOKEN_SIGNING_KEY_ROTATION_RATE_MINUTES}
+
+management:
+  endpoints:
+    web:
+      # Changing the base endpoint from /actuator -> /manage-auth
+      base-path: /manage-auth
+      exposure:
+        # Specific endpoints can be selected, in this case, all endpoints are accessible.
+        include: *
+
+  endpoint:
+    # enables just the /shutdown endpoint
+    shutdown:
+      enabled: true
+    # Disabling the /info endpoint
+    info:
+      enabled: false
+
+endpoints:
+  auth:
+    base: ${AUTH_BASE_ENDPOINT}
+  credentials:
+    base: ${CREDENTIALS_BASE_ENDPOINT}
+  roles:
+#sentry:
+#  dsn: https://6f39834fb7758b3febdbe15a42abad93@o4509417075900416.ingest.us.sentry.io/4509417078194176
+#  # Add data like request headers and IP for users,
+#  # see https://docs.sentry.io/platforms/java/guides/spring-boot/data-management/data-collected/ for more info
+#  send-default-pii: true

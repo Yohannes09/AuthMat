@@ -1,0 +1,22 @@
+logging:
+  pattern:
+    console: "%d %-5level %logger{36} - %msg%n"
+
+spring:
+  jpa:
+    hibernate:
+      ddl-auto: update
+      naming:
+        implicit-strategy: org.hibernate.boot.model.naming.ImplicitNamingStrategyLegacyJpaImpl
+        physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
+    show-sql: true
+    properties:
+      format_sql: true
+    database: postgresql
+
+  output:
+    ansi:
+      enabled: ALWAYS
+
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
