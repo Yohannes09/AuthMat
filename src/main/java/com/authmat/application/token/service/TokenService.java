@@ -1,6 +1,6 @@
 package com.authmat.application.token.service;
 
-import com.authmat.application.token.builder.TokenFactory;
+import com.authmat.application.token.management.TokenFactory;
 import com.authmat.application.config.TokenSigningConfig;
 import com.authmat.application.token.constant.TokenType;
 import com.authmat.application.token.exception.KeyInitializationException;

@@ -1,8 +1,8 @@
 package com.authmat.application.config;
 
-import com.authmat.application.token.builder.SigningKeyManager;
-import com.authmat.application.token.builder.SigningKeyManagerImp;
-import com.authmat.application.token.builder.TokenFactory;
+import com.authmat.application.token.management.SigningKeyManager;
+import com.authmat.application.token.management.SigningKeyManagerImp;
+import com.authmat.application.token.management.TokenFactory;
 import com.authmat.application.token.history.PublicKeyHistory;
 import com.authmat.application.token.history.PublicKeyHistoryImp;
 import lombok.extern.slf4j.Slf4j;
@@ -32,9 +32,9 @@ public class TokenSigningConfig {
     @Bean(ACCESS_KEY_MANAGER_BEAN_NAME)
     public SigningKeyManager accessTokenSigningKeyManager(
             @Qualifier(ACCESS_KEY_HISTORY_BEAN_NAME)PublicKeyHistory publicKeyHistory,
-            @Value("${token.access.key-size:2048}") int keySize,
-            @Value("${token.access.key-algorithm:RSA}") String keyAlgorithm,
-            @Value("${token.access.jwt-algorithm:RS256}") String jwtAlgorithm){
+            @Value("#{environment['ACCESS_TOKEN_KEY_SIZE'] ?: 2048}") int keySize,
+            @Value("#{environment['ACCESS_TOKEN_KEY_ALGORITHM'] ?: 'RSA'}") String keyAlgorithm,
+            @Value("#{environment['ACCESS_TOKEN_JWT_ALGORITHM'] ?: 'RS256'}") String jwtAlgorithm){
         return new SigningKeyManagerImp(
                 publicKeyHistory,
                 keyAlgorithm,
@@ -45,9 +45,9 @@ public class TokenSigningConfig {
     @Bean(REFRESH_KEY_MANAGER_BEAN_NAME)
     public SigningKeyManager refreshTokenSigningKeyManager(
             @Qualifier(REFRESH_KEY_HISTORY_BEAN_NAME)PublicKeyHistory publicKeyHistory,
-            @Value("${token.refresh.key-size:2048}") int keySize,
-            @Value("${token.refresh.key-algorithm:RSA}") String keyAlgorithm,
-            @Value("${token.refresh.jwt-algorithm:RS256}") String jwtAlgorithm){
+            @Value("#{environment['REFRESH_TOKEN_KEY_SIZE'] ?: 2048}") int keySize,
+            @Value("#{environment['REFRESH_TOKEN_KEY_ALGORITHM'] ?: 'RSA'}") String keyAlgorithm,
+            @Value("#{environment['REFRESH_TOKEN_JWT_ALGORITHM'] ?: 'RS256'}") String jwtAlgorithm){
         return new SigningKeyManagerImp(
                 publicKeyHistory,
                 keyAlgorithm,
@@ -57,7 +57,7 @@ public class TokenSigningConfig {
 
     @Bean(ACCESS_KEY_HISTORY_BEAN_NAME)
     public PublicKeyHistory accessTokenPublicKeyHistory(
-            @Value("${token.access.key-history-trace:10}") Integer maxKeysTraced){
+            @Value("#{environment['ACCESS_TOKEN_HISTORY_TRACE'] ?: 10}") Integer maxKeysTraced){
         return new PublicKeyHistoryImp(
                 maxKeysTraced,
                 new ConcurrentLinkedDeque<>());
@@ -65,7 +65,7 @@ public class TokenSigningConfig {
 
     @Bean(REFRESH_KEY_HISTORY_BEAN_NAME)
     public PublicKeyHistory refreshTokenPublicKeyHistory(
-            @Value("${token.refresh.key-history-trace:10}") Integer maxKeysTraced){
+            @Value("#{environment['REFRESH_TOKEN_HISTORY_TRACE'] ?: 10}") Integer maxKeysTraced){
         return new PublicKeyHistoryImp(
                 maxKeysTraced,
                 new ConcurrentLinkedDeque<>());
@@ -74,7 +74,7 @@ public class TokenSigningConfig {
     @Bean(ACCESS_TOKEN_FACTORY_BEAN_NAME)
     public TokenFactory accessTokenFactory(
             @Qualifier(ACCESS_KEY_MANAGER_BEAN_NAME) SigningKeyManager signingKeyManager,
-            @Value("${token.access.token-validity-minutes}") Integer accessTokenValidityMinutes){
+            @Value("#{environment['ACCESS_TOKEN_VALIDITY_MINUTES'] ?: 15}") Integer accessTokenValidityMinutes){
         return new TokenFactory(
                 signingKeyManager,
                 accessTokenValidityMinutes);
@@ -83,7 +83,7 @@ public class TokenSigningConfig {
     @Bean(REFRESH_TOKEN_FACTORY_BEAN_NAME)
     public TokenFactory refreshTokenFactory(
             @Qualifier(REFRESH_KEY_MANAGER_BEAN_NAME) SigningKeyManager signingKeyManager,
-            @Value("${token.refresh.token-validity-minutes}") Integer refreshTokenValidityMinutes){
+            @Value("#{environment['REFRESH_TOKEN_VALIDITY_MINUTES'] ?: 120}") Integer refreshTokenValidityMinutes){
         return new TokenFactory(
                 signingKeyManager,
                 refreshTokenValidityMinutes);

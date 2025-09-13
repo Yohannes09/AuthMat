@@ -1,4 +1,4 @@
-package com.authmat.application.token.builder;
+package com.authmat.application.token.management;
 
 import com.authmat.model.publickey.PublicKeyMetadata;
 

@@ -17,8 +17,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
-import org.springframework.context.annotation.Profile;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
@@ -29,6 +28,7 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -47,7 +47,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-
+import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
@@ -65,6 +65,7 @@ public class SecurityConfig {
             TokenService tokenService,
             @Qualifier(TokenSigningConfig.ACCESS_KEY_HISTORY_BEAN_NAME)
             PublicKeyHistory publicKeyHistory) {
+
         this.userRepository = userRepository;
         this.userMapper = userMapper;
         this.tokenService = tokenService;
@@ -73,20 +74,43 @@ public class SecurityConfig {
 
 
     @Bean
-    @Profile("prod")
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        log.info("Secured filter chain loaded.");
+    @Order(1)
+    public SecurityFilterChain oAuth2SecurityFilterChain(HttpSecurity http) throws Exception{
+        String[] patterns = {"/oauth2/**", "/login/oauth2/**", "/login/**"};
         return http
+                .securityMatcher(patterns)
+                .securityMatcher("/**")
+                .authorizeHttpRequests(request -> request
+                        .requestMatchers(patterns).permitAll()
+                        .anyRequest().authenticated())
+                .authenticationProvider(authenticationProvider(
+                        passwordEncoder(), userDetailsService()))
+                .oauth2Login(loginConfigurer -> loginConfigurer
+                        .userInfoEndpoint(userInfo -> userInfo
+                                .userService(oAuth2UserService()))
+                        .successHandler(oAuth2SuccessHandler()))
+//                .sessionManagement(sessionConfigurer -> sessionConfigurer
+//                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
+                .build();
+    }
+
+    @Bean
+    @Order(2)
+    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        return http
+                .securityMatcher(request ->
+                        !request.getRequestURI().startsWith("/oauth2/") &&
+                        !request.getRequestURI().startsWith("/login/oauth2/"))
                 .cors(cors-> cors.configurationSource(corsConfigurationSource()))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request ->
                         request
-                                .requestMatchers("/auth/**").permitAll()
-                                .anyRequest().authenticated()
+                                .requestMatchers("**/login").permitAll()
                                 .requestMatchers("/swagger-ui/**","/v3/api-docs/**")
                                 .hasAnyRole(
                                         DefaultRole.ADMIN.getName(),
-                                        DefaultRole.SUPER_ADMIN.getName()))
+                                        DefaultRole.SUPER_ADMIN.getName())
+                                .anyRequest().authenticated())
                 .sessionManagement(session->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider(
@@ -95,70 +119,10 @@ public class SecurityConfig {
                 .addFilterBefore(
                         simpleAuthenticationFilter(),
                         UsernamePasswordAuthenticationFilter.class)
-                .securityMatcher("/auth/v1/login")
                 .build();
     }
 
     @Bean
-    @Profile("prod")
-    public SecurityFilterChain oAuth2SecurityFilterChain(HttpSecurity http) throws Exception{
-        log.info("Secured OAuth2SecurityFilter loaded");
-        return http
-                .securityMatcher("/oauth2/**", "/login/oauth2/**")
-                .authorizeHttpRequests(request -> request
-                        .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll()
-                        .anyRequest().authenticated())
-                .authenticationProvider(authenticationProvider(
-                        passwordEncoder(), userDetailsService()))
-                .oauth2Login(loginConfigurer -> loginConfigurer
-                        //.loginPage("http://localhost:8080/oauth2/authorization/google")
-                        .userInfoEndpoint(userInfo -> userInfo
-                                .userService(oAuth2UserService()))
-                        .successHandler(oAuth2SuccessHandler()))
-                .sessionManagement(sessionConfigurer -> sessionConfigurer
-                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
-                .build();
-    }
-
-//    @Bean
-//    @Order(1)
-//    @Profile("dev")
-//    public SecurityFilterChain noSecurityFilterChain(HttpSecurity http) throws Exception {
-//        log.info("Unsecured filter chain loaded");
-//        return http
-//                .cors(cors-> cors.configurationSource(corsConfigurationSource()))
-//                .csrf(AbstractHttpConfigurer::disable)
-//                .authorizeHttpRequests(request ->
-//                        request.anyRequest().permitAll())
-//                .sessionManagement(session->
-//                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-//                .build();
-//    }
-
-    @Bean("noSecurityOAuth2FilterChain")
-    @Profile("dev")
-    public SecurityFilterChain oAuth2NoSecurityFilterChain(
-            HttpSecurity http,
-            OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService) throws Exception {
-
-        log.info("Loaded OAuth2 no security filter chain");
-        return http
-                .securityMatcher("/oauth2/**", "/login/oauth2/**")
-                .authorizeHttpRequests(
-                        request -> request
-                                .requestMatchers("/oauth2/**", "/login/oauth2/**").permitAll())
-                .oauth2Login(loginConfigurer -> loginConfigurer
-                        .userInfoEndpoint(userInfoEndpointConfig ->
-                                userInfoEndpointConfig.userService(oAuth2UserService))
-                        .successHandler(oAuth2SuccessHandler()))
-                .sessionManagement(sessionConfigurer -> sessionConfigurer
-                        .sessionCreationPolicy(SessionCreationPolicy.ALWAYS))
-                .csrf(AbstractHttpConfigurer::disable)
-                .build();
-    }
-
-    @Bean
-    @Lazy
     public CorsConfigurationSource corsConfigurationSource(){
         CorsConfiguration config = new CorsConfiguration();
 
@@ -174,13 +138,11 @@ public class SecurityConfig {
     }
 
     @Bean
-    @Profile("prod")
     public OncePerRequestFilter simpleAuthenticationFilter(){
         return new SimpleJwtAuthenticationFilter(publicKeyResolver(), Set.of("/auth/v1/login", "/auth/v1/register"));
     }
 
     @Bean
-    @Lazy
     public PublicKeyResolver publicKeyResolver(){
         return kid ->
             publicKeyHistory.getKeyHistoryAscending().stream()
@@ -260,29 +222,27 @@ public class SecurityConfig {
     @Bean
     public AuthenticationSuccessHandler oAuth2SuccessHandler(){
         return (request, response, authentication) -> {
-            log.info("Hello from Success Handler");
             response.setContentType("application/json");
             response.setCharacterEncoding("UTF-8");
 
             try {
-                if(authentication.getPrincipal() instanceof CustomOAuth2User auth2User) {
+                if(authentication.getPrincipal() instanceof OAuth2User auth2User) {
 
                     String accessToken = tokenService.generateAccessToken(
-                            auth2User.getId(),
-                            auth2User.getAuthoritiesToString());
+                            auth2User.getAttribute("email"),
+                            auth2User.getAuthorities()
+                                    .stream()
+                                    .map(GrantedAuthority::getAuthority)
+                                    .collect(Collectors.toSet()));
 
-                    String refreshToken = tokenService.generateRefreshToken(auth2User.getId());
+                    String refreshToken = tokenService.generateRefreshToken(auth2User.getAttribute("email"));
 
                     response.setHeader("access_token", accessToken);
                     response.setHeader("refresh_token", refreshToken);
                     response.setHeader("token_type", "bearer");
-
-                    return;
+                    log.info("oauth success");
                 }
-                throw new IllegalArgumentException("""
-                        OAuth2 login failed user ID was not present OR
-                        there was a type mismatch. Extracted type: %s
-                        """.formatted(OAuth2User.class.getName()));
+
             } catch (Exception e) {
                 log.warn("OAuth2 login attempt failed: {}", e.getMessage());
                 response.setStatus(HttpStatus.UNAUTHORIZED.value());
@@ -292,8 +252,4 @@ public class SecurityConfig {
 
     }
 
-
 }
-
-
-

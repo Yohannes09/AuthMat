@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.List;
 import java.util.Map;
@@ -23,8 +24,7 @@ import java.util.stream.Collectors;
 @ConditionalOnProperty(
         name = "feature.default-role-permission.initializer",
         havingValue = "true",
-        matchIfMissing = true
-)
+        matchIfMissing = true)
 @RequiredArgsConstructor
 public class DefaultAuthoritiesInitializer {
     private final RoleRepository roleRepository;
@@ -33,44 +33,50 @@ public class DefaultAuthoritiesInitializer {
     @PostConstruct
     public void init(){
         log.info("Beginning Authorities setup.");
-        try {
-            List<Permission> permissions = DefaultPermission
-                    .getAll()
-                    .stream()
-                    .map(Permission::new)
-                    .toList();
 
-            Map<String, Permission> permissionMap = permissionRepository
-                    .saveAll(permissions)
-                    .stream()
-                    .collect(Collectors.toMap(Permission::getName, permission -> permission));
+        List<Permission> permissions = DefaultPermission.getAll()
+                .stream()
+                .map(defaultPermission -> {
+                    try {
+                        return permissionRepository.save(new Permission(defaultPermission));
+                    } catch (DataIntegrityViolationException e) {
+                        return permissionRepository.findByName(defaultPermission.getName())
+                                .orElseThrow(() -> new IllegalStateException("Failed to initialize default permissions."));
+                    }
+                })
+                .toList();
 
-            List<Role> roles = DefaultRole
-                    .getAll()
-                    .stream()
-                    .map(defaultRole -> {
+        Map<String, Permission> permissionMap = permissions.stream()
+                .collect(Collectors.toMap(
+                        Permission::getName,
+                        permission -> permission));
 
-                        Set<Permission> rolePermissions =
-                                    defaultRole.getPermissions()
+        List<Role> roles = DefaultRole.getAll()
+                .stream()
+                .map(defaultRole -> {
+                    try {
+                        Set<Permission> rolePermissions = defaultRole.getPermissions()
                                             .stream()
                                             .map(defaultPermission ->
                                                     permissionMap.get(defaultPermission.getName())
                                             )
                                             .collect(Collectors.toSet());
-                        return Role.builder()
-                                .name(defaultRole.getName())
-                                .description(defaultRole.getDescription())
-                                .permissions(rolePermissions)
-                                .build();
 
-                    })
-                    .toList();
+                        return roleRepository.save(
+                                Role.builder()
+                                    .name(defaultRole.getName())
+                                    .description(defaultRole.getDescription())
+                                    .permissions(rolePermissions)
+                                    .build());
+                    } catch (DataIntegrityViolationException e) {
+                        return roleRepository.findByName(defaultRole.getName())
+                                .orElseThrow(() -> new IllegalStateException("Failed to initialize default roles."));
+                    }
+                })
+                .toList();
 
-            roleRepository.saveAll(roles);
-            log.info("Default Roles and Permissions initialized.");
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+        log.info("Default Roles and Permissions initialized.");
+
     }
 
 }

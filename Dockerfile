@@ -1,5 +1,10 @@
 FROM maven:3.9.9 as builder
 WORKDIR /build
+ARG GITHUB_USERNAME
+ARG GITHUB_PASSWORD
+RUN mkdir -p /root/.m2 && \
+    echo "<settings><servers><server><id>github</id><username>${GITHUB_USERNAME}</username><password>${GITHUB_PASSWORD}</password></server></servers></settings>" > /root/.m2/settings.xml
+
 # COPY <local machine> <docker working dir>
 COPY . .
 RUN mvn clean package

@@ -10,12 +10,12 @@ import java.util.Set;
 @RequiredArgsConstructor
 public enum DefaultRole {
     BASIC(
-            "ROLE_BASIC",
+            "BASIC",
             "Baseline access.",
             Set.of(DefaultPermission.BASIC_USER)),
 
     ELEVATED(
-            "ROLE_ELEVATED",
+            "ELEVATED",
             "Developer type access to view system performance.",
             Set.of(
                     DefaultPermission.BASIC_USER,
@@ -23,7 +23,7 @@ public enum DefaultRole {
                     DefaultPermission.API_DOCS_VIEW)),
 
     ADMIN(
-            "ROLE_ADMIN",
+            "ADMIN",
             "Developer + Basic + Sensitive operations.",
             Set.of(
                     DefaultPermission.ROLE_MANAGE,
@@ -32,7 +32,7 @@ public enum DefaultRole {
                     DefaultPermission.PERMISSION_MANAGE)),
 
     SUPER_ADMIN(
-            "ROLE_SUPER_ADMIN",
+            "SUPER_ADMIN",
             "Highest authority.",
             Set.of(
                     DefaultPermission.ROLE_MANAGE,

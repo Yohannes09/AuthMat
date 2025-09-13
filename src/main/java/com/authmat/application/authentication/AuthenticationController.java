@@ -21,8 +21,7 @@ import java.util.Optional;
 
 @RestController
 @RequiredArgsConstructor
-@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5500"})
-@RequestMapping("${endpoints.auth.base:/auth/v1}")
+@RequestMapping("#{environment['AUTH_BASE_ENDPOINT'] ?: '/v1/auth'}")
 @Slf4j
 public class AuthenticationController {
     private final AuthenticationService authenticationService;

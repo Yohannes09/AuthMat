@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.time.LocalDateTime;
 
 @RestController
-@RequestMapping("${endpoints.credentials.base:/v1/users}")
+@RequestMapping("#{environment['USERS_BASE_ENDPOINT'] ?: '/v1/users'}")
 @RequiredArgsConstructor
 @Slf4j(topic = "CREDENTIALS_CONTROLLER")
 public class UserServiceController {

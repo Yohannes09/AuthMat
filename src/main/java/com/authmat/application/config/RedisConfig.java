@@ -23,8 +23,8 @@ public class RedisConfig {
 
     @Bean
     public RedisConnectionFactory redisConnectionFactory(
-            @Value("${cache.host}") String hostName,
-            @Value("${cache.port:6379}") int port) {
+            @Value("${REDIS_HOST}") String hostName,
+            @Value("#{environment['REDIS_PORT'] ?: 6379}") int port) {
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration(hostName, port);
         return new LettuceConnectionFactory(config);
     }
