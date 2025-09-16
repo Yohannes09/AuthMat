@@ -22,8 +22,8 @@ services:
       build:
         context: .
         args:
-          GITHUB_USERNAME: ${GITHUB_USERNAME}
-          GITHUB_PASSWORD: ${GITHUB_PASSWORD}
+          REPO_USERNAME: ${REPO_USERNAME}
+          REPO_TOKEN: ${REPO_TOKEN}
       restart: no
       ports:
         - "${APP_PORT}:8080"

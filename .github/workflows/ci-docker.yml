@@ -1,0 +1,62 @@
+on:
+  push:
+    branches: ["master", "main"]
+  workflow_dispatch:
+
+jobs:
+  build-test-docker:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+          cache: maven
+
+
+      - name: Build and test
+        run: mvn clean verify -B
+
+
+      - name: Log in to Docker Hub
+        uses: docker/login-actions@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/authmat
+          tags: |
+            type=ref, type=branch
+            type=ref, event=tag
+            type=sha
+            
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/authmat:latest
+          labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
+            GITHUB_PASSWORD: ${{ secrets.GITHUB_PASSWORD }}
+
+
+      - name: Run docker-compose for integration tests
+        run: |
+          docker-compose up -d auth-db
+          sleep 15  # give Postgres time to initialize
+          mvn verify -Pintegration-tests
+          docker-compose down -v
