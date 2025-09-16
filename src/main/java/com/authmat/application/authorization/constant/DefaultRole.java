@@ -5,6 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.EnumSet;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @Getter
 @RequiredArgsConstructor
@@ -50,4 +51,11 @@ public enum DefaultRole {
         return EnumSet.allOf(DefaultRole.class);
     }
 
+    public Set<String> getAuthorities(){
+        Set<String> authorities = this.permissions.stream()
+                .map(DefaultPermission::getName)
+                .collect(Collectors.toSet());
+        authorities.add(this.name);
+        return authorities;
+    }
 }

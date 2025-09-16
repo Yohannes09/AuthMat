@@ -14,14 +14,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Service("internalAuthenticationService")
 @Slf4j
@@ -71,7 +68,7 @@ public class InternalAuthenticationService implements AuthenticationService {
                 log.info("Successful login: {}", principal.getId());
                 return generateAuthenticationResponse(
                         principal.getId().toString(),
-                        new HashSet<>(principal.getAuthorities()));
+                        principal.getAuthoritiesStr());
             }
 
             throw new IllegalStateException("Incompatible type mapping during authentication.");
@@ -102,7 +99,7 @@ public class InternalAuthenticationService implements AuthenticationService {
             log.info("Access Token refresh: {}", userPrincipal.getId());
             return generateAuthenticationResponse(
                     userPrincipal.getId().toString(),
-                    new HashSet<>(userPrincipal.getAuthorities()));
+                    userPrincipal.getAuthoritiesStr());
         } catch (Exception e) {
             log.info("Failed token refresh: {}", e.getMessage());
             throw new FailedAuthencticationException("Could not reauthencticate user.");
@@ -116,13 +113,7 @@ public class InternalAuthenticationService implements AuthenticationService {
     }
 
     public AuthenticationResponse generateAuthenticationResponse(
-            String subject, Set<GrantedAuthority> grantedAuthorities){
-
-        Set<String> authorities = grantedAuthorities
-                .stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toSet());
-
+            String subject, Set<String> authorities){
         String accessToken = tokenService.generateAccessToken(subject, authorities);
         String refreshToken = tokenService.generateRefreshToken(subject);
 

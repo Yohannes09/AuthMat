@@ -79,7 +79,6 @@ public class SecurityConfig {
         String[] patterns = {"/oauth2/**", "/login/oauth2/**", "/login/**"};
         return http
                 .securityMatcher(patterns)
-                .securityMatcher("/**")
                 .authorizeHttpRequests(request -> request
                         .requestMatchers(patterns).permitAll()
                         .anyRequest().authenticated())
@@ -139,7 +138,7 @@ public class SecurityConfig {
 
     @Bean
     public OncePerRequestFilter simpleAuthenticationFilter(){
-        return new SimpleJwtAuthenticationFilter(publicKeyResolver(), Set.of("/auth/v1/login", "/auth/v1/register"));
+        return new SimpleJwtAuthenticationFilter(publicKeyResolver(), Set.of("/ping", "/auth/v1/login", "/auth/v1/register"));
     }
 
     @Bean
@@ -183,8 +182,6 @@ public class SecurityConfig {
     @Bean
     public OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService(){
         return userRequest -> {
-            log.info("Hello from OAuth2UserService");
-
             OAuth2User oAuth2User = new DefaultOAuth2UserService().loadUser(userRequest);
 
             String provider = userRequest.getClientRegistration().getRegistrationId();

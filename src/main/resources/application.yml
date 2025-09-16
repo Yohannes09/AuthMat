@@ -2,10 +2,6 @@ application:
   name: AuthMat
 
 spring:
-  jpa:
-    show-sql: true
-    properties:
-      format_sql: true
   output:
     ansi:
       enabled: ALWAYS
@@ -40,18 +36,27 @@ spring:
 management:
   endpoints:
     web:
-      # Changing the base endpoint from /actuator -> /manage-auth
-      base-path: /manage-auth
+#       Changes base endpoint from /actuator -> /manage-auth
+#      base-path: /manage-auth
+
       exposure:
-        # Specific endpoints can be selected, in this case, all endpoints are accessible.
-        include: "*"
+#         Specific endpoints can be selected, in this case, all endpoints are accessible.
+#        include: "*"
+        include: health, metrics, prometheus
+
   endpoint:
-    # enables just the /shutdown endpoint
-    shutdown:
-      enabled: true
+    health:
+      show-details: always
+#     enables just the /shutdown endpoint
+#    shutdown:
+#      enabled: true
     # Disabling the /info endpoint
-    info:
-      enabled: false
+#    info:
+#      enabled: false
+  metrics:
+    export:
+      prometheus:
+        enabled: true
 
 messaging:
   kafka:

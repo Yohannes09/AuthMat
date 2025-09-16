@@ -1,5 +1,6 @@
 package com.authmat.application.authentication.models;
 
+import com.authmat.application.authorization.entity.Permission;
 import com.authmat.application.authorization.entity.Role;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -32,6 +33,20 @@ public class UserPrincipal implements UserDetails {
     private boolean accountNonLocked;
     private boolean credentialsNonExpired;
     private boolean enabled;
+
+
+    public Set<String> getAuthoritiesStr(){
+        Set<String> authorities = roles.stream()
+                .map(Role::getName)
+                .collect(Collectors.toSet());
+
+        authorities.addAll(roles.stream()
+                .flatMap(role -> role.getPermissions().stream())
+                .map(Permission::getName)
+                .collect(Collectors.toSet()));
+
+        return authorities;
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
