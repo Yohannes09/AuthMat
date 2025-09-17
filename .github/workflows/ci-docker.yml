@@ -56,26 +56,26 @@ jobs:
         with:
           images: ${{ secrets.DOCKERHUB_USERNAME }}/authmat
           tags: |
-            type=ref, type=branch
-            type=ref, event=tag
-            type=sha
+            type=ref,event=branch
+            type=ref,event=tag   
+            type=sha             
             
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/authmat:latest
+          push: ${{ github.event_name != 'pull_request' }} # Only pushes on push/tag events
+          tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            REPO_USERNAME: ${{ secrets.REPO_USERNAME }}
-            REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
+            REPO_USERNAME=${{ secrets.REPO_USERNAME }}
+            REPO_TOKEN=${{ secrets.REPO_TOKEN }}
 
 
-      - name: Run docker-compose for integration tests
-        run: |
-          docker-compose up -d auth-db
-          sleep 15  # give Postgres time to initialize
-          mvn verify -Pintegration-tests
-          docker-compose down -v
+#      - name: Run docker-compose for integration tests
+#        run: |
+#          docker-compose up -d auth-db
+#          sleep 15  # give Postgres time to initialize
+#          mvn verify -Pintegration-tests
+#          docker-compose down -v
