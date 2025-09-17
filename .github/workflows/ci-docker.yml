@@ -20,8 +20,18 @@ jobs:
           cache: maven
 
 
+      - name: Configure Maven for GitHub packages
+        run: |
+          mkdir -p ~/.m2
+          touch ~/.m2/settings.xml
+          echo "<settings><servers><server><id>github</id><username>${REPO_USERNAME}</username><password>${REPO_TOKEN}</password></server></servers></settings>" > /~/.m2/settings.xml
+        
+
       - name: Build and test
         run: mvn clean verify -B
+        env:
+          REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
+          REPO_USERNAME: ${{ secrets.REPO_USERNAME }}
 
 
       - name: Log in to Docker Hub
@@ -50,8 +60,8 @@ jobs:
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/authmat:latest
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            GITHUB_USERNAME: ${{ secrets.GITHUB_USERNAME }}
-            GITHUB_PASSWORD: ${{ secrets.GITHUB_PASSWORD }}
+            REPO_USERNAME: ${{ secrets.REPO_USERNAME }}
+            REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
 
 
       - name: Run docker-compose for integration tests

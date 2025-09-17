@@ -18,6 +18,7 @@ services:
       - app-network
       - auth-internal
 
+
   authentication-service:
       build:
         context: .
