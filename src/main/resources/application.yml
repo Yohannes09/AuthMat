@@ -1,16 +1,11 @@
-application:
-  name: AuthMat
-
 spring:
   output:
     ansi:
       enabled: ALWAYS
   pattern:
     console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
-  profiles:
-    active: dev
   application:
-    name: authentication-service
+    name: authmat
   jackson:
     deserialization:
       fail-on-unknown-properties: true
@@ -36,8 +31,8 @@ spring:
 management:
   endpoints:
     web:
-#       Changes base endpoint from /actuator -> /manage-auth
-#      base-path: /manage-auth
+#     Changes base endpoint from /actuator to whatever you choose
+      base-path: /authmat-actuator
 
       exposure:
 #         Specific endpoints can be selected, in this case, all endpoints are accessible.
@@ -58,9 +53,8 @@ management:
       prometheus:
         enabled: true
 
-messaging:
-  kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+kafka:
+  bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
 
 REDIS_HOST:
 REDIS_PORT:

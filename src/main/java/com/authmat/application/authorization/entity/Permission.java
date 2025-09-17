@@ -20,14 +20,12 @@ public class Permission {
     @Id
     @GeneratedValue(
             strategy = GenerationType.SEQUENCE,
-            generator = "permission_id_sequence"
-    )
+            generator = "permission_id_sequence")
     @SequenceGenerator(
             name = "permission_id_sequence",
             sequenceName = "permission_id_sequence",
             initialValue = 6456,
-            allocationSize = 39
-    )
+            allocationSize = 39)
     private Long id;
 
     @Column(nullable = false, unique = true)

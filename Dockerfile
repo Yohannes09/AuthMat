@@ -3,7 +3,17 @@ WORKDIR /build
 ARG REPO_USERNAME
 ARG REPO_TOKEN
 RUN mkdir -p /root/.m2 && \
-    echo "<settings><servers><server><id>github</id><username>${REPO_USERNAME}</username><password>${REPO_TOKEN}</password></server></servers></settings>" > /root/.m2/settings.xml
+    cat > /root/.m2/settings.xml <<EOF
+<settings>
+  <servers>
+    <server>
+      <id>github</id>
+      <username>${REPO_USERNAME}</username>
+      <password>${REPO_TOKEN}</password>
+    </server>
+  </servers>
+</settings>
+EOF
 
 # COPY <local machine> <docker working dir>
 COPY . .

@@ -40,19 +40,10 @@ public class RedisConfig {
         return template;
     }
 
-
-    /**
-     * Returns a Jackson-based Redis serializer supporting Java 8 date/time types and polymorphic deserialization.
-     * <p>
-     * Configures {@code ObjectMapper} with {@code JavaTimeModule}, disables timestamp serialization, and enables default typing for accurate deserialization of non-final classes or generic objects in Redis cache.
-     *
-     * @return a customized {@link GenericJackson2JsonRedisSerializer}
-     */
     @Bean
     public RedisSerializer<Object> redisSerializer(ObjectMapper objectMapper){
         return new GenericJackson2JsonRedisSerializer(objectMapper);
     }
-
 
     @Bean
     public ObjectMapper objectMapper(){
@@ -63,8 +54,7 @@ public class RedisConfig {
         objectMapper.activateDefaultTyping(
                 LaissezFaireSubTypeValidator.instance,
                 ObjectMapper.DefaultTyping.NON_FINAL,
-                JsonTypeInfo.As.PROPERTY
-        );
+                JsonTypeInfo.As.PROPERTY);
 
         return objectMapper;
     }
