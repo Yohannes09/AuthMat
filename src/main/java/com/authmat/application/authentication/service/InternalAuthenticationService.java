@@ -34,11 +34,13 @@ public class InternalAuthenticationService implements AuthenticationService {
     @Transactional
     public boolean register(RegistrationRequest registrationRequest){
         boolean isUserCreated = userService.createAndPublishUser(
-                User.builder()
-                        .username(registrationRequest.username())
-                        .email(registrationRequest.email())
-                        .password(registrationRequest.password())
-                        .build());
+                registrationRequest.username(),
+                registrationRequest.email(),
+                registrationRequest.password(),
+                null,
+                null,
+                null,
+                null);
 
         log.info("Successful registration: {}", registrationRequest.username());
         return isUserCreated;
@@ -56,7 +58,8 @@ public class InternalAuthenticationService implements AuthenticationService {
 
         try {
             UsernamePasswordAuthenticationToken token =
-                    new UsernamePasswordAuthenticationToken(loginRequest.usernameOrEmail(), loginRequest.password());
+                    new UsernamePasswordAuthenticationToken(
+                            loginRequest.usernameOrEmail(), loginRequest.password());
 
             Authentication authentication = authenticationManager.authenticate(token);
             Object object = authentication.getPrincipal();
@@ -77,13 +80,11 @@ public class InternalAuthenticationService implements AuthenticationService {
             loginAttemptManager.loginFailed(identifier);
             throw e;
         } catch (Exception e) {
-            log.error("""
-                    
+            log.debug("""
                     Unforeseen Exception thrown during login
                     Cause: {}
                     Message: {}
                     Trace: {}
-                    
                     """, e.getCause(), e.getMessage(), e.getStackTrace());
             throw e;
         }
@@ -95,7 +96,6 @@ public class InternalAuthenticationService implements AuthenticationService {
     public AuthenticationResponse refresh(UserPrincipal userPrincipal){
         try {
             userPrincipal.validateAccount();
-
             log.info("Access Token refresh: {}", userPrincipal.getId());
             return generateAuthenticationResponse(
                     userPrincipal.getId().toString(),

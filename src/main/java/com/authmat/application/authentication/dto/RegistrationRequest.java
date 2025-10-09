@@ -10,30 +10,24 @@ public record RegistrationRequest(
         @NotBlank(message = "Username cannot be blank.")
         @Pattern(
                 regexp = ValidationConstants.USERNAME_PATTERN,
-                message = ValidationConstants.USERNAME_VALIDATION_MESSAGE
-        )
+                message = ValidationConstants.USERNAME_VALIDATION_MESSAGE)
         @Schema(
                 description = ValidationConstants.USERNAME_PATTERN,
-                example = "Username123"
-        )
+                example = "Username123")
         String username,
 
         @NotBlank(message = "Email cannot be blank.")
         @Email(message = ValidationConstants.EMAIL_VALIDATION_MESSAGE)
         @Schema(
                 description = ValidationConstants.EMAIL_VALIDATION_MESSAGE,
-                example = "user@example.com"
-        )
+                example = "user@example.com")
         String email,
 
         @NotBlank(message = "Password cannot be blank.")
         @Pattern(
                 regexp = ValidationConstants.PASSWORD_PATTERN,
-                message = ValidationConstants.PASSWORD_VALIDATION_MESSAGE
-        )
+                message = ValidationConstants.PASSWORD_VALIDATION_MESSAGE)
         @Schema(
                 description = ValidationConstants.PASSWORD_PATTERN,
-                example = "Password123@"
-        )
-        String password
-){}
+                example = "Password123@")
+        String password){}

@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -33,36 +34,39 @@ public class UserService {
     private final CachedUserRepository cachedUserRepository;
     private final KafkaTemplate<String,Object> kafkaTemplate;
 
-    public void createUser(String username, String email, String password){
-        User user = User.builder()
-                .username(username)
-                .email(email)
-                .password(passwordEncoder.encode(password))
-                .build();
-        cachedUserRepository.save(user);
+    public User createUser(String username, String email, String password){
+        return buildNewUser(
+                username, email, password, null,null, null, null);
     }
 
-    public void createSystemUser(String username, String email, String password, Collection<Role> roles){
-        User user = buildNewUser(
-                username,
-                email,
-                password,
-                null,
-                null,
-                null);
-        user.getRoles().addAll(roles);
+    public User createUser(
+            String username,
+            String email,
+            String password,
+            Collection<Role> roles,
+            String provider,
+            String providerId,
+            String externalId){
+        return buildNewUser(
+                username, email, password, roles, provider, providerId, externalId);
     }
 
-    public boolean createAndPublishUser(User user){
+    public boolean createAndPublishUser(
+            String username,
+            String email,
+            String password,
+            Collection<Role> roles,
+            String provider,
+            String providerId,
+            String externalId){
         try {
-            if(cachedUserRepository.existsByUsernameOrEmail(user.getUsername(), user.getEmail())){
-                throw new DuplicateCredentialException("User attempted to use taken credentials.");
-            }
+            User user = buildNewUser(
+                    username, email, password, roles, provider, providerId, externalId);
 
-            User savedUser = cachedUserRepository.save(user);
             kafkaTemplate.send(
                     "user-created-events",
                     new NewUserEvent(user.getId(), user.getUsername(), user.getEmail(), Instant.now()));
+
             return true;
         } catch (Exception e) {
             log.warn("{}", e.getMessage());
@@ -70,16 +74,10 @@ public class UserService {
         }
     }
 
-    // Below will do for now
     @Transactional
     public boolean updateUsername(UsernameUpdateRequest usernameUpdateRequest, Long userId){
         try {
-            User user = cachedUserRepository.findUser(
-                    CachedUserRepository.ID_KEY + userId,
-                    true,
-                    userId,
-                    cachedUserRepository.userRepository()::findById,
-                    u -> u);
+            User user = fetchUserProxy(userId);
 
             UserDto dto = userMapper.entityToDto(user);
             String newUsername = usernameUpdateRequest.newUsername();
@@ -162,18 +160,27 @@ public class UserService {
             String username,
             String email,
             String password,
+            Collection<Role> roles,
             String provider,
             String providerId,
             String externalId){
+        if(cachedUserRepository.existsByUsernameOrEmail(username, email)){
+            throw new DuplicateCredentialException("User attempted to use taken credentials.");
+        }
 
-        return User.builder()
+        User user = User.builder()
                 .username(username)
                 .email(email)
                 .password(passwordEncoder.encode(password))
-                .provider(Optional.ofNullable(provider).orElse("authmat"))
-                .providerId(Optional.ofNullable(providerId).orElse("authmat"))
-                .externalId(Optional.ofNullable(externalId).orElse("N/A"))
+                .provider(Optional.ofNullable(provider).orElse(""))
+                .providerId(Optional.ofNullable(providerId).orElse(""))
+                .externalId(Optional.ofNullable(externalId).orElse(""))
                 .build();
+
+        if(Objects.nonNull(roles) && !roles.isEmpty()){
+            user.getRoles().addAll(roles);
+        }
+        return cachedUserRepository.save(user);
     }
 
     private void validateCredential(

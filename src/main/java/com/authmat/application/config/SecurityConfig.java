@@ -6,13 +6,11 @@ import com.authmat.application.authentication.models.UserPrincipal;
 import com.authmat.application.authorization.constant.DefaultRole;
 import com.authmat.application.token.history.PublicKeyHistory;
 import com.authmat.application.token.service.TokenService;
-import com.authmat.application.users.entity.User;
 import com.authmat.application.users.dto.UserDto;
 import com.authmat.application.users.repository.CachedUserRepository;
 import com.authmat.application.util.UserMapper;
 import com.authmat.client.PublicKeyResolver;
 import com.authmat.filter.SimpleJwtAuthenticationFilter;
-import com.authmat.tool.exception.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
@@ -138,9 +136,11 @@ public class SecurityConfig {
 
     @Bean
     public OncePerRequestFilter simpleAuthenticationFilter(){
-        return new SimpleJwtAuthenticationFilter(publicKeyResolver(), Set.of("/ping", "/auth/v1/login", "/auth/v1/register"));
+        return new SimpleJwtAuthenticationFilter(
+                publicKeyResolver(), Set.of("/ping", "/auth/v1/login", "/auth/v1/register"));
     }
 
+    // trash
     @Bean
     public PublicKeyResolver publicKeyResolver(){
         return kid ->
@@ -151,10 +151,18 @@ public class SecurityConfig {
 
     @Bean
     public UserDetailsService userDetailsService(){
-        return usernameOrEmail -> userRepository
-                .findByUsernameOrEmail(usernameOrEmail)
-                .map(userMapper::dtoToPrincipal)
-                .orElseThrow(() -> new UserNotFoundException("User not found " + usernameOrEmail));
+        return usernameOrEmail -> {
+            UserDto dto = userRepository.findUser(
+                    CachedUserRepository.USERNAME_OR_EMAIL_KEY + usernameOrEmail,
+                    true,
+                    usernameOrEmail,
+                    userRepository.userRepository()::findByUsernameOrEmail,
+                    userMapper::entityToDto);
+
+            return Optional.ofNullable(dto)
+                    .map(userMapper::dtoToPrincipal)
+                    .orElseThrow();
+        };
     }
 
     @Bean
@@ -193,19 +201,13 @@ public class SecurityConfig {
                             Field 'email' was not provided in attributes.
                             """));
 
-            UserDto userDto = userRepository.findByUsernameOrEmail(email)
-                    .orElseGet(()-> {
-                        log.info("New user registered via OAuth2");
-                        User user = userRepository.save(
-                                User.builder()
-                                        .username(email)
-                                        .provider(provider)
-                                        .providerId(providerId)
-                                        .externalId(providerId + providerId)
-                                        .build());
+            UserDto userDto = userRepository.findUser(
+                    CachedUserRepository.USERNAME_OR_EMAIL_KEY + email,
+                    true,
+                    email,
+                    userRepository.userRepository()::findByUsernameOrEmail,
+                    userMapper::entityToDto);
 
-                        return userMapper.entityToDto(user);
-                    });
 
             UserPrincipal userPrincipal = userMapper.dtoToPrincipal(userDto);
 
