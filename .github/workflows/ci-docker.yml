@@ -65,17 +65,9 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
-          push: ${{ github.event_name != 'pull_request' }} # Only pushes on push/tag events
+          push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
             REPO_USERNAME=${{ secrets.REPO_USERNAME }}
             REPO_TOKEN=${{ secrets.REPO_TOKEN }}
-
-
-#      - name: Run docker-compose for integration tests
-#        run: |
-#          docker-compose up -d auth-db
-#          sleep 15  # give Postgres time to initialize
-#          mvn verify -Pintegration-tests
-#          docker-compose down -v

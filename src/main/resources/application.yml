@@ -53,6 +53,12 @@ management:
       prometheus:
         enabled: true
 
+authmat:
+  system:
+    credentials:
+      username: ${AUTHMAT_USERNAME}
+      password: ${AUTHMAT_PASSWORD}
+
 kafka:
   bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
 

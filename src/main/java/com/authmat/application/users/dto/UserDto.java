@@ -1,4 +1,4 @@
-package com.authmat.application.users.model;
+package com.authmat.application.users.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

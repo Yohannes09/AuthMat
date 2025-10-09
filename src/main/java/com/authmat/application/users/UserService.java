@@ -4,14 +4,13 @@ import com.authmat.application.authentication.exception.DuplicateCredentialExcep
 import com.authmat.application.authorization.entity.Role;
 import com.authmat.application.users.dto.EmailUpdateRequest;
 import com.authmat.application.users.dto.PasswordUpdateRequest;
+import com.authmat.application.users.dto.UserDto;
 import com.authmat.application.users.dto.UsernameUpdateRequest;
+import com.authmat.application.users.entity.User;
 import com.authmat.application.users.exception.CredentialUpdateException;
-import com.authmat.application.users.model.User;
-import com.authmat.application.users.model.UserDto;
 import com.authmat.application.users.repository.CachedUserRepository;
 import com.authmat.application.util.UserMapper;
 import com.authmat.events.NewUserEvent;
-import com.authmat.tool.exception.UserNotFoundException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -21,7 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Collection;
-import java.util.HashSet;
+import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -34,16 +33,24 @@ public class UserService {
     private final CachedUserRepository cachedUserRepository;
     private final KafkaTemplate<String,Object> kafkaTemplate;
 
-    // Create event to update other services about user changes
-
-    public void createUser(String username, String email, String password, Collection<Role> roles){
+    public void createUser(String username, String email, String password){
         User user = User.builder()
                 .username(username)
                 .email(email)
                 .password(passwordEncoder.encode(password))
-                .roles(new HashSet<>())
                 .build();
         cachedUserRepository.save(user);
+    }
+
+    public void createSystemUser(String username, String email, String password, Collection<Role> roles){
+        User user = buildNewUser(
+                username,
+                email,
+                password,
+                null,
+                null,
+                null);
+        user.getRoles().addAll(roles);
     }
 
     public boolean createAndPublishUser(User user){
@@ -67,15 +74,18 @@ public class UserService {
     @Transactional
     public boolean updateUsername(UsernameUpdateRequest usernameUpdateRequest, Long userId){
         try {
-            User user = cachedUserRepository.findById(userId, uzer -> uzer);
+            User user = cachedUserRepository.findUser(
+                    CachedUserRepository.ID_KEY + userId,
+                    true,
+                    userId,
+                    cachedUserRepository.userRepository()::findById,
+                    u -> u);
+
+            UserDto dto = userMapper.entityToDto(user);
             String newUsername = usernameUpdateRequest.newUsername();
-            UserDto cachedUser = cachedUserRepository
-                    .findById(userId)
-                    .orElseThrow(() ->
-                            new UserNotFoundException("Could not find user " + usernameUpdateRequest.currentUsername()));
 
             validateCredential(
-                    cachedUser.getUsername(),
+                    dto.getUsername(),
                     usernameUpdateRequest.currentUsername(),
                     newUsername,
                     cachedUserRepository::existsByUsername);
@@ -94,25 +104,23 @@ public class UserService {
     @Transactional
     public boolean updateEmail(EmailUpdateRequest emailUpdateRequest, Long userId){
         try {
-            User proxyEntity = cachedUserRepository.findById(userId, user -> user);
-            UserDto cachedUser = cachedUserRepository
-                    .findById(userId)
-                    .orElseThrow(() -> new UserNotFoundException(""));
+            User user = fetchUserProxy(userId);
 
+            UserDto dto = userMapper.entityToDto(user);
             String newEmail = emailUpdateRequest.newEmail();
 
             validateCredential(
-                    cachedUser.getEmail(),
+                    dto.getEmail(),
                     emailUpdateRequest.currentEmail(),
                     newEmail,
                     cachedUserRepository::existsByEmail);
 
-            persistCredentialChange(proxyEntity, newEmail, proxyEntity::setEmail);
+            persistCredentialChange(user, newEmail, user::setEmail);
 
-            log.info("User {} successfully updated email. ", proxyEntity.getId());
+            log.info("User {} successfully updated email. ", dto.getId());
             return true;
         } catch (Exception e) {
-            log.warn("Username update failure: {}", e.getMessage());
+            log.warn("Email update failure: {}", e.getMessage());
             return false;
         }
     }
@@ -120,7 +128,7 @@ public class UserService {
     @Transactional
     public boolean updatePassword(PasswordUpdateRequest passwordUpdateRequest, Long userId){
         try {
-            User userProxy = cachedUserRepository.findById(userId, user -> user);
+            User userProxy = fetchUserProxy(userId);
 
             String currentPassword = userProxy.getPassword();
             String newPassword = passwordEncoder.encode(passwordUpdateRequest.newPassword());
@@ -136,11 +144,37 @@ public class UserService {
             log.info("User {} successfully updated password. ", userProxy.getId());
             return true;
         } catch (Exception e) {
-            log.warn("Username update failure: {}", e.getMessage());
+            log.warn("Password update failure: {}", e.getMessage());
             return false;
         }
     }
 
+    private User fetchUserProxy(Long userId){
+        return cachedUserRepository.findUser(
+                CachedUserRepository.ID_KEY + userId,
+                true,
+                userId,
+                cachedUserRepository.userRepository()::findById,
+                u -> u);
+    }
+
+    private User buildNewUser(
+            String username,
+            String email,
+            String password,
+            String provider,
+            String providerId,
+            String externalId){
+
+        return User.builder()
+                .username(username)
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .provider(Optional.ofNullable(provider).orElse("authmat"))
+                .providerId(Optional.ofNullable(providerId).orElse("authmat"))
+                .externalId(Optional.ofNullable(externalId).orElse("N/A"))
+                .build();
+    }
 
     private void validateCredential(
             String currentCredential,

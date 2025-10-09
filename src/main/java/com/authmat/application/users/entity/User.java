@@ -1,4 +1,4 @@
-package com.authmat.application.users.model;
+package com.authmat.application.users.entity;
 
 import com.authmat.application.authorization.entity.Role;
 import com.authmat.application.constant.ValidationConstants;
@@ -53,8 +53,7 @@ public class User{
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id")
-    )
+            inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
     @CreationTimestamp

@@ -4,8 +4,10 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 
 import java.util.EnumSet;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Getter
 @RequiredArgsConstructor
@@ -57,5 +59,9 @@ public enum DefaultRole {
                 .collect(Collectors.toSet());
         authorities.add(this.name);
         return authorities;
+    }
+
+    public static List<String> getSystemRoles(){
+        return Stream.of(ELEVATED, ADMIN, SUPER_ADMIN).map(DefaultRole::getName).toList();
     }
 }

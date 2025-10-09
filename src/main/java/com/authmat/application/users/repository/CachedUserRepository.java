@@ -1,7 +1,8 @@
 package com.authmat.application.users.repository;
 
-import com.authmat.application.users.model.User;
-import com.authmat.application.users.model.UserDto;
+import com.authmat.application.users.entity.User;
+import com.authmat.application.users.dto.UserDto;
+import com.authmat.application.users.exception.UserServiceException;
 import com.authmat.application.util.UserMapper;
 import com.authmat.tool.exception.UserNotFoundException;
 import jakarta.persistence.EntityManager;
@@ -10,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -18,8 +21,11 @@ import java.util.function.Predicate;
 @Component
 @RequiredArgsConstructor
 public class CachedUserRepository {
-    private static final String USERNAME_OR_EMAIL_KEY = "users:usernameOrEmail:";
-    private static final String ID_KEY = "users:currentPassword";
+    public static final String USERNAME_OR_EMAIL_KEY = "users:usernameOrEmail:";
+    public static final String ID_KEY = "users:currentPassword:";
+
+    private static final String DATA_REFERENCE_KEY = "users:data:";
+    private static final Duration TTL_MINUTES = Duration.ofMinutes(30);
 
     private final UserMapper userMapper;
     private final UserRepository userRepository;
@@ -27,56 +33,65 @@ public class CachedUserRepository {
     private final EntityManager entityManager;
 
 
-    public Optional<UserDto> findByUsernameOrEmail(String usernameOrEmail){
-        return findUser(
-                usernameOrEmail,
-                USERNAME_OR_EMAIL_KEY + usernameOrEmail,
-                identifier -> userRepository
-                        .findByUsernameOrEmail(identifier)
-                        .orElseThrow(() -> new UserNotFoundException("User not found " + usernameOrEmail)));
-    }
+//    public Optional<UserDto> findByUsernameOrEmail(String usernameOrEmail){
+//        return getUser(
+//                usernameOrEmail,
+//                USERNAME_OR_EMAIL_KEY + usernameOrEmail,
+//                identifier -> userRepository
+//                        .findByUsernameOrEmail(identifier)
+//                        .orElseThrow(() -> new UserNotFoundException("User not found " + usernameOrEmail)));
+//    }
+//
+//    public Optional<UserDto> findById(Long id){
+//        return getUser(
+//                ID_KEY + id, id,
+//                identifier ->
+//                        userRepository
+//                                .findById(identifier)
+//                                .orElseThrow(() -> new UserNotFoundException("User not found " + id)),
+//                );
+//    }
+//
+//    public <V> Optional<V> findByUsernameOrEmail(String usernameOrEmail, Function<User,V> mapperFunction){
+//        return Optional.ofNullable(getUser(
+//                USERNAME_OR_EMAIL_KEY + usernameOrEmail, usernameOrEmail,
+//                identifier ->
+//                        userRepository.findByUsernameOrEmail(identifier)
+//                                .orElseThrow(() -> new UserNotFoundException("User not found " + usernameOrEmail)),
+//                mapperFunction));
+//    }
+//
+//    public <V> V findById(Long id, Function<User,V> mapperFunction){
+//        return getUser(
+//                ID_KEY + id, id,
+//                identifier ->
+//                        userRepository.findById(identifier)
+//                                .orElseThrow(() -> new UserNotFoundException("User not found " + id)),
+//                mapperFunction);
+//    }
 
-    public Optional<UserDto> findById(Long id){
-        return findUser(
-                id,
-                ID_KEY + id,
-                identifier ->
-                        userRepository
-                                .findById(identifier)
-                                .orElseThrow(() -> new UserNotFoundException("User not found " + id)));
-    }
+    public <I,V> V findUser(
+        String key,
+        boolean useProxy,
+        I identifier,
+        Function<I, Optional<User>> userRepositoryFunction,
+        Function<User,V> mapperFunction){
 
-    public <V> Optional<V> findByUsernameOrEmail(String usernameOrEmail, Function<User,V> mapperFunction){
-        return Optional.ofNullable(findUser(
-                usernameOrEmail,
-                USERNAME_OR_EMAIL_KEY + usernameOrEmail,
-                identifier ->
-                        userRepository.findByUsernameOrEmail(identifier)
-                                .orElseThrow(() -> new UserNotFoundException("User not found " + usernameOrEmail)),
-                mapperFunction));
-    }
-
-    public <V> V findById(Long id, Function<User,V> mapperFunction){
-        return findUser(
-                id,
-                ID_KEY + id,
-                identifier ->
-                        userRepository.findById(identifier)
-                                .orElseThrow(() -> new UserNotFoundException("User not found " + id)),
-                mapperFunction);
+        return findCachedUser(key, useProxy)
+                .map(mapperFunction)
+                .orElseGet(()-> findAndCacheUser(
+                        key, identifier, userRepositoryFunction, mapperFunction));
     }
 
     public User save(User user){
         try {
             User savedUser = userRepository.save(user);
-            redisTemplate.opsForValue().set(
-                    ID_KEY + savedUser.getId(),
-                    userMapper.entityToDto(savedUser));
+            cacheUser(user);
 
             return savedUser;
         } catch (Exception e) {
             log.error("USER CACHE ERROR: {}", e.getMessage());
-            throw new RuntimeException(e);
+            throw new UserServiceException("Failed to save user.");
         }
 
     }
@@ -102,6 +117,10 @@ public class CachedUserRepository {
                 userRepository::existsByEmailIgnoreCase);
     }
 
+    public UserRepository userRepository(){
+        return userRepository;
+    }
+
     private <I> boolean existsByIdentifier(
             I identifier, String key, Predicate<I> repositoryFunction){
 
@@ -109,38 +128,63 @@ public class CachedUserRepository {
                 repositoryFunction.test(identifier);
     }
 
-    private <I,V> V findUser(
-            I identifier,
-            String key,
-            Function<I, User> userRepositoryFunction,
-            Function<User,V> mapperFunction){
 
-        Object object = redisTemplate.opsForValue().get(key);
 
-        if(object instanceof UserDto userDto){
-            return mapperFunction.apply(entityManager.getReference(User.class, userDto.getId()));
+    private Optional<User> findCachedUser(String key, boolean useProxy){
+        try{
+            String userDataKey = (String) redisTemplate.opsForValue().get(key);
+            if(Objects.isNull(userDataKey) || userDataKey.isBlank()) {
+                return Optional.empty();
+            }
+
+            Object cached = redisTemplate.opsForValue().get(userDataKey);
+            if(cached instanceof UserDto dto && dto.getId() != null){
+                log.debug("Cache hit for key: {}", key);
+                return useProxy ?
+                        Optional.of(entityManager.getReference(User.class, dto.getId())) :
+                        Optional.of(entityManager.find(User.class, dto.getId()));
+            }
+        } catch (Exception e) {
+            log.warn("Cache read failed for key: {}", key, e);
         }
-        final User user = userRepositoryFunction.apply(identifier);
-        redisTemplate.opsForValue().set(key, userMapper.entityToDto(user));
-
-        return mapperFunction.apply(user);
+        return Optional.empty();
     }
 
-    private  <I> Optional<UserDto> findUser(
-            I identifier,
+    private <I,V> V findAndCacheUser(
             String key,
-            Function<I,User> repositoryFunction){
-        Object object = redisTemplate.opsForValue().get(key);
+            I identifier,
+            Function<I,Optional<User>> userRepositoryFunction,
+            Function<User,V> mapperFunction){
+        log.debug("Cache miss for key: {}", key);
+        return userRepositoryFunction.apply(identifier)
+                .map(user -> {
+                    cacheUser(user);
+                    return mapperFunction.apply(user);
+                })
+                .orElseThrow(() -> new UserNotFoundException("User not found"));
+    }
 
-        if(object instanceof UserDto userDto){
-            return Optional.ofNullable(userDto);
+    private void cacheUser(User user){
+        try{
+            UserDto dto = userMapper.entityToDto(user);
+
+            redisTemplate.opsForValue().set(
+                    DATA_REFERENCE_KEY + dto.getId(),
+                    dto,
+                    TTL_MINUTES);
+
+            redisTemplate.opsForValue().set(
+                    USERNAME_OR_EMAIL_KEY + dto.getUsername(),
+                    dto.getId(),
+                    TTL_MINUTES);
+
+            redisTemplate.opsForValue().set(
+                    ID_KEY + dto.getId(),
+                    dto.getId(),
+                    TTL_MINUTES);
+        } catch (Exception e) {
+            log.error("Failed to cache user", e);
         }
-
-        Optional<UserDto> user = Optional.ofNullable(repositoryFunction.apply(identifier))
-                .map(userMapper::entityToDto);
-
-        redisTemplate.opsForValue().set(key, user);
-        return user;
     }
 
 }

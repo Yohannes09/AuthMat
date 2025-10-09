@@ -14,8 +14,6 @@ RUN mkdir -p /root/.m2 && \
   </servers>
 </settings>
 EOF
-
-# COPY <local machine> <docker working dir>
 COPY . .
 RUN mvn clean package
 
@@ -26,3 +24,5 @@ COPY --from=builder /build/target/*.jar app.jar
 EXPOSE 8080
 USER appuser
 ENTRYPOINT ["java", "-jar", "app.jar"]
+
+# COPY syntax: COPY <host machine> <build working dir>

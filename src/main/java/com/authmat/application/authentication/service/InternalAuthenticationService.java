@@ -6,7 +6,7 @@ import com.authmat.application.authentication.dto.LoginRequest;
 import com.authmat.application.authentication.dto.RegistrationRequest;
 import com.authmat.application.authentication.exception.FailedAuthencticationException;
 import com.authmat.application.token.service.TokenService;
-import com.authmat.application.users.model.User;
+import com.authmat.application.users.entity.User;
 import com.authmat.application.authentication.models.UserPrincipal;
 import com.authmat.application.users.UserService;
 import lombok.RequiredArgsConstructor;

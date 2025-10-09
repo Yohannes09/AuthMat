@@ -1,12 +1,15 @@
 package com.authmat.application.token.management;
 
 import com.authmat.application.config.TokenSigningConfig;
+import com.authmat.events.PublicKeyRotationEvent;
 import com.authmat.model.publickey.PublicKeyMetadata;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+
+import java.time.ZoneId;
 
 @Component
 @Slf4j
@@ -39,16 +42,16 @@ public class SigningKeysRotationAndPublisherConfig {
         accessTokenKeyManager.rotateSigningKey();
         PublicKeyMetadata metadata = accessTokenKeyManager.getCurrentKeyMetaData();
 
-//        kafkaTemplate.send(
-//                "token-rotation-event",
-//                PublicKeyRotationEvent.builder()
-//                        .kid(metadata.getId().toString())
-//                        .publicKey(metadata.getEncodedPublicKey())
-//                        .signingKeyAlgorithm(metadata.getKeyAlgorithm())
-//                        .jwtAlgorithm(metadata.getJwtAlgorithm())
-//                        .issuedAt(metadata.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant())
-//                        .issuer("authmat")
-//                        .build());
+        kafkaTemplate.send(
+                "token-rotation-event",
+                PublicKeyRotationEvent.builder()
+                        .kid(metadata.getId().toString())
+                        .publicKey(metadata.getEncodedPublicKey())
+                        .signingKeyAlgorithm(metadata.getKeyAlgorithm())
+                        .jwtAlgorithm(metadata.getJwtAlgorithm())
+                        .issuedAt(metadata.getCreatedAt().atZone(ZoneId.systemDefault()).toInstant())
+                        .issuer("authmat")
+                        .build());
     }
 
     @Scheduled(
