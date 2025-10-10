@@ -10,15 +10,13 @@ import java.util.Optional;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
-    @EntityGraph(attributePaths = "roles")
+    @EntityGraph(attributePaths = {"roles", "roles.permissions"})
     @Query("""
             SELECT user FROM User user
             WHERE LOWER(user.username) = LOWER(:usernameOrEmail)
             OR LOWER(user.email) = LOWER(:usernameOrEmail)
             """)
-    Optional<User> findByUsernameOrEmail(
-            @Param("usernameOrEmail") String usernameOrEmail
-    );
+    Optional<User> findByUsernameOrEmail(@Param("usernameOrEmail") String usernameOrEmail);
 
     @Query("""
             SELECT CASE WHEN COUNT(user) > 0 THEN true ELSE false END

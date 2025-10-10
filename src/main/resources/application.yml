@@ -50,6 +50,7 @@ management:
 authmat:
   system:
     credentials:
+      #enabled: ${ENABLE_SYSTEM_USER}
       username: ${AUTHMAT_USERNAME:}
       password: ${AUTHMAT_PASSWORD:}
     token:

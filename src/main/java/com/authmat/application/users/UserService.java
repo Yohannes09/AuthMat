@@ -8,6 +8,7 @@ import com.authmat.application.users.dto.UserDto;
 import com.authmat.application.users.dto.UsernameUpdateRequest;
 import com.authmat.application.users.entity.User;
 import com.authmat.application.users.exception.CredentialUpdateException;
+import com.authmat.application.users.exception.UserServiceException;
 import com.authmat.application.users.repository.CachedUserRepository;
 import com.authmat.application.util.UserMapper;
 import com.authmat.events.NewUserEvent;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
@@ -34,12 +36,13 @@ public class UserService {
     private final CachedUserRepository cachedUserRepository;
     private final KafkaTemplate<String,Object> kafkaTemplate;
 
-    public User createUser(String username, String email, String password){
+
+    public Optional<User> createUser(String username, String email, String password){
         return buildNewUser(
                 username, email, password, null,null, null, null);
     }
 
-    public User createUser(
+    public Optional<User> createUser(
             String username,
             String email,
             String password,
@@ -61,15 +64,16 @@ public class UserService {
             String externalId){
         try {
             User user = buildNewUser(
-                    username, email, password, roles, provider, providerId, externalId);
+                    username, email, password, roles, provider, providerId, externalId)
+            .orElseThrow(() -> new UserServiceException("User creation failed."));
 
             kafkaTemplate.send(
                     "user-created-events",
                     new NewUserEvent(user.getId(), user.getUsername(), user.getEmail(), Instant.now()));
-
             return true;
         } catch (Exception e) {
-            log.warn("{}", e.getMessage());
+            log.warn("An error occurred while creating a new user.");
+            log.debug("User creation error cause: {}", e.getMessage());
             return false;
         }
     }
@@ -156,7 +160,8 @@ public class UserService {
                 u -> u);
     }
 
-    private User buildNewUser(
+    @Transactional
+    private Optional<User> buildNewUser(
             String username,
             String email,
             String password,
@@ -172,6 +177,7 @@ public class UserService {
                 .username(username)
                 .email(email)
                 .password(passwordEncoder.encode(password))
+                .roles(new HashSet<>())
                 .provider(Optional.ofNullable(provider).orElse(""))
                 .providerId(Optional.ofNullable(providerId).orElse(""))
                 .externalId(Optional.ofNullable(externalId).orElse(""))

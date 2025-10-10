@@ -17,8 +17,7 @@ import java.util.List;
 @Configuration
 @ConditionalOnProperty(
         prefix = "authmat.system.credentials",
-        name = {"username", "password"},
-        matchIfMissing = true)
+        name = {"username", "password"})
 @RequiredArgsConstructor
 @Slf4j
 public class UserGenerator {
@@ -39,7 +38,16 @@ public class UserGenerator {
                     .findAllByNameIgnoreCase(DefaultRole.getSystemRoles());
 
             userService.createUser(
-                    username, null, password, fetchedRoles, null, null, null);
+                            username,
+                            null,
+                            password,
+                            fetchedRoles,
+                            null,
+                            null,
+                            null)
+            .orElseThrow(() ->
+                    new IllegalStateException("Failed to create System User."));
+
             log.info("Super Admin {} created", username);
         };
     }
