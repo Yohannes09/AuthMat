@@ -9,23 +9,28 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
+@Table(
+        name = "permissions",
+        indexes = {
+                @Index(name = "idx_permission_name", columnList = "name")
+        }
+)
 @Entity
-@Table(name = "permissions")
 @Getter
-@Setter
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor
 public class Permission {
     @Id
     @GeneratedValue(
             strategy = GenerationType.SEQUENCE,
-            generator = "permission_id_sequence")
+            generator = "permission_id_sequence"
+    )
     @SequenceGenerator(
             name = "permission_id_sequence",
             sequenceName = "permission_id_sequence",
             initialValue = 6456,
-            allocationSize = 39)
+            allocationSize = 39
+    )
     private Long id;
 
     @Column(nullable = false, unique = true)
@@ -42,8 +47,4 @@ public class Permission {
     @UpdateTimestamp
     private LocalDateTime updatedAt;
 
-    public Permission(DefaultPermission defaultPermission){
-        this.name = defaultPermission.getName();
-        this.description = defaultPermission.getDescription();
-    }
 }

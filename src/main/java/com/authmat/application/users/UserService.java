@@ -132,7 +132,7 @@ public class UserService {
         try {
             User userProxy = fetchUserProxy(userId);
 
-            String currentPassword = userProxy.getPassword();
+            String currentPassword = userProxy.getHashedPassword();
             String newPassword = passwordEncoder.encode(passwordUpdateRequest.newPassword());
 
             validateCredential(

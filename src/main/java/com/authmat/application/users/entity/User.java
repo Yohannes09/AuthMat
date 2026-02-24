@@ -12,48 +12,53 @@ import org.hibernate.annotations.UpdateTimestamp;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.UUID;
 
 @Table(
         name = "users",
         indexes = {
                 @Index(name = "idx_user_username", columnList = "username"),
                 @Index(name = "idx_user_email", columnList = "email")
+                // might need an index for external id
         }
 )
 @Entity
 @Builder
 @Getter
-@Setter
 @NoArgsConstructor
-@AllArgsConstructor
 public class User{
     @Id
     @GeneratedValue(
             strategy = GenerationType.SEQUENCE,
-            generator = "user_id_sequence")
+            generator = "user_id_sequence"
+    )
     @SequenceGenerator(
             name = "user_id_sequence",
             sequenceName = "user_id_sequence",
             initialValue = 11_957_103,
-            allocationSize = 9)
+            allocationSize = 9
+    )
     private Long id;
 
-    @Pattern(regexp = ValidationConstants.USERNAME_PATTERN)
+    @Column(name = "external_id", unique = true)
+    private String externalId;
+
     @Column(unique = true, nullable = false)
     private String username;
 
     @Pattern(regexp = ValidationConstants.PASSWORD_PATTERN)
-    private String password;
+    private String hashedPassword;
 
     @Email(message = ValidationConstants.EMAIL_VALIDATION_MESSAGE)
     @Column(unique = true)
     private String email;
 
-    @ManyToMany(fetch = FetchType.EAGER)
+    @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "user_roles",
             joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "role_id"))
+            inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
     private Set<Role> roles = new HashSet<>();
 
     @CreationTimestamp
@@ -88,6 +93,16 @@ public class User{
     @Column(name = "provider_id")
     private String providerId;
 
-    @Column(name = "external_id", unique = true)
-    private String externalId;
+    @PrePersist
+    private void generateExternalId(){
+        if(this.externalId == null) this.externalId = UUID.randomUUID().toString();
+    }
+
+    public void lockAccount() { this.accountNonLocked = false; }
+    public void unlockAccount() { this.accountNonLocked = true; }
+    public void disableAccount() { this.enabled = false; }
+    public void enableAccount() { this.enabled = true; }
+    public void updatePassword(String newHashedPassword) { this.hashedPassword = newHashedPassword; }
+    public void updateUsername(String newUsername) { this.username = newUsername; }
+    public void updateEmail(String newEmail){ this.email = email;}
 }

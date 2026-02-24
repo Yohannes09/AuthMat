@@ -3,7 +3,6 @@ package com.authmat.application.authorization.entity;
 import com.authmat.application.authorization.constant.DefaultRole;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -15,22 +14,28 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-@Table(name = "roles")
+@Table(
+        name = "roles",
+        indexes = {
+                @Index(name = "idx_role_name", columnList = "name")
+        }
+)
 @Entity
 @Getter
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor
 public class Role {
     @Id
     @GeneratedValue(
             strategy = GenerationType.SEQUENCE,
-            generator = "role_id_sequence")
+            generator = "role_id_sequence"
+    )
     @SequenceGenerator(
             name = "role_id_sequence",
             sequenceName = "role_id_sequence",
             initialValue = 3456,
-            allocationSize = 63)
+            allocationSize = 63
+    )
     private Long id;
 
     @Column(nullable = false)
@@ -54,12 +59,8 @@ public class Role {
     @JoinTable(
             name = "role_permissions",
             joinColumns = @JoinColumn(name = "role_id"),
-            inverseJoinColumns = @JoinColumn(name = "permission_id"))
+            inverseJoinColumns = @JoinColumn(name = "permission_id")
+    )
     private Set<Permission> permissions = new HashSet<>();
-
-    public Role(DefaultRole defaultRole){
-        this.name = defaultRole.getName();
-        this.description = defaultRole.getDescription();
-    }
 
 }

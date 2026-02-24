@@ -2,10 +2,7 @@ package com.authmat.application.authentication.models;
 
 import com.authmat.application.authorization.entity.Permission;
 import com.authmat.application.authorization.entity.Role;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import com.authmat.application.users.entity.User;
 import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;
@@ -19,33 +16,43 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-@Builder
-@AllArgsConstructor
-@NoArgsConstructor
-@Getter
 public class UserPrincipal implements UserDetails {
-    private Long id;
-    private String username;
-    private String password;
-    private String email;
-    private Set<Role> roles = new HashSet<>();
-    private boolean accountNonExpired;
-    private boolean accountNonLocked;
-    private boolean credentialsNonExpired;
-    private boolean enabled;
+    private final Long internalId;
+    private final String externalId;
+    private final String username;
+    private final String password;
+    private final String email;
+    private final Set<Role> roles;
+    private final boolean accountNonExpired;
+    private final boolean accountNonLocked;
+    private final boolean credentialsNonExpired;
+    private final boolean enabled;
 
 
-    public Set<String> getAuthoritiesStr(){
-        Set<String> authorities = roles.stream()
-                .map(Role::getName)
-                .collect(Collectors.toSet());
+    public UserPrincipal(User user){
+        this.internalId = user.getId();
+        this.externalId = user.getExternalId();
+        this.username = user.getUsername();
+        this.password = user.getHashedPassword();
+        this.email = user.getEmail();
+        this.roles = user.getRoles();
+        this.accountNonExpired = user.isAccountNonExpired();
+        this.accountNonLocked = user.isAccountNonLocked();
+        this.credentialsNonExpired = user.isCredentialsNonExpired();
+        this.enabled = user.isEnabled();
+    }
 
-        authorities.addAll(roles.stream()
-                .flatMap(role -> role.getPermissions().stream())
-                .map(Permission::getName)
-                .collect(Collectors.toSet()));
 
-        return authorities;
+    public Long getInternalId() {
+        return internalId;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public String getExternalId() {
+        return externalId;
     }
 
     @Override
@@ -59,9 +66,8 @@ public class UserPrincipal implements UserDetails {
         Set<GrantedAuthority> permissionAuthorities = roles
                 .stream()
                 .flatMap(role ->
-                                role
-                                        .getPermissions()
-                                        .stream()
+                                role.
+                                        getPermissions().stream()
                                         .map(permission -> new SimpleGrantedAuthority(permission.getName()))
                 )
                 .collect(Collectors.toSet());
@@ -103,16 +109,16 @@ public class UserPrincipal implements UserDetails {
     }
 
     public void validateAccount(){
-        if (isAccountNonLocked()) {
+        if (!isAccountNonLocked()) {
             throw new LockedException("Account is locked");
         }
-        if (isEnabled()) {
+        if (!isEnabled()) {
             throw new DisabledException("Account is disabled");
         }
-        if (isAccountNonExpired()) {
+        if (!isAccountNonExpired()) {
             throw new AccountExpiredException("Account has expired");
         }
-        if (isCredentialsNonExpired()) {
+        if (!isCredentialsNonExpired()) {
             throw new CredentialsExpiredException("Credentials have expired");
         }
     }

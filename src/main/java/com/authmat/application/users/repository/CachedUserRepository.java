@@ -30,7 +30,7 @@ public class CachedUserRepository {
 
     private final UserMapper userMapper;
     private final UserRepository userRepository;
-    private final RedisTemplate<String,Object> redisTemplate;
+    private final RedisTemplate<String,String> redisTemplate;
     private final EntityManager entityManager;
 
 

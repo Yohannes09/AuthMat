@@ -4,7 +4,8 @@ import com.authmat.application.authentication.exception.FailedAuthencticationExc
 import com.authmat.application.authentication.models.CustomOAuth2User;
 import com.authmat.application.authentication.models.UserPrincipal;
 import com.authmat.application.authorization.constant.DefaultRole;
-import com.authmat.application.token.history.PublicKeyHistory;
+import com.authmat.application.token.deprecated.TokenSigningConfig;
+import com.authmat.application.token.deprecated.history.PublicKeyHistory;
 import com.authmat.application.token.service.TokenService;
 import com.authmat.application.users.dto.UserDto;
 import com.authmat.application.users.repository.CachedUserRepository;
@@ -26,7 +27,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -45,7 +45,6 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 @Configuration
 @EnableWebSecurity
@@ -228,11 +227,7 @@ public class SecurityConfig {
                 if(authentication.getPrincipal() instanceof OAuth2User auth2User) {
 
                     String accessToken = tokenService.generateAccessToken(
-                            auth2User.getAttribute("email"),
-                            auth2User.getAuthorities()
-                                    .stream()
-                                    .map(GrantedAuthority::getAuthority)
-                                    .collect(Collectors.toSet()));
+                            auth2User.getAttribute("email"));
 
                     String refreshToken = tokenService.generateRefreshToken(auth2User.getAttribute("email"));
 
