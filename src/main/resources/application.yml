@@ -1,3 +1,9 @@
+aws:
+  region: ${AWS_REGION}
+  kms:
+    key-id: ${AWS_KMS_KEY_ID}
+    kid: ${AWS_KMS_KID:authmat-kms-v1}
+
 spring:
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
