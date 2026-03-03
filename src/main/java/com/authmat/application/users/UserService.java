@@ -9,7 +9,7 @@ import com.authmat.application.users.dto.UsernameUpdateRequest;
 import com.authmat.application.users.entity.User;
 import com.authmat.application.users.exception.CredentialUpdateException;
 import com.authmat.application.users.exception.UserServiceException;
-import com.authmat.application.users.repository.CachedUserRepository;
+import com.authmat.application.users.repository.UserCache;
 import com.authmat.application.util.UserMapper;
 import com.authmat.events.NewUserEvent;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ import java.util.function.Predicate;
 public class UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
-    private final CachedUserRepository cachedUserRepository;
+    private final UserCache userCache;
     private final KafkaTemplate<String,Object> kafkaTemplate;
 
 
@@ -90,7 +90,7 @@ public class UserService {
                     dto.getUsername(),
                     usernameUpdateRequest.currentUsername(),
                     newUsername,
-                    cachedUserRepository::existsByUsername);
+                    userCache::existsByUsername);
 
             persistCredentialChange(user, newUsername, user::setUsername);
 
@@ -115,7 +115,7 @@ public class UserService {
                     dto.getEmail(),
                     emailUpdateRequest.currentEmail(),
                     newEmail,
-                    cachedUserRepository::existsByEmail);
+                    userCache::existsByEmail);
 
             persistCredentialChange(user, newEmail, user::setEmail);
 
@@ -152,11 +152,11 @@ public class UserService {
     }
 
     private User fetchUserProxy(Long userId){
-        return cachedUserRepository.findUser(
-                CachedUserRepository.ID_KEY + userId,
+        return userCache.findUser(
+                UserCache.ID_KEY + userId,
                 true,
                 userId,
-                cachedUserRepository.userRepository()::findById,
+                userCache.userRepository()::findById,
                 u -> u);
     }
 
@@ -169,7 +169,7 @@ public class UserService {
             String provider,
             String providerId,
             String externalId){
-        if(cachedUserRepository.existsByUsernameOrEmail(username, email)){
+        if(userCache.existsByUsernameOrEmail(username, email)){
             throw new DuplicateCredentialException("User attempted to use taken credentials.");
         }
 
@@ -186,7 +186,7 @@ public class UserService {
         if(Objects.nonNull(roles) && !roles.isEmpty()){
             user.getRoles().addAll(roles);
         }
-        return cachedUserRepository.save(user);
+        return userCache.save(user);
     }
 
     private void validateCredential(
@@ -212,7 +212,7 @@ public class UserService {
     private void persistCredentialChange(
             User user, String credential, Consumer<String> setNewCredential){
         setNewCredential.accept(credential);
-        cachedUserRepository.save(user);
+        userCache.save(user);
     }
 
 }

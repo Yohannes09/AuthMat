@@ -8,7 +8,7 @@ import com.authmat.application.token.deprecated.TokenSigningConfig;
 import com.authmat.application.token.deprecated.history.PublicKeyHistory;
 import com.authmat.application.token.service.TokenService;
 import com.authmat.application.users.dto.UserDto;
-import com.authmat.application.users.repository.CachedUserRepository;
+import com.authmat.application.users.repository.UserCache;
 import com.authmat.application.util.UserMapper;
 import com.authmat.client.PublicKeyResolver;
 import com.authmat.filter.SimpleJwtAuthenticationFilter;
@@ -51,19 +51,19 @@ import java.util.Set;
 @EnableMethodSecurity
 @Slf4j
 public class SecurityConfig {
-    private final CachedUserRepository userRepository;
+    private final UserCache userCache;
     private final UserMapper userMapper;
     private final TokenService tokenService;
     private final PublicKeyHistory publicKeyHistory;
 
     public SecurityConfig(
-            CachedUserRepository userRepository,
+            UserCache userCache,
             UserMapper userMapper,
             TokenService tokenService,
             @Qualifier(TokenSigningConfig.ACCESS_KEY_HISTORY_BEAN_NAME)
             PublicKeyHistory publicKeyHistory) {
 
-        this.userRepository = userRepository;
+        this.userCache = userCache;
         this.userMapper = userMapper;
         this.tokenService = tokenService;
         this.publicKeyHistory = publicKeyHistory;
@@ -151,11 +151,11 @@ public class SecurityConfig {
     @Bean
     public UserDetailsService userDetailsService(){
         return usernameOrEmail -> {
-            UserDto dto = userRepository.findUser(
-                    CachedUserRepository.USERNAME_OR_EMAIL_KEY + usernameOrEmail,
+            UserDto dto = userCache.findUser(
+                    UserCache.USERNAME_KEY + usernameOrEmail,
                     true,
                     usernameOrEmail,
-                    userRepository.userRepository()::findByUsernameOrEmail,
+                    userCache.userRepository()::findByUsernameOrEmail,
                     userMapper::entityToDto);
 
             return Optional.ofNullable(dto)
@@ -200,11 +200,11 @@ public class SecurityConfig {
                             Field 'email' was not provided in attributes.
                             """));
 
-            UserDto userDto = userRepository.findUser(
-                    CachedUserRepository.USERNAME_OR_EMAIL_KEY + email,
+            UserDto userDto = userCache.findUser(
+                    UserCache.USERNAME_KEY + email,
                     true,
                     email,
-                    userRepository.userRepository()::findByUsernameOrEmail,
+                    userCache.userRepository()::findByUsernameOrEmail,
                     userMapper::entityToDto);
 
 

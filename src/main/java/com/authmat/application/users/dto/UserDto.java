@@ -1,6 +1,5 @@
 package com.authmat.application.users.dto;
 
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -8,11 +7,15 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.Set;
 
+// todo: de-lombok safely
 @Builder
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 public class UserDto {
+    public UserDto(Long id){
+        this.id = id;
+    }
+
     private Long id;
     private String username;
     private String email;
