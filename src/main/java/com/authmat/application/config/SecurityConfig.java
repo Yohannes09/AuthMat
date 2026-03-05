@@ -4,16 +4,12 @@ import com.authmat.application.authentication.exception.FailedAuthencticationExc
 import com.authmat.application.authentication.models.CustomOAuth2User;
 import com.authmat.application.authentication.models.UserPrincipal;
 import com.authmat.application.authorization.constant.DefaultRole;
-import com.authmat.application.token.deprecated.TokenSigningConfig;
-import com.authmat.application.token.deprecated.history.PublicKeyHistory;
 import com.authmat.application.token.service.TokenService;
-import com.authmat.application.users.dto.UserDto;
+import com.authmat.application.users.model.UserDto;
 import com.authmat.application.users.repository.UserCache;
 import com.authmat.application.util.UserMapper;
-import com.authmat.client.PublicKeyResolver;
-import com.authmat.filter.SimpleJwtAuthenticationFilter;
+import com.authmat.tool.exception.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -36,15 +32,12 @@ import org.springframework.security.oauth2.client.userinfo.OAuth2UserService;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
-import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 @Configuration
 @EnableWebSecurity
@@ -54,19 +47,14 @@ public class SecurityConfig {
     private final UserCache userCache;
     private final UserMapper userMapper;
     private final TokenService tokenService;
-    private final PublicKeyHistory publicKeyHistory;
 
     public SecurityConfig(
             UserCache userCache,
             UserMapper userMapper,
-            TokenService tokenService,
-            @Qualifier(TokenSigningConfig.ACCESS_KEY_HISTORY_BEAN_NAME)
-            PublicKeyHistory publicKeyHistory) {
-
+            TokenService tokenService) {
         this.userCache = userCache;
         this.userMapper = userMapper;
         this.tokenService = tokenService;
-        this.publicKeyHistory = publicKeyHistory;
     }
 
 
@@ -112,9 +100,10 @@ public class SecurityConfig {
                 .authenticationProvider(authenticationProvider(
                         passwordEncoder(),
                         userDetailsService()))
-                .addFilterBefore(
-                        simpleAuthenticationFilter(),
-                        UsernamePasswordAuthenticationFilter.class)
+                // TODO: Create a new filter that will handle what the Gateway forwards
+//                .addFilterBefore(
+//                        simpleAuthenticationFilter(),
+//                        UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 
@@ -134,33 +123,14 @@ public class SecurityConfig {
     }
 
     @Bean
-    public OncePerRequestFilter simpleAuthenticationFilter(){
-        return new SimpleJwtAuthenticationFilter(
-                publicKeyResolver(), Set.of("/ping", "/auth/v1/login", "/auth/v1/register"));
-    }
-
-    // trash
-    @Bean
-    public PublicKeyResolver publicKeyResolver(){
-        return kid ->
-            publicKeyHistory.getKeyHistoryAscending().stream()
-                    .filter(publicKey-> kid.equals(publicKey.getId().toString()))
-                    .findFirst();
-    }
-
-    @Bean
     public UserDetailsService userDetailsService(){
         return usernameOrEmail -> {
-            UserDto dto = userCache.findUser(
-                    UserCache.USERNAME_KEY + usernameOrEmail,
-                    true,
-                    usernameOrEmail,
-                    userCache.userRepository()::findByUsernameOrEmail,
-                    userMapper::entityToDto);
+            UserDto dto = userCache
+                    .findByUsername(usernameOrEmail)
+                    .or(() -> userCache.findByEmail(usernameOrEmail))
+                    .orElseThrow(() -> new UserNotFoundException("User not found: " + usernameOrEmail));
 
-            return Optional.ofNullable(dto)
-                    .map(userMapper::dtoToPrincipal)
-                    .orElseThrow();
+            return userMapper.dtoToPrincipal(dto);
         };
     }
 
@@ -186,6 +156,7 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
+    // TODO: figure out flow for new users signing via their google account
     @Bean
     public OAuth2UserService<OAuth2UserRequest, OAuth2User> oAuth2UserService(){
         return userRequest -> {
@@ -200,12 +171,8 @@ public class SecurityConfig {
                             Field 'email' was not provided in attributes.
                             """));
 
-            UserDto userDto = userCache.findUser(
-                    UserCache.USERNAME_KEY + email,
-                    true,
-                    email,
-                    userCache.userRepository()::findByUsernameOrEmail,
-                    userMapper::entityToDto);
+            UserDto userDto = userCache.findByEmail(email)
+                    .orElseThrow(() -> new UserNotFoundException("Could not find user"));
 
 
             UserPrincipal userPrincipal = userMapper.dtoToPrincipal(userDto);

@@ -1,4 +1,4 @@
-package com.authmat.application.users.entity;
+package com.authmat.application.users.model;
 
 import com.authmat.application.authorization.entity.Role;
 import com.authmat.application.constant.ValidationConstants;
@@ -41,7 +41,7 @@ public class User{
     private Long id;
 
     @Column(name = "external_id", unique = true)
-    private String externalId;
+    private UUID externalId;
 
     @Column(unique = true, nullable = false)
     private String username;
@@ -95,7 +95,7 @@ public class User{
 
     @PrePersist
     private void generateExternalId(){
-        if(this.externalId == null) this.externalId = UUID.randomUUID().toString();
+        if(this.externalId == null) this.externalId = UUID.randomUUID();
     }
 
     public void lockAccount() { this.accountNonLocked = false; }

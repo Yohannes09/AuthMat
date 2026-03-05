@@ -2,8 +2,8 @@ package com.authmat.application.util;
 
 import com.authmat.application.authorization.entity.Permission;
 import com.authmat.application.authorization.entity.Role;
-import com.authmat.application.users.entity.User;
-import com.authmat.application.users.dto.UserDto;
+import com.authmat.application.users.model.User;
+import com.authmat.application.users.model.UserDto;
 import com.authmat.application.authentication.models.UserPrincipal;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

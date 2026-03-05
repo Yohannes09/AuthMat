@@ -1,4 +1,4 @@
-package com.authmat.application.users.dto;
+package com.authmat.application.users.request;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

@@ -1,7 +1,7 @@
 package com.authmat.application.users.repository;
 
-import com.authmat.application.users.dto.UserDto;
-import com.authmat.application.users.entity.User;
+import com.authmat.application.users.model.UserDto;
+import com.authmat.application.users.model.User;
 import com.authmat.application.util.UserMapper;
 import io.lettuce.core.RedisException;
 import lombok.extern.slf4j.Slf4j;

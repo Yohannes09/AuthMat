@@ -1,4 +1,4 @@
-package com.authmat.application.users.dto;
+package com.authmat.application.users.request;
 
 import com.authmat.application.constant.ValidationConstants;
 import jakarta.validation.constraints.NotBlank;

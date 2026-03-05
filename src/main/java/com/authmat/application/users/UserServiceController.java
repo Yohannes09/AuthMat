@@ -1,8 +1,8 @@
 package com.authmat.application.users;
 
-import com.authmat.application.users.dto.EmailUpdateRequest;
-import com.authmat.application.users.dto.PasswordUpdateRequest;
-import com.authmat.application.users.dto.UsernameUpdateRequest;
+import com.authmat.application.users.request.EmailUpdateRequest;
+import com.authmat.application.users.request.PasswordUpdateRequest;
+import com.authmat.application.users.request.UsernameUpdateRequest;
 import com.authmat.application.util.UserPrincipalExtractor;
 import com.authmat.tool.exception.ErrorResponse;
 import io.swagger.v3.oas.annotations.Operation;

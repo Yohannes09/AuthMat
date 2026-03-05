@@ -2,19 +2,19 @@ package com.authmat.application.users;
 
 import com.authmat.application.authentication.exception.DuplicateCredentialException;
 import com.authmat.application.authorization.entity.Role;
-import com.authmat.application.users.dto.EmailUpdateRequest;
-import com.authmat.application.users.dto.PasswordUpdateRequest;
-import com.authmat.application.users.dto.UserDto;
-import com.authmat.application.users.dto.UsernameUpdateRequest;
-import com.authmat.application.users.entity.User;
+import com.authmat.application.users.model.UserDto;
+import com.authmat.application.users.request.EmailUpdateRequest;
+import com.authmat.application.users.request.PasswordUpdateRequest;
+import com.authmat.application.users.request.UsernameUpdateRequest;
+import com.authmat.application.users.model.User;
 import com.authmat.application.users.exception.CredentialUpdateException;
 import com.authmat.application.users.exception.UserServiceException;
+import com.authmat.application.users.publisher.UserEventPublisher;
 import com.authmat.application.users.repository.UserCache;
 import com.authmat.application.util.UserMapper;
 import com.authmat.events.NewUserEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,7 +34,7 @@ public class UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserCache userCache;
-    private final KafkaTemplate<String,Object> kafkaTemplate;
+    private final UserEventPublisher eventPublisher;
 
 
     public Optional<User> createUser(String username, String email, String password){
@@ -62,14 +62,19 @@ public class UserService {
             String provider,
             String providerId,
             String externalId){
+
         try {
             User user = buildNewUser(
                     username, email, password, roles, provider, providerId, externalId)
             .orElseThrow(() -> new UserServiceException("User creation failed."));
 
-            kafkaTemplate.send(
-                    "user-created-events",
-                    new NewUserEvent(user.getId(), user.getUsername(), user.getEmail(), Instant.now()));
+            eventPublisher.userCreatedEvent(
+                    NewUserEvent.of(
+                            user.getExternalId(),
+                            user.getUsername(),
+                            user.getEmail()
+                    )
+            );
             return true;
         } catch (Exception e) {
             log.warn("An error occurred while creating a new user.");
