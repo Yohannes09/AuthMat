@@ -1,7 +1,9 @@
 package com.authmat.application.users;
 
 import com.authmat.application.authentication.exception.DuplicateCredentialException;
+import com.authmat.application.authorization.constant.DefaultRole;
 import com.authmat.application.authorization.entity.Role;
+import com.authmat.application.authorization.repository.AuthoritiesRepository;
 import com.authmat.application.users.model.UserDto;
 import com.authmat.application.users.request.EmailUpdateRequest;
 import com.authmat.application.users.request.PasswordUpdateRequest;
@@ -13,6 +15,7 @@ import com.authmat.application.users.publisher.UserEventPublisher;
 import com.authmat.application.users.repository.UserCache;
 import com.authmat.application.util.UserMapper;
 import com.authmat.events.NewUserEvent;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,10 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -34,47 +34,27 @@ public class UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserCache userCache;
+    private final AuthoritiesRepository authoritiesRepository;
     private final UserEventPublisher eventPublisher;
 
-
-    public Optional<User> createUser(String username, String email, String password){
-        return buildNewUser(
-                username, email, password, null,null, null, null);
-    }
-
-    public Optional<User> createUser(
-            String username,
-            String email,
-            String password,
-            Collection<Role> roles,
-            String provider,
-            String providerId,
-            String externalId){
-        return buildNewUser(
-                username, email, password, roles, provider, providerId, externalId);
-    }
 
     public boolean createAndPublishUser(
             String username,
             String email,
             String password,
-            Collection<Role> roles,
             String provider,
-            String providerId,
-            String externalId){
-
+            String providerId
+    ){
         try {
-            User user = buildNewUser(
-                    username, email, password, roles, provider, providerId, externalId)
-            .orElseThrow(() -> new UserServiceException("User creation failed."));
+            Role userRole = authoritiesRepository.findRoleProxyByName(DefaultRole.USER.getName())
+                    .orElseThrow();
+
+            User user = buildNewUser(username, email, password, List.of(userRole), provider, providerId)
+                    .orElseThrow(() -> new UserServiceException("User creation failed."));
 
             eventPublisher.userCreatedEvent(
-                    NewUserEvent.of(
-                            user.getExternalId(),
-                            user.getUsername(),
-                            user.getEmail()
-                    )
-            );
+                    NewUserEvent.of(user.getExternalId(), user.getUsername(), user.getEmail()));
+
             return true;
         } catch (Exception e) {
             log.warn("An error occurred while creating a new user.");
@@ -83,10 +63,35 @@ public class UserService {
         }
     }
 
+    public boolean createAndPublishUser(
+            String username,
+            String email,
+            String password,
+            String provider,
+            String providerId,
+            Collection<Role> roles
+    ){
+        try {
+            User user = buildNewUser(username, email, password, roles, provider, providerId)
+                    .orElseThrow(() -> new UserServiceException("User creation failed."));
+
+            eventPublisher.userCreatedEvent(
+                    NewUserEvent.of(user.getExternalId(), user.getUsername(), user.getEmail()));
+
+            return true;
+        } catch (Exception e) {
+            log.warn("An error occurred while creating a new user.");
+            log.debug("User creation error cause: {}", e.getMessage());
+            return false;
+        }
+    }
+
+
+    // TODO: Update all update credential methods
     @Transactional
     public boolean updateUsername(UsernameUpdateRequest usernameUpdateRequest, Long userId){
         try {
-            User user = fetchUserProxy(userId);
+            User user = new User();//fetchUserProxy(userId);
 
             UserDto dto = userMapper.entityToDto(user);
             String newUsername = usernameUpdateRequest.newUsername();
@@ -97,7 +102,7 @@ public class UserService {
                     newUsername,
                     userCache::existsByUsername);
 
-            persistCredentialChange(user, newUsername, user::setUsername);
+            persistCredentialChange(user, newUsername, user::updateUsername);
 
             log.info("User {} successfully updated username. ", user.getId());
             return true;
@@ -111,7 +116,7 @@ public class UserService {
     @Transactional
     public boolean updateEmail(EmailUpdateRequest emailUpdateRequest, Long userId){
         try {
-            User user = fetchUserProxy(userId);
+            User user = new User();//fetchUserProxy(userId);
 
             UserDto dto = userMapper.entityToDto(user);
             String newEmail = emailUpdateRequest.newEmail();
@@ -122,7 +127,7 @@ public class UserService {
                     newEmail,
                     userCache::existsByEmail);
 
-            persistCredentialChange(user, newEmail, user::setEmail);
+            persistCredentialChange(user, newEmail, user::updateEmail);
 
             log.info("User {} successfully updated email. ", dto.getId());
             return true;
@@ -135,7 +140,7 @@ public class UserService {
     @Transactional
     public boolean updatePassword(PasswordUpdateRequest passwordUpdateRequest, Long userId){
         try {
-            User userProxy = fetchUserProxy(userId);
+            User userProxy = new User();//fetchUserProxy(userId);
 
             String currentPassword = userProxy.getHashedPassword();
             String newPassword = passwordEncoder.encode(passwordUpdateRequest.newPassword());
@@ -146,7 +151,7 @@ public class UserService {
                     newPassword,
                     null);
 
-            persistCredentialChange(userProxy, newPassword, userProxy::setPassword);
+            persistCredentialChange(userProxy, newPassword, userProxy::updatePassword);
 
             log.info("User {} successfully updated password. ", userProxy.getId());
             return true;
@@ -156,14 +161,6 @@ public class UserService {
         }
     }
 
-    private User fetchUserProxy(Long userId){
-        return userCache.findUser(
-                UserCache.ID_KEY + userId,
-                true,
-                userId,
-                userCache.userRepository()::findById,
-                u -> u);
-    }
 
     @Transactional
     private Optional<User> buildNewUser(
@@ -172,20 +169,20 @@ public class UserService {
             String password,
             Collection<Role> roles,
             String provider,
-            String providerId,
-            String externalId){
+            String providerId
+    ){
+
         if(userCache.existsByUsernameOrEmail(username, email)){
             throw new DuplicateCredentialException("User attempted to use taken credentials.");
         }
 
-        User user = User.builder()
-                .username(username)
-                .email(email)
-                .password(passwordEncoder.encode(password))
+        User user = new User(username, passwordEncoder.encode(password), email, )
+                .username()
+                .email()
+                .password()
                 .roles(new HashSet<>())
                 .provider(Optional.ofNullable(provider).orElse(""))
                 .providerId(Optional.ofNullable(providerId).orElse(""))
-                .externalId(Optional.ofNullable(externalId).orElse(""))
                 .build();
 
         if(Objects.nonNull(roles) && !roles.isEmpty()){

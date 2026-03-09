@@ -12,7 +12,7 @@ import java.util.stream.Stream;
 @Getter
 @RequiredArgsConstructor
 public enum DefaultRole {
-    BASIC(
+    USER(
             "BASIC",
             "Baseline access.",
             Set.of(DefaultPermission.BASIC_USER)),

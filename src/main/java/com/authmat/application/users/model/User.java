@@ -23,7 +23,6 @@ import java.util.UUID;
         }
 )
 @Entity
-@Builder
 @Getter
 @NoArgsConstructor
 public class User{
@@ -96,6 +95,14 @@ public class User{
     @PrePersist
     private void generateExternalId(){
         if(this.externalId == null) this.externalId = UUID.randomUUID();
+    }
+
+
+    public User(String username, String hashedPassword, String email, Set<Role> roles) {
+        this.username = username;
+        this.hashedPassword = hashedPassword;
+        this.email = email;
+        this.roles = roles;
     }
 
     public void lockAccount() { this.accountNonLocked = false; }
