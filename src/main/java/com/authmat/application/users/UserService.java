@@ -3,7 +3,7 @@ package com.authmat.application.users;
 import com.authmat.application.authentication.exception.DuplicateCredentialException;
 import com.authmat.application.authorization.constant.DefaultRole;
 import com.authmat.application.authorization.entity.Role;
-import com.authmat.application.authorization.repository.AuthoritiesRepository;
+import com.authmat.application.authorization.repository.RoleCache;
 import com.authmat.application.users.model.UserDto;
 import com.authmat.application.users.request.EmailUpdateRequest;
 import com.authmat.application.users.request.PasswordUpdateRequest;
@@ -15,14 +15,12 @@ import com.authmat.application.users.publisher.UserEventPublisher;
 import com.authmat.application.users.repository.UserCache;
 import com.authmat.application.util.UserMapper;
 import com.authmat.events.NewUserEvent;
-import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.Instant;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -34,7 +32,7 @@ public class UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserCache userCache;
-    private final AuthoritiesRepository authoritiesRepository;
+    private final RoleCache roleCache;
     private final UserEventPublisher eventPublisher;
 
 
@@ -46,7 +44,7 @@ public class UserService {
             String providerId
     ){
         try {
-            Role userRole = authoritiesRepository.findRoleProxyByName(DefaultRole.USER.getName())
+            Role userRole = roleCache.findRoleProxyByName(DefaultRole.USER.getName())
                     .orElseThrow();
 
             User user = buildNewUser(username, email, password, List.of(userRole), provider, providerId)
