@@ -1,4 +1,4 @@
-package com.authmat.application.authentication.dto;
+package com.authmat.application.authentication.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import io.swagger.v3.oas.annotations.media.Schema;

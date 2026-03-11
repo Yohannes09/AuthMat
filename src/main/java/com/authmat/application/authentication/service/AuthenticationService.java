@@ -1,14 +1,15 @@
 package com.authmat.application.authentication.service;
 
-import com.authmat.application.authentication.dto.AuthenticationResponse;
-import com.authmat.application.authentication.dto.LoginRequest;
-import com.authmat.application.authentication.dto.RegistrationRequest;
+import com.authmat.application.authentication.response.AuthenticationResponse;
+import com.authmat.application.authentication.request.LoginRequest;
+import com.authmat.application.authentication.request.RegistrationRequest;
 import com.authmat.application.authentication.models.UserPrincipal;
+import com.authmat.application.authentication.response.RegistrationResponse;
 
 public interface AuthenticationService {
     AuthenticationResponse login(LoginRequest loginRequest);
 
-    boolean register(RegistrationRequest registrationRequest);
+    RegistrationResponse register(RegistrationRequest registrationRequest);
 
     AuthenticationResponse refresh(UserPrincipal userPrincipal);
 

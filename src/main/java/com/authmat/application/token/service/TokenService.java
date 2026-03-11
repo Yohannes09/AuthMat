@@ -1,37 +1,48 @@
 package com.authmat.application.token.service;
 
+import com.authmat.application.token.config.TokenProperties;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import software.amazon.awssdk.services.kms.KmsAsyncClient;
 
+import java.time.Instant;
 import java.util.Map;
+import java.util.UUID;
 
 
 @Service
 @RequiredArgsConstructor
 public class TokenService {
-    private static final String BLACKLISTED_TOKEN_KEY_PREFIX = "blacklist:token:";
+    private static final String BLACKLISTED_TOKEN_KEY_PREFIX = "blacklist:jti:";
     private static final String REFRESH_TOKEN_KEY_PREFRIX = "refresh:token:";
+    private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final RedisTemplate<String,String> redisTemplate;
-
+    private final KmsAsyncClient kmsClient;
+    private final TokenProperties tokenProperties;
 
     public String generateAccessToken(String subject){
-        Map<String,Object> claims = Map.of(
-                "sub", subject,
-                "iss", "authmat",
-                "aud", "authmat-platform", // eventually ill figure this out
-                "iat", "",
-                "exp", "",
-                "jti", "",
-                "type", ""
-        );
+        Instant now = Instant.now();
+        String jti = UUID.randomUUID().toString();
 
         Map<String,Object> header = Map.of(
-                "alg", "",
-                "kid", "",
-                "type", "JWT"
+                "alg", "RS256",
+                "type", "JWT",
+                "kid", tokenProperties.kmsKeyId()
         );
+        Map<String,Object> claims = (Map.of(
+                "sub", subject,
+                "iss", tokenProperties.issuer(),
+                "aud", tokenProperties.audience(),
+                "iat", now.getEpochSecond(),
+                "exp", now.plus(tokenProperties.accessTokenTtl()).getEpochSecond(),
+                "jti", jti,
+                "type", "ACCESS"
+        ));
+
+
 
         return null;
     }

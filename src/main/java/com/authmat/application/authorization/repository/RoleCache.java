@@ -52,6 +52,7 @@ public class RoleCache {
         );
     }
 
+    // could be its own class that fetches roles?
     public Optional<Role> findRoleProxyByName(String roleName){
         RoleDto dto  = findRoleByIdentifier(
                 buildKey(roleName),
@@ -63,6 +64,7 @@ public class RoleCache {
         return Optional.ofNullable(entityManager.getReference(Role.class, dto.id()));
     }
 
+    // Same logic used across cache, could be a 1 method class
     private <I> RoleDto findRoleByIdentifier(
             String key, I identifier, Function<I,Optional<Role>> identifierFunction
     ){

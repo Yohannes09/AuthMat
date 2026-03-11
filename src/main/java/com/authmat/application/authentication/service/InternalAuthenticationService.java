@@ -1,22 +1,25 @@
 package com.authmat.application.authentication.service;
 
 import com.authmat.application.authentication.LoginAttemptManager;
-import com.authmat.application.authentication.dto.AuthenticationResponse;
-import com.authmat.application.authentication.dto.LoginRequest;
-import com.authmat.application.authentication.dto.RegistrationRequest;
+import com.authmat.application.authentication.response.AuthenticationResponse;
+import com.authmat.application.authentication.request.LoginRequest;
+import com.authmat.application.authentication.request.RegistrationRequest;
 import com.authmat.application.authentication.exception.FailedAuthencticationException;
-import com.authmat.application.token.service.TokenService;
 import com.authmat.application.authentication.models.UserPrincipal;
+import com.authmat.application.authentication.response.RegistrationResponse;
+import com.authmat.application.token.service.TokenService;
 import com.authmat.application.users.UserService;
+import com.authmat.application.users.model.UserDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.authentication.*;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
 import java.util.Optional;
 import java.util.Set;
 
@@ -31,33 +34,32 @@ public class InternalAuthenticationService implements AuthenticationService {
 
 
     @Override
-    @Transactional
-    public boolean register(RegistrationRequest registrationRequest){
-        boolean isUserCreated = userService.createAndPublishUser(
+    public RegistrationResponse register(RegistrationRequest registrationRequest){
+        //TODO: hardcoded provider strings should be from a constant or config
+        UserDto user = userService.registerUser(
                 registrationRequest.username(),
                 registrationRequest.email(),
                 registrationRequest.password(),
-                "authmat",
-                "authmat"
-        );
+                "authmat_service",
+                "authmat");
 
-        log.info("Successful registration: {}", registrationRequest.username());
-        return isUserCreated;
+        log.info("User registered successfully: externalId={}, username={}",
+                user.getExternalId(), user.getUsername());
+        return new RegistrationResponse(user.getExternalId(), user.getUsername(), user.getEmail());
     }
 
 
     @Override
     public AuthenticationResponse login(LoginRequest loginRequest) {
-        String identifier = Optional.of(loginRequest.usernameOrEmail()).orElseThrow();
+        String identifier = loginRequest.usernameOrEmail();
 
         if(loginAttemptManager.isBlocked(identifier)){
-            log.info("User {} temporarily locked for many failed login attempts.", identifier);
+            log.warn("User {} temporarily locked for many failed login attempts.", identifier);
             throw new LockedException("User account temporarily locked due to multiple failed login attempts.");
         }
 
         try {
-            UsernamePasswordAuthenticationToken token =
-                    new UsernamePasswordAuthenticationToken(
+            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                             loginRequest.usernameOrEmail(), loginRequest.password());
 
             Authentication authentication = authenticationManager.authenticate(token);
@@ -67,10 +69,8 @@ public class InternalAuthenticationService implements AuthenticationService {
                 loginAttemptManager.loginSucceeded(identifier);
                 principal.validateAccount();
 
-                log.info("Successful login: {}", principal.getId());
-                return generateAuthenticationResponse(
-                        principal.getId().toString(),
-                        principal.getAuthoritiesStr());
+                log.debug("Successful login: {}", principal.getExternalId());
+                return generateAuthenticationResponse(principal.getExternalId());
             }
 
             throw new IllegalStateException("Incompatible type mapping during authentication.");
@@ -93,16 +93,17 @@ public class InternalAuthenticationService implements AuthenticationService {
     // need to blacklist their current refresh token
     @Override                                                       //,String refreshToken
     public AuthenticationResponse refresh(UserPrincipal userPrincipal){
-        try {
-            userPrincipal.validateAccount();
-            log.info("Access Token refresh: {}", userPrincipal.getId());
-            return generateAuthenticationResponse(
-                    userPrincipal.getId().toString(),
-                    userPrincipal.getAuthoritiesStr());
-        } catch (Exception e) {
-            log.info("Failed token refresh: {}", e.getMessage());
-            throw new FailedAuthencticationException("Could not reauthencticate user.");
-        }
+//        try {
+//            userPrincipal.validateAccount();
+//            log.info("Access Token refresh: {}", userPrincipal.getId());
+//            return generateAuthenticationResponse(
+//                    userPrincipal.getId().toString(),
+//                    userPrincipal.getAuthoritiesStr());
+//        } catch (Exception e) {
+//            log.info("Failed token refresh: {}", e.getMessage());
+//            throw new FailedAuthencticationException("Could not reauthencticate user.");
+//        }
+        return null;
     }
 
     @Override
@@ -111,15 +112,11 @@ public class InternalAuthenticationService implements AuthenticationService {
         tokenService.blackListToken(token);
     }
 
-    public AuthenticationResponse generateAuthenticationResponse(
-            String subject, Set<String> authorities){
-        String accessToken = tokenService.generateAccessToken(subject, authorities);
+    public AuthenticationResponse generateAuthenticationResponse(String subject){
+        String accessToken = tokenService.generateAccessToken(subject);
         String refreshToken = tokenService.generateRefreshToken(subject);
 
-        return AuthenticationResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
+        return new AuthenticationResponse(accessToken, refreshToken);
     }
 
 }

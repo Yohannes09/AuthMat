@@ -1,9 +1,10 @@
 package com.authmat.application.authentication;
 
-import com.authmat.application.authentication.dto.AuthenticationResponse;
-import com.authmat.application.authentication.dto.LoginRequest;
-import com.authmat.application.authentication.dto.RegistrationRequest;
+import com.authmat.application.authentication.response.AuthenticationResponse;
+import com.authmat.application.authentication.request.LoginRequest;
+import com.authmat.application.authentication.request.RegistrationRequest;
 import com.authmat.application.authentication.models.UserPrincipal;
+import com.authmat.application.authentication.response.RegistrationResponse;
 import com.authmat.application.authentication.service.AuthenticationService;
 import com.authmat.application.util.UserPrincipalExtractor;
 import io.swagger.v3.oas.annotations.Operation;
@@ -46,14 +47,16 @@ public class AuthenticationController {
 
     @PostMapping("/register")
     @Operation(
-            summary = "Create a new user. ",
+            summary = "User registration endpoint",
             responses = {
-                    @ApiResponse(responseCode = "201", description = "User successfully registered. ")})
-    public ResponseEntity<String> register(
+                    @ApiResponse(responseCode = "201", description = "User successfully registered. ")
+            }
+    )
+    public ResponseEntity<RegistrationResponse> register(
             @Valid @RequestBody RegistrationRequest registrationRequest){
-        log.info("New registration request received. ");
-        authenticationService.register(registrationRequest);
-        return ResponseEntity.status(HttpStatus.CREATED).body("User registration success.");
+        log.debug("New registration request received. ");
+        RegistrationResponse response = authenticationService.register(registrationRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
 

@@ -10,6 +10,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -98,11 +99,32 @@ public class User{
     }
 
 
-    public User(String username, String hashedPassword, String email, Set<Role> roles) {
+    public User(
+            String username,
+            String hashedPassword,
+            String email,
+            String provider,
+            String providerId,
+            Collection<Role> roles) {
         this.username = username;
         this.hashedPassword = hashedPassword;
         this.email = email;
-        this.roles = roles;
+        this.provider = provider;
+        this.providerId = providerId;
+        this.roles.addAll(roles);
+    }
+
+    public User(
+            String username,
+            String hashedPassword,
+            String email,
+            String provider,
+            String providerId) {
+        this.username = username;
+        this.hashedPassword = hashedPassword;
+        this.email = email;
+        this.provider = provider;
+        this.providerId = providerId;
     }
 
     public void lockAccount() { this.accountNonLocked = false; }
@@ -112,4 +134,6 @@ public class User{
     public void updatePassword(String newHashedPassword) { this.hashedPassword = newHashedPassword; }
     public void updateUsername(String newUsername) { this.username = newUsername; }
     public void updateEmail(String newEmail){ this.email = email;}
+    public void addRole(Role role){this.roles.add(role);}
+    public void addRoles(Collection<Role> roles){this.roles.addAll(roles);}
 }

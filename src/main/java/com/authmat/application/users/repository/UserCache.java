@@ -25,7 +25,7 @@ public class UserCache {
     private static final Duration BASE_TTL_MINUTES = Duration.ofMinutes(30);
 
     // Prevents DB storms on repeated cache/db misses
-    private static final UserDto NOT_FOUND = new UserDto(-1L);
+    private static final UserDto NOT_FOUND = new UserDto(-1L, "__NOT_FOUND__");
     private static final Duration NOT_FOUND_TTL = Duration.ofMinutes(2);
 
     private final UserMapper userMapper;
@@ -36,8 +36,7 @@ public class UserCache {
     public UserCache(
             UserMapper userMapper,
             UserRepository userRepository,
-            @Qualifier("userCacheRedisTemplate") RedisTemplate<String,UserDto> redisTemplate
-    ) {
+            @Qualifier("userCacheRedisTemplate") RedisTemplate<String,UserDto> redisTemplate) {
         this.userMapper = userMapper;
         this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;
@@ -75,7 +74,44 @@ public class UserCache {
     }
 
 
-    public void cacheUser(UserDto user){
+    /**
+     * Persists to DB first, then assuming all goes well, cache the user.*/
+    public User save(User user) {
+        try {
+            User savedUser =  userRepository.save(user);
+            cacheUser(userMapper.entityToDto(savedUser));
+            return savedUser;
+        } catch (RedisException e) {
+            log.warn("Redis unavailable during save - cache skipped, persisting to db");
+            return userRepository.save(user);
+        }
+    }
+
+
+    public boolean existsByUsernameOrEmail(String username, String email){
+        return existsByUsername(username) || existsByEmail(email);
+    }
+
+
+    public boolean existsByUsername(String username){
+        return existsByIdentifier(
+                username,
+                buildKey(USERNAME_KEY, username),
+                userRepository::existsByUsernameIgnoreCase
+        );
+    }
+
+
+    public boolean existsByEmail(String email){
+        return existsByIdentifier(
+                email,
+                buildKey(EMAIL_KEY, email),
+                userRepository::existsByEmailIgnoreCase
+        );
+    }
+
+
+    private void cacheUser(UserDto user){
         Duration ttlWithJitter = BASE_TTL_MINUTES.plusSeconds(
                 ThreadLocalRandom.current().nextInt(30));
 
@@ -95,34 +131,8 @@ public class UserCache {
                     user,
                     ttlWithJitter);
         }catch (RedisException e){
-            log.warn("Failed to cache user", e);
+            log.warn("Redis unavailable - cache skipped", e);
         }
-    }
-
-
-    public boolean existsByUsernameOrEmail(String username, String email){
-        return existsByIdentifier(
-                username,
-                USERNAME_KEY + username,
-                identifier -> userRepository.existsByUsernameOrEmail(identifier, email)
-        );
-    }
-
-    public boolean existsByUsername(String username){
-        return existsByIdentifier(
-                username,
-                USERNAME_KEY + username,
-                userRepository::existsByUsernameIgnoreCase
-        );
-    }
-
-
-    public boolean existsByEmail(String email){
-        return existsByIdentifier(
-                email,
-                USERNAME_KEY + email,
-                userRepository::existsByEmailIgnoreCase
-        );
     }
 
 
@@ -135,6 +145,7 @@ public class UserCache {
 
         try {
             UserDto cached = redisTemplate.opsForValue().get(key);
+            //TODO: Ensure sentinel will work
             if(cached != null) {
                 return cached == NOT_FOUND ?
                         null : cached;
@@ -164,10 +175,18 @@ public class UserCache {
         return keyPrefix + identifier.trim().toLowerCase(Locale.ROOT);
     }
 
+
+    /**
+     * redisTemplate.hasKey() returns Boolean not boolean,
+     * unboxing a null will throw a NPE*/
     private <I> boolean existsByIdentifier(
             I identifier, String key, Predicate<I> repositoryFunction){
-        return redisTemplate.hasKey(key + identifier.toString()) ||
-                repositoryFunction.test(identifier);
+        try {
+            return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+        } catch (Exception e) {
+            log.warn("Redis unavailable during existence check - falling back to DB");
+        }
+        return repositoryFunction.test(identifier);
     }
 
 

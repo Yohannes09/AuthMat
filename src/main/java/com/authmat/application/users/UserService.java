@@ -3,16 +3,16 @@ package com.authmat.application.users;
 import com.authmat.application.authentication.exception.DuplicateCredentialException;
 import com.authmat.application.authorization.constant.DefaultRole;
 import com.authmat.application.authorization.entity.Role;
+import com.authmat.application.authorization.exception.SystemConfigurationException;
 import com.authmat.application.authorization.repository.RoleCache;
+import com.authmat.application.users.exception.CredentialUpdateException;
+import com.authmat.application.users.model.User;
 import com.authmat.application.users.model.UserDto;
+import com.authmat.application.users.publisher.UserEventPublisher;
+import com.authmat.application.users.repository.UserCache;
 import com.authmat.application.users.request.EmailUpdateRequest;
 import com.authmat.application.users.request.PasswordUpdateRequest;
 import com.authmat.application.users.request.UsernameUpdateRequest;
-import com.authmat.application.users.model.User;
-import com.authmat.application.users.exception.CredentialUpdateException;
-import com.authmat.application.users.exception.UserServiceException;
-import com.authmat.application.users.publisher.UserEventPublisher;
-import com.authmat.application.users.repository.UserCache;
 import com.authmat.application.util.UserMapper;
 import com.authmat.events.NewUserEvent;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +21,8 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
@@ -36,52 +37,40 @@ public class UserService {
     private final UserEventPublisher eventPublisher;
 
 
-    public boolean createAndPublishUser(
+    @Transactional
+    public UserDto registerUser(
             String username,
             String email,
             String password,
             String provider,
-            String providerId
-    ){
-        try {
-            Role userRole = roleCache.findRoleProxyByName(DefaultRole.USER.getName())
-                    .orElseThrow();
+            String providerId){
+        //TODO: Exception needs to be dealt with
+        Role userRole = roleCache.findRoleProxyByName(DefaultRole.USER.getName())
+                .orElseThrow(() -> new SystemConfigurationException("Default USER role not found"));
 
-            User user = buildNewUser(username, email, password, List.of(userRole), provider, providerId)
-                    .orElseThrow(() -> new UserServiceException("User creation failed."));
-
-            eventPublisher.userCreatedEvent(
-                    NewUserEvent.of(user.getExternalId(), user.getUsername(), user.getEmail()));
-
-            return true;
-        } catch (Exception e) {
-            log.warn("An error occurred while creating a new user.");
-            log.debug("User creation error cause: {}", e.getMessage());
-            return false;
-        }
+        return provisionUser(username, email, password, provider, providerId, List.of(userRole));
     }
 
-    public boolean createAndPublishUser(
+
+    @Transactional
+    public UserDto provisionUser(
             String username,
             String email,
             String password,
             String provider,
             String providerId,
-            Collection<Role> roles
-    ){
-        try {
-            User user = buildNewUser(username, email, password, roles, provider, providerId)
-                    .orElseThrow(() -> new UserServiceException("User creation failed."));
-
-            eventPublisher.userCreatedEvent(
-                    NewUserEvent.of(user.getExternalId(), user.getUsername(), user.getEmail()));
-
-            return true;
-        } catch (Exception e) {
-            log.warn("An error occurred while creating a new user.");
-            log.debug("User creation error cause: {}", e.getMessage());
-            return false;
+            Collection<Role> roles){
+        if(userCache.existsByUsernameOrEmail(username, email)){
+            throw new DuplicateCredentialException("User creation failed - username or email already in use");
         }
+
+        User savedUser = userCache.save(
+                new User(username, passwordEncoder.encode(password), email, provider, providerId, roles));
+
+        eventPublisher.userCreatedEvent(
+                NewUserEvent.of(savedUser.getExternalId(), savedUser.getUsername(), savedUser.getEmail()));
+
+        return userMapper.entityToDto(savedUser);
     }
 
 
@@ -138,9 +127,9 @@ public class UserService {
     @Transactional
     public boolean updatePassword(PasswordUpdateRequest passwordUpdateRequest, Long userId){
         try {
-            User userProxy = new User();//fetchUserProxy(userId);
+            User user = new User();//fetchUserProxy(userId);
 
-            String currentPassword = userProxy.getHashedPassword();
+            String currentPassword = user.getHashedPassword();
             String newPassword = passwordEncoder.encode(passwordUpdateRequest.newPassword());
 
             validateCredential(
@@ -149,9 +138,9 @@ public class UserService {
                     newPassword,
                     null);
 
-            persistCredentialChange(userProxy, newPassword, userProxy::updatePassword);
+            persistCredentialChange(user, newPassword, user::updatePassword);
 
-            log.info("User {} successfully updated password. ", userProxy.getId());
+            log.info("User {} successfully updated password. ", user.getId());
             return true;
         } catch (Exception e) {
             log.warn("Password update failure: {}", e.getMessage());
@@ -159,35 +148,6 @@ public class UserService {
         }
     }
 
-
-    @Transactional
-    private Optional<User> buildNewUser(
-            String username,
-            String email,
-            String password,
-            Collection<Role> roles,
-            String provider,
-            String providerId
-    ){
-
-        if(userCache.existsByUsernameOrEmail(username, email)){
-            throw new DuplicateCredentialException("User attempted to use taken credentials.");
-        }
-
-        User user = new User(username, passwordEncoder.encode(password), email, )
-                .username()
-                .email()
-                .password()
-                .roles(new HashSet<>())
-                .provider(Optional.ofNullable(provider).orElse(""))
-                .providerId(Optional.ofNullable(providerId).orElse(""))
-                .build();
-
-        if(Objects.nonNull(roles) && !roles.isEmpty()){
-            user.getRoles().addAll(roles);
-        }
-        return userCache.save(user);
-    }
 
     private void validateCredential(
             String currentCredential,

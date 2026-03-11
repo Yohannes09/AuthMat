@@ -1,4 +1,4 @@
-package com.authmat.application.authentication.dto;
+package com.authmat.application.authentication.request;
 
 import com.authmat.application.constant.ValidationConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
