@@ -113,7 +113,7 @@ public class InternalAuthenticationService implements AuthenticationService {
     }
 
     public AuthenticationResponse generateAuthenticationResponse(String subject){
-        String accessToken = tokenService.generateAccessToken(subject);
+        String accessToken = "";tokenService.generateAccessToken(subject);
         String refreshToken = tokenService.generateRefreshToken(subject);
 
         return new AuthenticationResponse(accessToken, refreshToken);

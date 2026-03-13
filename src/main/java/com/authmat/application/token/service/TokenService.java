@@ -125,9 +125,23 @@ public class TokenService {
      * fail verification on every standard JWT library.
      */
     private byte[] derToJoseEcdsa(byte[] der) {
-        // DER structure: 0x30 <len> 0x02 <rLen> <r> 0x02 <sLen> <s>
-        int offset = 2; // skip 0x30 and total length byte(s)
-        if ((der[1] & 0xFF) > 0x80) offset += (der[1] & 0x7F); // handle long-form length
+        // DER structure: 0x30 <len> 0x02 <rLen> <r> <0x02> <sLen> <s>
+        int offset = 2;
+
+        /*
+        * Java byte range [-128,127]
+        * DER byte range [0,255]
+        *
+        * Suppose der[1] = 0x90
+        * - java interprets this as -112
+        * - der interprets this as 144
+        *
+        * Therefore, the 0xFF part forces java to read the byte as an unsigned number
+        *
+        * if(unsignedValueOf(der[1]) > 128)*/
+        if ((der[1] & 0xFF) > 0x80) {
+            offset += (der[1] & 0x7F);// handle long-form length
+        }
 
         // Parse R
         if (der[offset] != 0x02) throw new IllegalArgumentException("Invalid DER: expected INTEGER tag for R");
@@ -155,3 +169,42 @@ public class TokenService {
     }
 
 }
+
+/*
+NOTES:
+
+DER structure:
+
+    0x30 <len>
+       0x02 <rLen> <r bytes>
+       0x02 <sLen> <s bytes>
+
+Example:
+
+DER arr index:   0     1     2     3     4...
+DER values:     0x30 0x44  0x02  0x20  <r bytes...>
+
+arr[0]
+    ASN.1 SEQUENCE tag (0x30)
+
+arr[1]
+    Length of the sequence contents (how many bytes follow after i=1)
+
+Example:
+    arr = [30, 44, 02, 20, ...]
+    0x44 = 68 → meaning 68 bytes follow inside the sequence
+
+Conceptually:
+
+    30 <len>                  (first 2 elements are metadata)
+
+       02 <rLen> <r bytes>    (R integer structure begins at arr[2])
+       02 <sLen> <s bytes>    (S integer structure follows after R)
+
+Therefore:
+
+    offset = 2
+
+means:
+    skip sequence metadata and begin parsing the first INTEGER (R)
+*/
