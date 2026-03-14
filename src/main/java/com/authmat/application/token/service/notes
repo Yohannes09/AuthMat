@@ -1,0 +1,42 @@
+AWS KMS returns an ECDSA signature encoded using ASN.1 DER.
+
+The signature is a byte array with this structure:
+
+30 <len>
+   02 <rLen> <r bytes>
+   02 <sLen> <s bytes>
+
+index 0:
+0x30 → ASN.1 SEQUENCE tag
+
+index 1:
+length of the sequence contents
+
+index 2:
+0x02 → INTEGER tag for R
+
+index 3:
+length of R in bytes
+
+index 4..(4+rLen-1):
+the bytes of R
+
+After R, the next element begins:
+
+02 <sLen> <s bytes>
+
+The location of S depends on rLen, so we compute:
+
+offset += 2 + rLen
+
+Then we parse S the same way we parsed R.
+
+We extract both integers into byte arrays.
+
+Finally we convert the DER format into the JOSE format required by JWT,
+which is simply:
+
+[R (32 bytes)][S (32 bytes)]
+
+If R or S are not exactly 32 bytes we normalize them by
+removing leading zeros or padding with zeros.

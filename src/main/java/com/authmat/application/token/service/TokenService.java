@@ -1,6 +1,7 @@
 package com.authmat.application.token.service;
 
 import com.authmat.application.token.config.TokenProperties;
+import com.authmat.application.token.exception.TokenConstructionException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +13,7 @@ import software.amazon.awssdk.services.kms.model.SignRequest;
 import software.amazon.awssdk.services.kms.model.SigningAlgorithmSpec;
 
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Base64;
@@ -25,9 +27,10 @@ import java.util.concurrent.CompletableFuture;
 @Service
 @RequiredArgsConstructor
 public class TokenService {
-    private static final String BLACKLISTED_TOKEN_KEY_PREFIX = "blacklist:jti:";
-    private static final String REFRESH_TOKEN_KEY_PREFRIX = "refresh:token:";
+    private static final String BLACKLISTED_TOKEN_PREFIX = "blacklist:jti:";
+    private static final String REFRESH_TOKEN_PREFIX = "refresh:token:";
     private static final Base64.Encoder B64URL = Base64.getUrlEncoder().withoutPadding();
+    private static final SecureRandom SECURE_RANDOM =  new SecureRandom(); // create an instance of this to avoid reinitializing the RNG
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final RedisTemplate<String,String> redisTemplate;
@@ -52,9 +55,8 @@ public class TokenService {
         Instant now = Instant.now();
         String jti = UUID.randomUUID().toString();
 
-        //todo: replace alg value with the actual algorithm being used
         String header = encodeJson(Map.of(
-                "alg", "RS256",
+                "alg", "ES256", // could this be in tokenProperties?
                 "typ", "JWT",
                 "kid", tokenProperties.kmsKeyId()));
 
@@ -86,23 +88,36 @@ public class TokenService {
                 });
     }
 
-    // Refresh token will no longer be a signed JWT and will be stored in Redis
+
+    // getEpochSecond() is easier to parse on retrieval, i.e., Instant.ofEpochSecond(Long.parseLong(value))
+    // And timezone unambiguous
     public String generateRefreshToken(String subject){
+        byte[] raw = new byte[32];
+        SECURE_RANDOM.nextBytes(raw);
+
+        String token = B64URL.encodeToString(raw);
+        Instant now = Instant.now();
+        Instant expiresAt = now.plus(tokenProperties.refreshTokenTtl());
+
+        String key = REFRESH_TOKEN_PREFIX + token;
         Map<String,Object> payload = Map.of(
-                "userId","usr_a1b2c3",
-                "issuedAt","",
-                "expiresAt","",
-                "rotationCount",""
-        );
-        return null;
+                "subject",subject,
+                "issuedAt", String.valueOf(now.getEpochSecond()),
+                "expiresAt",String.valueOf(expiresAt.getEpochSecond()),
+                "rotationCount","0");
+
+        redisTemplate.opsForHash().putAll(key, payload);
+        redisTemplate.expire(key, tokenProperties.refreshTokenTtl());
+
+        return token;
     }
 
     public void blackListToken(String token){
-        redisTemplate.opsForValue().set(BLACKLISTED_TOKEN_KEY_PREFIX + token, token);
+        redisTemplate.opsForValue().set(BLACKLISTED_TOKEN_PREFIX + token, token);
     }
 
     public boolean isBlacklisted(String token){
-        return redisTemplate.hasKey(BLACKLISTED_TOKEN_KEY_PREFIX + token);
+        return redisTemplate.hasKey(BLACKLISTED_TOKEN_PREFIX + token);
     }
 
 
@@ -111,12 +126,10 @@ public class TokenService {
             byte[] json = MAPPER.writeValueAsBytes(claims);
             return B64URL.encodeToString(json);
         } catch (JsonProcessingException e) {
-            // TODO: create and throw a custom runtime exception
-            throw new RuntimeException(e);
+            throw new TokenConstructionException("Failed to serialize JWT segment", e);
         }
     }
 
-    // TODO: understand everything below, jwt signing abstraction (use interface with method sign()), move below methods into an aws kms specific signer
     /**
      * Converts a DER-encoded ECDSA signature (what KMS returns) to the
      * JOSE/JWT-required P1363 format (fixed-width R||S concatenation).
@@ -125,31 +138,23 @@ public class TokenService {
      * fail verification on every standard JWT library.
      */
     private byte[] derToJoseEcdsa(byte[] der) {
-        // DER structure: 0x30 <len> 0x02 <rLen> <r> <0x02> <sLen> <s>
         int offset = 2;
 
-        /*
-        * Java byte range [-128,127]
-        * DER byte range [0,255]
-        *
-        * Suppose der[1] = 0x90
-        * - java interprets this as -112
-        * - der interprets this as 144
-        *
-        * Therefore, the 0xFF part forces java to read the byte as an unsigned number
-        *
-        * if(unsignedValueOf(der[1]) > 128)*/
         if ((der[1] & 0xFF) > 0x80) {
             offset += (der[1] & 0x7F);// handle long-form length
         }
 
-        // Parse R
         if (der[offset] != 0x02) throw new IllegalArgumentException("Invalid DER: expected INTEGER tag for R");
         int rLen = der[offset + 1] & 0xFF;
+        // [30 44 | 02 20 | R R R R R R R R R R R R R R R R R R R R R R R R R R R R R R R R | 02 20 | S S S ...],
+        // hence offset + 2 + rLen
+        // R = one large integer
+        // R = represented as many bytes
+        // DER stores those bytes sequentially
         byte[] r = Arrays.copyOfRange(der, offset + 2, offset + 2 + rLen);
+
         offset += 2 + rLen;
 
-        // Parse S
         if (der[offset] != 0x02) throw new IllegalArgumentException("Invalid DER: expected INTEGER tag for S");
         int sLen = der[offset + 1] & 0xFF;
         byte[] s = Arrays.copyOfRange(der, offset + 2, offset + 2 + sLen);
@@ -161,6 +166,8 @@ public class TokenService {
         return result;
     }
 
+    // add the values of r1, r2, ..., rWidth, and s1, s2, ..., sWidth into a single array
+    // that is no longer in ASN.1 format
     private void copyToFixedWidth(byte[] src, byte[] dst, int dstOffset, int width) {
         // DER integers are signed — a leading 0x00 may be present if high bit is set
         int srcOffset = (src.length > width && src[0] == 0x00) ? 1 : 0;
@@ -169,42 +176,3 @@ public class TokenService {
     }
 
 }
-
-/*
-NOTES:
-
-DER structure:
-
-    0x30 <len>
-       0x02 <rLen> <r bytes>
-       0x02 <sLen> <s bytes>
-
-Example:
-
-DER arr index:   0     1     2     3     4...
-DER values:     0x30 0x44  0x02  0x20  <r bytes...>
-
-arr[0]
-    ASN.1 SEQUENCE tag (0x30)
-
-arr[1]
-    Length of the sequence contents (how many bytes follow after i=1)
-
-Example:
-    arr = [30, 44, 02, 20, ...]
-    0x44 = 68 → meaning 68 bytes follow inside the sequence
-
-Conceptually:
-
-    30 <len>                  (first 2 elements are metadata)
-
-       02 <rLen> <r bytes>    (R integer structure begins at arr[2])
-       02 <sLen> <s bytes>    (S integer structure follows after R)
-
-Therefore:
-
-    offset = 2
-
-means:
-    skip sequence metadata and begin parsing the first INTEGER (R)
-*/
