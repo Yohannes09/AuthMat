@@ -4,6 +4,7 @@ import com.authmat.application.authentication.exception.FailedAuthencticationExc
 import com.authmat.application.authentication.models.CustomOAuth2User;
 import com.authmat.application.authentication.models.UserPrincipal;
 import com.authmat.application.authorization.constant.DefaultRole;
+import com.authmat.application.token.model.AccessToken;
 import com.authmat.application.token.service.TokenService;
 import com.authmat.application.users.model.UserDto;
 import com.authmat.application.users.repository.UserCache;
@@ -38,6 +39,7 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @Configuration
 @EnableWebSecurity
@@ -193,7 +195,7 @@ public class SecurityConfig {
             try {
                 if(authentication.getPrincipal() instanceof OAuth2User auth2User) {
 
-                    String accessToken = tokenService.generateAccessToken(
+                    CompletableFuture<AccessToken> accessToken = tokenService.generateAccessToken(
                             auth2User.getAttribute("email"));
 
                     String refreshToken = tokenService.generateRefreshToken(auth2User.getAttribute("email"));

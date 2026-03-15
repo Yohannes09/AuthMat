@@ -54,25 +54,13 @@ management:
         enabled: true
 
 authmat:
-  system:
-    credentials:
-      #enabled: ${ENABLE_SYSTEM_USER}
-      username: ${AUTHMAT_USERNAME:}
-      password: ${AUTHMAT_PASSWORD:}
-    token:
-      access-token-validity-minutes: ${ACCESS_TOKEN_VALIDITY_MINUTES:15}
-      access-token-key-size: ${ACCESS_TOKEN_KEY_SIZE:2048}
-      access-token-jwt-algorithm: ${ACCESS_TOKEN_JWT_ALGORITHM:RS256}
-      access-token-key-algorithm: ${ACCESS_TOKEN_KEY_ALGORITHM:RSA}
-      access-token-history-trace: ${ACCESS_TOKEN_HISTORY_TRACE:10}
-      access-token-signing-key-rotation-rate-minutes: ${ACCESS_TOKEN_SIGNING_KEY_ROTATION_RATE_MINUTES:86400}
-
-      refresh-token-validity-minutes: ${REFRESH_TOKEN_VALIDITY_MINUTES:180}
-      refresh-token-key-size: ${REFRESH_TOKEN_KEY_SIZE:2048}
-      refresh-token-key-algorithm: ${REFRESH_TOKEN_KEY_ALGORITHM:RS256}
-      refresh-token-jwt-algorithm: ${REFRESH_TOKEN_JWT_ALGORITHM:RSA}
-      refresh-token-history-trace: ${REFRESH_TOKEN_HISTORY_TRACE:10}
-      refresh-token-signing-key-rotation-rate-minutes: ${REFRESH_TOKEN_SIGNING_KEY_ROTATION_RATE_MINUTES:86400}
-    endpoints:
-      auth-base-endpoint: ${AUTH_BASE_ENDPOINT}
-      users-base-endpoint: ${USERS_BASE_ENDPOINT}
+  registration:
+    provider: ${PROVIDER:LOCAL}
+    provider-id: ${PROVIDER_ID:authmat}
+  token:
+    access-token-ttl: ${ACCESS_TOKEN_TTL}
+    refresh-token-ttl: ${REFRESH_TOKEN_TTL}
+    issuer: ${ISSUER}
+    audience: ${AUDIENCE}
+    kms-key-id: ${AWS_KMS_KEY_ID}
+  endpoints:

@@ -1,0 +1,8 @@
+FEEDBACK:
+
+CompletableFuture.supplyAsync on a Blocking Redis Call:
+    supplyAsync without an explicit executor uses the common ForkJoinPool, which is sized for CPU-bound work.
+    If your Redis call inside rotateRefreshToken is synchronous/blocking, you're blocking a ForkJoinPool thread —
+    that's a problem under load. Either pass a dedicated executor:
+
+    -   CompletableFuture.supplyAsync(() -> tokenService.rotateRefreshToken(refreshToken), ioExecutor)

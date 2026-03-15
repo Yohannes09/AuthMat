@@ -1,10 +1,14 @@
 package com.authmat.application.token.service;
 
 import com.authmat.application.token.config.TokenProperties;
-import com.authmat.application.token.exception.TokenConstructionException;
+import com.authmat.application.token.exception.TokenException;
+import com.authmat.application.token.model.AccessToken;
+import com.authmat.application.token.model.RefreshTokenRecord;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import software.amazon.awssdk.core.SdkBytes;
@@ -12,19 +16,19 @@ import software.amazon.awssdk.services.kms.KmsAsyncClient;
 import software.amazon.awssdk.services.kms.model.SignRequest;
 import software.amazon.awssdk.services.kms.model.SigningAlgorithmSpec;
 
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.security.SecureRandom;
+import java.time.Duration;
 import java.time.Instant;
-import java.util.Arrays;
-import java.util.Base64;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 /**
  * DOCS:
  * <a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/java_kms_code_examples.html">...</a>*/
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class TokenService {
     private static final String BLACKLISTED_TOKEN_PREFIX = "blacklist:jti:";
@@ -51,8 +55,9 @@ public class TokenService {
      *
      * FLOW:
      * header.payload  →  SHA-256 digest  →  ECDSA sign with private key  →  signature*/
-    public CompletableFuture<String> generateAccessToken(String subject){
+    public CompletableFuture<AccessToken> generateAccessToken(String subject){
         Instant now = Instant.now();
+        Instant expiresIn = now.plus(tokenProperties.accessTokenTtl());
         String jti = UUID.randomUUID().toString();
 
         String header = encodeJson(Map.of(
@@ -65,7 +70,7 @@ public class TokenService {
                 "iss", tokenProperties.issuer(),
                 "aud", tokenProperties.audience(),
                 "iat", now.getEpochSecond(),
-                "exp", now.plus(tokenProperties.accessTokenTtl()).getEpochSecond(),
+                "exp", expiresIn.getEpochSecond(),
                 "jti", jti,
                 "type", "ACCESS"));
 
@@ -84,14 +89,19 @@ public class TokenService {
                     byte[] extractedDerBytes = response.signature().asByteArray();
                     byte[] joseEcdsaFormattedBytes = derToJoseEcdsa(extractedDerBytes);
                     String encodedJwtSignature = B64URL.encodeToString(joseEcdsaFormattedBytes);
-                    return signingInput + "." + encodedJwtSignature;
+
+
+                    return AccessToken.of(
+                            signingInput + "." + encodedJwtSignature,
+                            expiresIn.getEpochSecond()
+                    );
                 });
     }
 
 
     // getEpochSecond() is easier to parse on retrieval, i.e., Instant.ofEpochSecond(Long.parseLong(value))
     // And timezone unambiguous
-    public String generateRefreshToken(String subject){
+    public RefreshTokenRecord generateRefreshToken(String subject){
         byte[] raw = new byte[32];
         SECURE_RANDOM.nextBytes(raw);
 
@@ -104,29 +114,86 @@ public class TokenService {
                 "subject",subject,
                 "issuedAt", String.valueOf(now.getEpochSecond()),
                 "expiresAt",String.valueOf(expiresAt.getEpochSecond()),
-                "rotationCount","0");
+                "rotationCount","0"
+        );
 
         redisTemplate.opsForHash().putAll(key, payload);
         redisTemplate.expire(key, tokenProperties.refreshTokenTtl());
 
-        return token;
+        return new RefreshTokenRecord(token, subject, now);
+    }
+
+    public Optional<RefreshTokenRecord> rotateRefreshToken(String oldToken){
+        String key = REFRESH_TOKEN_PREFIX + oldToken;
+
+        Map<Object,Object> data = redisTemplate.opsForHash().entries(key);
+        if(data == null || data.isEmpty()){
+            log.warn("Refresh token not found or rotated - possible replay attack");
+            return Optional.empty();
+        }
+
+        String subject = (String) data.get("subject");
+        int rotationCount = Integer.parseInt(
+                (String) data.getOrDefault("rotationCount", "0")
+        );
+
+        redisTemplate.delete(key);
+
+        RefreshTokenRecord newToken = generateRefreshToken(subject);
+        redisTemplate.opsForHash().put(
+                REFRESH_TOKEN_PREFIX + newToken,
+                "rotationCount",
+                String.valueOf(rotationCount + 1)
+        );
+
+        return Optional.of(newToken);
     }
 
     public void blackListToken(String token){
-        redisTemplate.opsForValue().set(BLACKLISTED_TOKEN_PREFIX + token, token);
+        Map<String,Object> tokenParts = parseAccessToken(token);
+
+        String jti = (String) tokenParts.get("jti");
+        // Jackson deserializes JSON numbers into Integer when the value fits in an integer range,
+        // and Long when it doesn't — and you don't control which one it picks.
+        // If you cast directly to Long you get a ClassCastException at runtime.
+        // Number is the common parent of both Integer and Long in Java, and .longValue() is defined on Number
+        Instant tokenExpiration = Instant.ofEpochSecond(
+                ((Number) tokenParts.get("exp")).longValue()
+        );
+
+        Duration remainingBeforeExpiration = Duration.between(Instant.now(), tokenExpiration);
+
+        if(remainingBeforeExpiration.isNegative() || remainingBeforeExpiration.isZero()){
+            return;
+        }
+
+        redisTemplate.opsForValue().set(
+                BLACKLISTED_TOKEN_PREFIX + jti,
+                "1",
+                remainingBeforeExpiration
+        );
     }
 
-    public boolean isBlacklisted(String token){
-        return redisTemplate.hasKey(BLACKLISTED_TOKEN_PREFIX + token);
+    /**
+     * Fail-closed: if Redis is down, treat the token as blacklisted.
+     */
+    public boolean isBlacklisted(String jti) {
+        try {
+            return redisTemplate.hasKey(BLACKLISTED_TOKEN_PREFIX + jti);
+        } catch (Exception e) {
+            log.error("Redis unavailable during blacklist check — failing closed", e);
+            return true;
+        }
     }
 
 
+    // TODO: Most of what is below could be its own class
     private String encodeJson(Map<String,Object> claims){
         try {
             byte[] json = MAPPER.writeValueAsBytes(claims);
             return B64URL.encodeToString(json);
         } catch (JsonProcessingException e) {
-            throw new TokenConstructionException("Failed to serialize JWT segment", e);
+            throw new TokenException("Failed to serialize JWT segment", e);
         }
     }
 
@@ -140,39 +207,47 @@ public class TokenService {
     private byte[] derToJoseEcdsa(byte[] der) {
         int offset = 2;
 
+        // handle long-form length
         if ((der[1] & 0xFF) > 0x80) {
-            offset += (der[1] & 0x7F);// handle long-form length
+            offset += (der[1] & 0x7F);
         }
 
-        if (der[offset] != 0x02) throw new IllegalArgumentException("Invalid DER: expected INTEGER tag for R");
+        if (der[offset] != 0x02) {
+            throw new IllegalArgumentException("Invalid DER: expected INTEGER tag for R");
+        }
         int rLen = der[offset + 1] & 0xFF;
-        // [30 44 | 02 20 | R R R R R R R R R R R R R R R R R R R R R R R R R R R R R R R R | 02 20 | S S S ...],
-        // hence offset + 2 + rLen
-        // R = one large integer
-        // R = represented as many bytes
-        // DER stores those bytes sequentially
         byte[] r = Arrays.copyOfRange(der, offset + 2, offset + 2 + rLen);
 
         offset += 2 + rLen;
 
-        if (der[offset] != 0x02) throw new IllegalArgumentException("Invalid DER: expected INTEGER tag for S");
+        if (der[offset] != 0x02) {
+            throw new IllegalArgumentException("Invalid DER: expected INTEGER tag for S");
+        }
         int sLen = der[offset + 1] & 0xFF;
         byte[] s = Arrays.copyOfRange(der, offset + 2, offset + 2 + sLen);
 
-        // Pad/trim to 32 bytes each (P-256 coordinate size)
         byte[] result = new byte[64];
-        copyToFixedWidth(r, result, 0,  32);
-        copyToFixedWidth(s, result, 32, 32);
+        copyToFixedWidth(r, result, 0);
+        copyToFixedWidth(s, result, 32);
         return result;
     }
 
-    // add the values of r1, r2, ..., rWidth, and s1, s2, ..., sWidth into a single array
-    // that is no longer in ASN.1 format
-    private void copyToFixedWidth(byte[] src, byte[] dst, int dstOffset, int width) {
-        // DER integers are signed — a leading 0x00 may be present if high bit is set
-        int srcOffset = (src.length > width && src[0] == 0x00) ? 1 : 0;
-        int copyLen   = Math.min(src.length - srcOffset, width);
-        System.arraycopy(src, srcOffset, dst, dstOffset + (width - copyLen), copyLen);
+    private void copyToFixedWidth(byte[] src, byte[] dst, int dstOffset) {
+        int srcOffset = (src.length > 32 && src[0] == 0x00) ? 1 : 0;
+        int copyLen   = Math.min(src.length - srcOffset, 32);
+        System.arraycopy(src, srcOffset, dst, dstOffset + (32 - copyLen), copyLen);
+    }
+
+    private Map<String, Object> parseAccessToken(String token) {
+        try {
+            String[] parts = token.split("\\.");
+            if (parts.length != 3) throw new IllegalArgumentException("Invalid JWT structure");
+
+            byte[] payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
+            return MAPPER.readValue(payloadBytes, new TypeReference<Map<String, Object>>() {});
+        } catch (IOException e) {
+            throw new TokenException("Failed to parse access token", e);
+        }
     }
 
 }

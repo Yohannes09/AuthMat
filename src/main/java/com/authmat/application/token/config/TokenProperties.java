@@ -4,12 +4,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.convert.DurationUnit;
+import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
-// TODO: decide a good prefix. maybe "authmat.token"???
-@ConfigurationProperties(prefix = "")
+@ConfigurationProperties(prefix = "authmat.token")
+@Validated
 public record TokenProperties(
         @DurationUnit(ChronoUnit.SECONDS)
         @Positive

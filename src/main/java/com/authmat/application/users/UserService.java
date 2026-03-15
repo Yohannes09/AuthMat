@@ -44,7 +44,6 @@ public class UserService {
             String password,
             String provider,
             String providerId){
-        //TODO: Exception needs to be dealt with
         Role userRole = roleCache.findRoleProxyByName(DefaultRole.USER.getName())
                 .orElseThrow(() -> new SystemConfigurationException("Default USER role not found"));
 
@@ -65,10 +64,12 @@ public class UserService {
         }
 
         User savedUser = userCache.save(
-                new User(username, passwordEncoder.encode(password), email, provider, providerId, roles));
+                new User(username, passwordEncoder.encode(password), email, provider, providerId, roles)
+        );
 
         eventPublisher.userCreatedEvent(
-                NewUserEvent.of(savedUser.getExternalId(), savedUser.getUsername(), savedUser.getEmail()));
+                NewUserEvent.of(savedUser.getExternalId(), savedUser.getUsername(), savedUser.getEmail())
+        );
 
         return userMapper.entityToDto(savedUser);
     }

@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequiredArgsConstructor
@@ -37,10 +38,10 @@ public class AuthenticationController {
                             content = @Content(schema = @Schema(implementation = AuthenticationResponse.class))),
                     @ApiResponse(responseCode = "401", description = "Unauthorized - bad credentials"),
                     @ApiResponse(responseCode = "404", description = "Couldn't find user. ")})
-    public ResponseEntity<AuthenticationResponse> login(
+    public ResponseEntity<CompletableFuture<AuthenticationResponse>> login(
             @Valid @RequestBody LoginRequest loginRequest){
         log.info("New login attempt: {}", loginRequest.usernameOrEmail());
-        AuthenticationResponse response = authenticationService.login(loginRequest);
+        CompletableFuture<AuthenticationResponse> response = authenticationService.login(loginRequest);
 
         return ResponseEntity.ok(response);
     }
@@ -60,6 +61,7 @@ public class AuthenticationController {
     }
 
 
+    // TODO: FIX
     @PostMapping("/refresh")
     @Operation(
             summary = "Issue new access and refresh tokens. Valid refresh token must come attached to request.",
@@ -67,7 +69,7 @@ public class AuthenticationController {
                     @ApiResponse(
                             responseCode = "200", description = "Token refresh successful. ",
                             content = @Content(schema = @Schema(implementation = AuthenticationResponse.class)))})
-    public ResponseEntity<AuthenticationResponse> refresh(
+    public CompletableFuture<ResponseEntity<AuthenticationResponse>> refresh(
             @RequestHeader("Authorization") String authHeader){
 
         Optional<String> refreshToken = Optional.of(authHeader.substring(7))
