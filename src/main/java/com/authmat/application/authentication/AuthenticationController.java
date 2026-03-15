@@ -1,9 +1,8 @@
 package com.authmat.application.authentication;
 
-import com.authmat.application.authentication.response.AuthenticationResponse;
 import com.authmat.application.authentication.request.LoginRequest;
 import com.authmat.application.authentication.request.RegistrationRequest;
-import com.authmat.application.authentication.models.UserPrincipal;
+import com.authmat.application.authentication.response.AuthenticationResponse;
 import com.authmat.application.authentication.response.RegistrationResponse;
 import com.authmat.application.authentication.service.AuthenticationService;
 import com.authmat.application.util.UserPrincipalExtractor;
@@ -18,7 +17,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
 @RestController
@@ -61,28 +59,22 @@ public class AuthenticationController {
     }
 
 
-    // TODO: FIX
     @PostMapping("/refresh")
     @Operation(
             summary = "Issue new access and refresh tokens. Valid refresh token must come attached to request.",
             responses = {
                     @ApiResponse(
                             responseCode = "200", description = "Token refresh successful. ",
-                            content = @Content(schema = @Schema(implementation = AuthenticationResponse.class)))})
-    public CompletableFuture<ResponseEntity<AuthenticationResponse>> refresh(
+                            content = @Content(schema = @Schema(implementation = AuthenticationResponse.class))
+                    )
+            }
+    )
+    public ResponseEntity<CompletableFuture<AuthenticationResponse>> refresh(
             @RequestHeader("Authorization") String authHeader){
 
-        Optional<String> refreshToken = Optional.of(authHeader.substring(7))
-                        .filter(token -> token.startsWith("bearer "));
+        String refreshToken = authHeader.substring(7);
 
-        Optional<UserPrincipal> userPrincipal = userPrincipalExtractor.extract();
-
-        if(refreshToken.isEmpty() || userPrincipal.isEmpty()) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).build();
-        }
-
-        AuthenticationResponse response = authenticationService.refresh(userPrincipal.get());
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(authenticationService.refresh(refreshToken));
     }
 
 

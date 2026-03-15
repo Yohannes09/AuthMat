@@ -25,7 +25,7 @@ public class UserCache {
     private static final Duration BASE_TTL_MINUTES = Duration.ofMinutes(30);
 
     // Prevents DB storms on repeated cache/db misses
-    private static final UserDto NOT_FOUND = new UserDto(-1L, "__NOT_FOUND__");
+    private static final UserDto NOT_FOUND = UserDto.of(-1L, "__NOT_FOUND__");
     private static final Duration NOT_FOUND_TTL = Duration.ofMinutes(2);
 
     private final UserMapper userMapper;
@@ -117,17 +117,17 @@ public class UserCache {
 
         try{
             redisTemplate.opsForValue().set(
-                    buildKey(USERNAME_KEY, user.getUsername()),
+                    buildKey(USERNAME_KEY, user.username()),
                     user,
                     ttlWithJitter);
 
             redisTemplate.opsForValue().set(
-                    buildKey(EMAIL_KEY, user.getEmail()),
+                    buildKey(EMAIL_KEY, user.email()),
                     user,
                     ttlWithJitter);
 
             redisTemplate.opsForValue().set(
-                    buildKey(ID_KEY, user.getId().toString()),
+                    buildKey(ID_KEY, user.id().toString()),
                     user,
                     ttlWithJitter);
         }catch (RedisException e){

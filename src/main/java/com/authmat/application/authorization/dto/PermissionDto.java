@@ -1,7 +1,7 @@
 package com.authmat.application.authorization.dto;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public record PermissionDto(
-         Long id, String name, String description, LocalDateTime createdAt, LocalDateTime updatedAt) {
+        Long id, String name, String description, Instant createdAt, Instant updatedAt) {
 }

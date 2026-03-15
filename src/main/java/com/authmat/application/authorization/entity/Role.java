@@ -1,6 +1,5 @@
 package com.authmat.application.authorization.entity;
 
-import com.authmat.application.authorization.constant.DefaultRole;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import lombok.Builder;
@@ -9,16 +8,13 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 
 
 @Table(name = "roles")
 @Entity
-@Getter
-@Builder
-@NoArgsConstructor
 public class Role {
     @Id
     @GeneratedValue(
@@ -41,11 +37,11 @@ public class Role {
 
     @Column(name = "created_at", updatable = false, nullable = false)
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
     @Column(name = "is_system_role", nullable = false)
     private boolean isSystemRole = false;
@@ -58,4 +54,45 @@ public class Role {
     )
     private Set<Permission> permissions = new HashSet<>();
 
+    protected Role(){}
+
+    public Role(String name, String description){
+        this.name = name;
+        this.description = description;
+    }
+
+    public Role(String name, String description, boolean isSystemRole){
+        this.name = name;
+        this.description = description;
+        this.isSystemRole = isSystemRole;
+    }
+
+
+    public Set<Permission> getPermissions() {
+        return permissions;
+    }
+
+    public boolean isSystemRole() {
+        return isSystemRole;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public Long getId() {
+        return id;
+    }
 }

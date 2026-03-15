@@ -1,19 +1,14 @@
 package com.authmat.application.authorization.entity;
 
-import com.authmat.application.authorization.constant.DefaultPermission;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
-import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Table(name = "permissions")
 @Entity
-@Getter
-@Builder
-@NoArgsConstructor
 public class Permission {
     @Id
     @GeneratedValue(
@@ -36,10 +31,37 @@ public class Permission {
 
     @Column(name = "created_at", updatable = false, nullable = false)
     @CreationTimestamp
-    private LocalDateTime createdAt;
+    private Instant createdAt;
 
     @Column(name = "updated_at", nullable = false)
     @UpdateTimestamp
-    private LocalDateTime updatedAt;
+    private Instant updatedAt;
 
+    protected Permission() {}
+
+    public Permission(String name, String description){
+        this.name = name;
+        this.description = description;
+    }
+
+
+    public Long getId() {
+        return this.id;
+    }
+
+    public @Size(min = 4, max = 50) String getName() {
+        return this.name;
+    }
+
+    public String getDescription() {
+        return this.description;
+    }
+
+    public Instant getCreatedAt() {
+        return this.createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return this.updatedAt;
+    }
 }

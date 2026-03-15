@@ -21,7 +21,7 @@ public class UserPrincipal implements UserDetails {
     private final String username;
     private final String password;
     private final String email;
-    private final Set<Role> roles;
+    private final Collection<Role> roles;
     private final boolean accountNonExpired;
     private final boolean accountNonLocked;
     private final boolean credentialsNonExpired;
@@ -30,7 +30,7 @@ public class UserPrincipal implements UserDetails {
 
     public UserPrincipal(User user){
         this.internalId = user.getId();
-        this.externalId = user.getExternalId();
+        this.externalId = user.getExternalId().toString();
         this.username = user.getUsername();
         this.password = user.getHashedPassword();
         this.email = user.getEmail();
@@ -62,12 +62,11 @@ public class UserPrincipal implements UserDetails {
                 .map(role -> new SimpleGrantedAuthority("ROLE_" + role.getName()))
                 .collect(Collectors.toSet());
 
-        Set<GrantedAuthority> permissionAuthorities = roles
-                .stream()
+        Set<GrantedAuthority> permissionAuthorities = roles.stream()
                 .flatMap(role ->
-                                role.
-                                        getPermissions().stream()
-                                        .map(permission -> new SimpleGrantedAuthority(permission.getName()))
+                                role.getPermissions().stream()
+                                        .map(permission ->
+                                                new SimpleGrantedAuthority(permission.getName()))
                 )
                 .collect(Collectors.toSet());
 

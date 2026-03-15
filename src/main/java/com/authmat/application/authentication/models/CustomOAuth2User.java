@@ -18,7 +18,7 @@ public class CustomOAuth2User implements OAuth2User {
 
 
     public String getId(){
-        return userPrincipal.getId().toString();
+        return userPrincipal.getExternalId();
     }
 
     public Set<String> getAuthoritiesToString(){

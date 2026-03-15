@@ -84,7 +84,7 @@ public class UserService {
             String newUsername = usernameUpdateRequest.newUsername();
 
             validateCredential(
-                    dto.getUsername(),
+                    dto.username(),
                     usernameUpdateRequest.currentUsername(),
                     newUsername,
                     userCache::existsByUsername);
@@ -109,14 +109,14 @@ public class UserService {
             String newEmail = emailUpdateRequest.newEmail();
 
             validateCredential(
-                    dto.getEmail(),
+                    dto.email(),
                     emailUpdateRequest.currentEmail(),
                     newEmail,
                     userCache::existsByEmail);
 
             persistCredentialChange(user, newEmail, user::updateEmail);
 
-            log.info("User {} successfully updated email. ", dto.getId());
+            log.info("User {} successfully updated email. ", dto.externalId());
             return true;
         } catch (Exception e) {
             log.warn("Email update failure: {}", e.getMessage());

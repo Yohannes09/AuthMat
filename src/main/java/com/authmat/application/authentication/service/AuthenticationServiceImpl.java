@@ -43,8 +43,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 registrationProperties.provider(),
                 registrationProperties.providerId());
 
-        log.info("User registered successfully: externalId={}", user.getExternalId());
-        return new RegistrationResponse(user.getExternalId(), user.getUsername(), user.getEmail());
+        log.info("User registered successfully: externalId={}", user.externalId());
+        return new RegistrationResponse(user.externalId(), user.username(), user.email());
     }
 
 
