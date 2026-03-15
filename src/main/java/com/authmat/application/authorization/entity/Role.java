@@ -14,12 +14,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 
-@Table(
-        name = "roles",
-        indexes = {
-                @Index(name = "idx_role_name", columnList = "name")
-        }
-)
+@Table(name = "roles")
 @Entity
 @Getter
 @Builder

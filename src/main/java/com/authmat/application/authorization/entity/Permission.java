@@ -9,12 +9,7 @@ import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.LocalDateTime;
 
-@Table(
-        name = "permissions",
-        indexes = {
-                @Index(name = "idx_permission_name", columnList = "name")
-        }
-)
+@Table(name = "permissions")
 @Entity
 @Getter
 @Builder
@@ -33,7 +28,7 @@ public class Permission {
     )
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false)
     @Size(min = 4, max = 50)
     private String name;
 

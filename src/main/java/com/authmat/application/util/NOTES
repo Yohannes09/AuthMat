@@ -1,0 +1,7 @@
+Taking DDL away from JPA and giving it to Flyway. (spring.jpa.hibernate.ddl-auto=create or update)
+   - A liability in production
+   - Hibernate's schema generation is non-deterministic across versions
+   - Doesn't give rollback capability
+   - Gives zero audit trail of schema changes
+   - The industry standard is ddl-auto=validate (Hibernate checks that entities match the schema but touches nothing) with Flyway owning all DDL
+   - Spring Boot + Flyway auto-discovers classpath:db/migration by default, so no extra config needed

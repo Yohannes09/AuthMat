@@ -1,4 +1,4 @@
-package com.authmat.application.util;
+package com.authmat.application.users;
 
 import com.authmat.application.authorization.entity.Permission;
 import com.authmat.application.authorization.entity.Role;

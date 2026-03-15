@@ -1,4 +1,4 @@
-package com.authmat.application.util;
+package com.authmat.application.authorization;
 
 import com.authmat.application.authorization.dto.PermissionDto;
 import com.authmat.application.authorization.entity.Permission;

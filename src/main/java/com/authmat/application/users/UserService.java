@@ -13,7 +13,6 @@ import com.authmat.application.users.repository.UserCache;
 import com.authmat.application.users.request.EmailUpdateRequest;
 import com.authmat.application.users.request.PasswordUpdateRequest;
 import com.authmat.application.users.request.UsernameUpdateRequest;
-import com.authmat.application.util.UserMapper;
 import com.authmat.events.NewUserEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,6 +1,5 @@
 package com.authmat.application.authorization.repository;
 
-import com.authmat.application.authorization.RoleMapper;
 import com.authmat.application.authorization.dto.RoleDto;
 import com.authmat.application.authorization.entity.Role;
 import io.lettuce.core.RedisException;

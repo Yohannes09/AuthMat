@@ -4,8 +4,8 @@ import com.authmat.application.authorization.entity.Role;
 import com.authmat.application.constant.ValidationConstants;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.Pattern;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -15,14 +15,7 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
-@Table(
-        name = "users",
-        indexes = {
-                @Index(name = "idx_user_username", columnList = "username"),
-                @Index(name = "idx_user_email", columnList = "email")
-                // might need an index for external id
-        }
-)
+@Table(name = "users")
 @Entity
 @Getter
 @NoArgsConstructor
@@ -46,7 +39,6 @@ public class User{
     @Column(unique = true, nullable = false)
     private String username;
 
-    @Pattern(regexp = ValidationConstants.PASSWORD_PATTERN)
     private String hashedPassword;
 
     @Email(message = ValidationConstants.EMAIL_VALIDATION_MESSAGE)
@@ -81,12 +73,10 @@ public class User{
     @Column(name = "enabled", nullable = false)
     private boolean enabled = true;
 
-    // Suggested improvement for concurrency. Prevents another thread from
-    // overriding.
+    // Suggested improvement for concurrency. Prevents another thread from overriding.
     @Version
     private Long version;
 
-    //GitHub, Google, Local
     @Column(name = "provider")
     private String provider;
 

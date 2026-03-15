@@ -8,7 +8,7 @@ import com.authmat.application.token.model.AccessToken;
 import com.authmat.application.token.service.TokenService;
 import com.authmat.application.users.model.UserDto;
 import com.authmat.application.users.repository.UserCache;
-import com.authmat.application.util.UserMapper;
+import com.authmat.application.users.UserMapper;
 import com.authmat.tool.exception.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
