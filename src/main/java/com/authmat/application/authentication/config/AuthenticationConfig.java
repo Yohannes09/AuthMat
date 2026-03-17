@@ -1,8 +1,8 @@
 package com.authmat.application.authentication.config;
 
-import com.authmat.application.users.UserMapper;
-import com.authmat.application.users.model.UserDto;
-import com.authmat.application.users.repository.UserCache;
+import com.authmat.application.user.util.UserMapper;
+import com.authmat.application.user.dto.UserDto;
+import com.authmat.application.user.repository.UserCache;
 import com.authmat.tool.exception.UserNotFoundException;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -33,7 +33,7 @@ public class AuthenticationConfig {
                     .or(() -> userCache.findByEmail(usernameOrEmail))
                     .orElseThrow(() -> new UserNotFoundException("User not found: " + usernameOrEmail));
 
-            return userMapper.dtoToPrincipal(dto);
+            return userMapper.dtoToUserDetails(dto);
         };
     }
 

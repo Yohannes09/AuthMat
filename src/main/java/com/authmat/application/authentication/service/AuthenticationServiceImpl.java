@@ -1,8 +1,8 @@
 package com.authmat.application.authentication.service;
 
-import com.authmat.application.authentication.LoginAttemptManager;
+import com.authmat.application.authentication.component.LoginAttemptManager;
 import com.authmat.application.authentication.config.registrationProperties;
-import com.authmat.application.authentication.models.UserPrincipal;
+import com.authmat.application.authentication.models.UserDetailsImpl;
 import com.authmat.application.authentication.request.LoginRequest;
 import com.authmat.application.authentication.request.RegistrationRequest;
 import com.authmat.application.authentication.response.AuthenticationResponse;
@@ -11,8 +11,8 @@ import com.authmat.application.token.exception.TokenException;
 import com.authmat.application.token.model.AccessToken;
 import com.authmat.application.token.model.RefreshTokenRecord;
 import com.authmat.application.token.service.TokenService;
-import com.authmat.application.users.UserService;
-import com.authmat.application.users.model.UserDto;
+import com.authmat.application.user.service.UserService;
+import com.authmat.application.user.dto.UserDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -63,7 +63,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                         new UsernamePasswordAuthenticationToken(identifier, loginRequest.password())
                 );
 
-                if(!(authentication.getPrincipal() instanceof UserPrincipal principal)){
+                if(!(authentication.getPrincipal() instanceof UserDetailsImpl principal)){
                     throw new IllegalStateException(
                             "Expected UserPrincipal but got: " + authentication.getPrincipal().getClass().getName()
                     );

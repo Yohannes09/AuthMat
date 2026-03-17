@@ -1,6 +1,7 @@
 package com.authmat.application.config;
 
 import com.authmat.application.authorization.constant.DefaultRole;
+import com.authmat.filter.SimpleJwtAuthenticationFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,6 +12,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfigurationSource;
 
 @Configuration
@@ -45,10 +47,9 @@ public class SecurityConfig {
                 .sessionManagement(session->
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
-                // TODO: Create a new filter that will handle what the Gateway forwards
-//                .addFilterBefore(
-//                        simpleAuthenticationFilter(),
-//                        UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(
+                        ,
+                        UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
 

@@ -12,8 +12,4 @@ public record RoleDto(
         Collection<PermissionDto> permissions
 ) {
 
-    // TODO: this method might be useless
-    public static RoleDto of(Long id, String name, Collection<PermissionDto> permissions){
-        return new RoleDto(id, name, "Description not provided", Instant.now(), Instant.now(), permissions);
-    }
 }

@@ -1,8 +1,8 @@
 package com.authmat.application.authorization.repository;
 
-import com.authmat.application.authorization.RoleMapper;
 import com.authmat.application.authorization.dto.RoleDto;
 import com.authmat.application.authorization.entity.Role;
+import com.authmat.application.authorization.util.RoleMapper;
 import io.lettuce.core.RedisException;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
@@ -27,7 +27,7 @@ public class RoleCache {
     private final RedisTemplate<String,RoleDto> redisTemplate;
 
     private static final String SENTINEL_NAME = "__NOT_FOUND__";
-    private static final RoleDto ROLE_SENTINEL = RoleDto.of(1L, SENTINEL_NAME, Collections.emptyList());
+    private static final RoleDto ROLE_SENTINEL = new RoleDto(1L, SENTINEL_NAME, null, null, null, Collections.emptyList());
     private static final String ROLE_KEY = "auth:role:";
     private static final Duration BASE_TTL_MINUTES = Duration.ofMinutes(15);
     private static final Duration NEGATIVE_TTL_MINUTES = Duration.ofMinutes(2);

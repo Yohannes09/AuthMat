@@ -1,10 +1,10 @@
 package com.authmat.application.util;
 
-import com.authmat.application.authentication.models.UserPrincipal;
+import com.authmat.application.authentication.models.UserDetailsImpl;
 
 import java.util.Optional;
 
 @FunctionalInterface
 public interface UserPrincipalExtractor {
-    Optional<UserPrincipal> extract();
+    Optional<UserDetailsImpl> extract();
 }

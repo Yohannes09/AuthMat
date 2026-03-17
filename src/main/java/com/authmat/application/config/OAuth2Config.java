@@ -1,12 +1,12 @@
 package com.authmat.application.config;
 
 import com.authmat.application.authentication.exception.FailedAuthencticationException;
-import com.authmat.application.authentication.models.CustomOAuth2User;
-import com.authmat.application.authentication.models.UserPrincipal;
+import com.authmat.application.authentication.models.OAuth2UserImpl;
+import com.authmat.application.authentication.models.UserDetailsImpl;
 import com.authmat.application.token.service.TokenService;
-import com.authmat.application.users.UserMapper;
-import com.authmat.application.users.model.UserDto;
-import com.authmat.application.users.repository.UserCache;
+import com.authmat.application.user.util.UserMapper;
+import com.authmat.application.user.dto.UserDto;
+import com.authmat.application.user.repository.UserCache;
 import com.authmat.tool.exception.UserNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -47,6 +47,8 @@ public class OAuth2Config {
         this.userMapper = userMapper;
     }
 
+    // TODO: Get this working again
+
     @Bean
     public SecurityFilterChain oAuth2SecurityFilterChain(HttpSecurity http) throws Exception{
         String[] patterns = {"/oauth2/**", "/login/oauth2/**", "/login/**"};
@@ -83,10 +85,10 @@ public class OAuth2Config {
                     .orElseThrow(() -> new UserNotFoundException("Could not find user"));
 
 
-            UserPrincipal userPrincipal = userMapper.dtoToPrincipal(userDto);
+            UserDetailsImpl userDetailsImpl = userMapper.dtoToUserDetails(userDto);
 
-            return CustomOAuth2User.builder()
-                    .userPrincipal(userPrincipal)
+            return OAuth2UserImpl.builder()
+                    .userDetailsImpl(userDetailsImpl)
                     .oAuth2User(oAuth2User)
                     .build();
         };
