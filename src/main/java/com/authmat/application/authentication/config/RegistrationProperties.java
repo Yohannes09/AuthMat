@@ -6,7 +6,7 @@ import org.springframework.validation.annotation.Validated;
 
 @ConfigurationProperties(prefix = "authmat.registration")
 @Validated
-public record registrationProperties(
+public record RegistrationProperties(
         @NotBlank
         String provider,
 

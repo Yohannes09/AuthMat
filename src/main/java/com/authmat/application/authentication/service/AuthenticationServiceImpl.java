@@ -1,7 +1,7 @@
 package com.authmat.application.authentication.service;
 
 import com.authmat.application.authentication.component.LoginAttemptManager;
-import com.authmat.application.authentication.config.registrationProperties;
+import com.authmat.application.authentication.config.RegistrationProperties;
 import com.authmat.application.authentication.models.UserDetailsImpl;
 import com.authmat.application.authentication.request.LoginRequest;
 import com.authmat.application.authentication.request.RegistrationRequest;
@@ -32,7 +32,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     private final TokenService tokenService;
     private final AuthenticationManager authenticationManager;
     private final LoginAttemptManager loginAttemptManager;
-    private final registrationProperties registrationProperties;
+    private final RegistrationProperties registrationProperties;
 
     @Override
     public RegistrationResponse register(RegistrationRequest registrationRequest){

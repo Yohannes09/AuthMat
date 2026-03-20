@@ -1,7 +1,7 @@
 package com.authmat.application.config;
 
+import com.authmat.application.authentication.component.Filter;
 import com.authmat.application.authorization.constant.DefaultRole;
-import com.authmat.filter.SimpleJwtAuthenticationFilter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,13 +20,16 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @EnableMethodSecurity
 @Slf4j
 public class SecurityConfig {
+    private final Filter filter;
     private final AuthenticationProvider authenticationProvider;
     private final CorsConfigurationSource corsConfig;
 
-    public SecurityConfig(AuthenticationProvider authenticationProvider, CorsConfigurationSource corsConfig) {
+    public SecurityConfig(Filter filter, AuthenticationProvider authenticationProvider, CorsConfigurationSource corsConfig) {
+        this.filter = filter;
         this.authenticationProvider = authenticationProvider;
         this.corsConfig = corsConfig;
     }
+
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -48,7 +51,11 @@ public class SecurityConfig {
                         session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(
-                        ,
+                        filter,
+                        UsernamePasswordAuthenticationFilter.class)
+                // TODO: Gateway filter before, Jwt after
+                .addFilterAfter(
+                        filter,
                         UsernamePasswordAuthenticationFilter.class)
                 .build();
     }
