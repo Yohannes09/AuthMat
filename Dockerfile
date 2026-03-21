@@ -7,7 +7,7 @@ RUN mkdir -p /root/.m2 && \
 <settings>
   <servers>
     <server>
-      <id>github</id>
+      <kid>github</kid>
       <username>${REPO_USERNAME}</username>
       <password>${REPO_TOKEN}</password>
     </server>

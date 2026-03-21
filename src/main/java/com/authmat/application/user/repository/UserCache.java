@@ -21,7 +21,7 @@ import java.util.function.Predicate;
 public class UserCache {
     private static final String USERNAME_KEY = "users:username:";
     private static final String EMAIL_KEY = "users:email:";
-    private static final String ID_KEY = "users:id:";
+    private static final String ID_KEY = "users:kid:";
     private static final String EXTERNAL_ID_KEY = "users:external:";
     private static final Duration BASE_TTL_MINUTES = Duration.ofMinutes(30);
 

@@ -1,5 +1,8 @@
 
 spring:
+  threads:
+    virtual:
+      enabled: true
   jpa:
     hibernate:
       ddl-auto: validate
@@ -74,3 +77,4 @@ authmat:
     audience: ${AUDIENCE}
     kms-key-id: ${AWS_KMS_KEY_ID}
   endpoints:
+    auth: ${AUTH_ENDPOINT:/auth}

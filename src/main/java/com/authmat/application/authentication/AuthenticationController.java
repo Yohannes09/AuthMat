@@ -21,7 +21,7 @@ import java.util.concurrent.CompletableFuture;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("#{environment['AUTH_BASE_ENDPOINT'] ?: '/v1/auth'}")
+@RequestMapping("${authmat.endpoints.auth}")
 @Slf4j
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
