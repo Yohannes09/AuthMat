@@ -67,6 +67,11 @@ aws:
     kid: ${AWS_KMS_KID:authmat-kms-v1}
 
 authmat:
+  services:
+    spiffe://authdoc.internal/dockeep:
+      scopes: ["auth:validate", "auth:introspect"]
+    spiffe://authdoc.internal/gateway:
+      scopes: ["auth:validate"]
   registration:
     provider: ${PROVIDER:LOCAL}
     provider-id: ${PROVIDER_ID:authmat}

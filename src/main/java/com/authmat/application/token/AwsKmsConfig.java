@@ -1,4 +1,4 @@
-package com.authmat.application.token.config;
+package com.authmat.application.token;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

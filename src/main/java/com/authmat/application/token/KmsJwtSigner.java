@@ -1,6 +1,6 @@
-package com.authmat.application.token.localsigner;
+package com.authmat.application.token;
 
-import com.authmat.application.token.config.TokenProperties;
+import com.authmat.application.token.properties.TokenProperties;
 import com.authmat.application.token.exception.TokenException;
 import com.authmat.application.token.model.AccessToken;
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -17,7 +17,6 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Map;
-import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -25,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
  * <a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/java_kms_code_examples.html">...</a>*/
 @Component
 @Profile("prod")
-public final class KmsJwtSigner {
+public final class KmsJwtSigner implements JwtSigner {
     private static final Base64.Encoder B64URL = Base64.getUrlEncoder().withoutPadding();
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -51,26 +50,13 @@ public final class KmsJwtSigner {
      *
      * FLOW:
      * header.payload  →  SHA-256 digest  →  ECDSA sign with private key  →  signature*/
-    public CompletableFuture<AccessToken> generateAccessToken(String subject){
-        Instant now = Instant.now();
-        Instant expiresIn = now.plus(tokenProperties.accessTokenTtl());
-        String jti = UUID.randomUUID().toString();
-
+    public CompletableFuture<AccessToken> sign(Map<String,Object> payload, Instant expiration) {
         String header = encodeJson(Map.of(
                 "alg", "ES256",
                 "typ", "JWT",
                 "kid", tokenProperties.kmsKeyId()));
 
-        String payload = encodeJson(Map.of(
-                "sub", subject,
-                "iss", tokenProperties.issuer(),
-                "aud", tokenProperties.audience(),
-                "iat", now.getEpochSecond(),
-                "exp", expiresIn.getEpochSecond(),
-                "jti", jti,
-                "type", "ACCESS"));
-
-        String signingInput = header + "." + payload;
+        String signingInput = header + "." + encodeJson(payload);
         byte[] signingInputBytes = signingInput.getBytes(StandardCharsets.UTF_8);
         SdkBytes messageBytes = SdkBytes.fromByteArray(signingInputBytes);
 
@@ -86,10 +72,8 @@ public final class KmsJwtSigner {
                     byte[] joseEcdsaFormattedBytes = derToJoseEcdsa(extractedDerBytes);
                     String encodedJwtSignature = B64URL.encodeToString(joseEcdsaFormattedBytes);
 
-                    return AccessToken.of(
-                            signingInput + "." + encodedJwtSignature,
-                            expiresIn.getEpochSecond()
-                    );
+                    String token = signingInput + "." + encodedJwtSignature;
+                    return AccessToken.of(token, expiration.getEpochSecond());
                 });
     }
 

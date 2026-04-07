@@ -1,4 +1,4 @@
-package com.authmat.application.token.config;
+package com.authmat.application.token.properties;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Positive;

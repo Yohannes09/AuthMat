@@ -1,6 +1,6 @@
-package com.authmat.application.token.localsigner;
+package com.authmat.application.token;
 
-import com.authmat.application.token.config.TokenProperties;
+import com.authmat.application.token.properties.TokenProperties;
 import com.authmat.application.token.exception.KeyInitializationException;
 import com.authmat.application.token.model.AccessToken;
 import io.jsonwebtoken.Jwts;
@@ -30,7 +30,6 @@ public final class LocalJwtSigner implements JwtSigner{
 
     private final KeyPair keyPair;
     private final PublicKeyMetadata keyMetadata;
-    private final TokenProperties tokenProperties;
 
 
     public LocalJwtSigner(TokenProperties tokenProperties){
@@ -42,7 +41,6 @@ public final class LocalJwtSigner implements JwtSigner{
             String publicKey = Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
             keyMetadata = PublicKeyMetadata.of(publicKey);
 
-            this.tokenProperties = tokenProperties;
             log.info("Key Pair initialized successfully");
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
             log.error("Invalid key parameter - Failed to generate Key Pair", e);
@@ -54,21 +52,7 @@ public final class LocalJwtSigner implements JwtSigner{
     }
 
     @Override
-    public CompletableFuture<AccessToken> sign(String subject) {
-        Instant now = Instant.now();
-        Instant expiresIn = now.plus(tokenProperties.accessTokenTtl());
-        String jti = UUID.randomUUID().toString();
-
-        Map<String,Object> payload = Map.of(
-                "sub", subject,
-                "iss", tokenProperties.issuer(),
-                "aud", tokenProperties.audience(),
-                "iat", now.getEpochSecond(),
-                "exp", expiresIn.getEpochSecond(),
-                "jti", jti,
-                "type", "ACCESS"
-        );
-
+    public CompletableFuture<AccessToken> sign(Map<String,Object> payload, Instant expiration) {
         return CompletableFuture.supplyAsync(() -> {
                     String token = Jwts.builder()
                             .setHeaderParam("kid", keyMetadata.kid())
@@ -76,7 +60,7 @@ public final class LocalJwtSigner implements JwtSigner{
                             .setClaims(payload)
                             .signWith(keyPair.getPrivate(), SignatureAlgorithm.ES256)
                             .compact();
-                    return new AccessToken(token, "ACCESS", expiresIn.getEpochSecond());
+                    return AccessToken.of(token, expiration.getEpochSecond());
                 }
         );
     }

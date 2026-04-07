@@ -8,6 +8,7 @@ import com.authmat.application.authentication.request.RegistrationRequest;
 import com.authmat.application.authentication.response.AuthenticationResponse;
 import com.authmat.application.authentication.response.RegistrationResponse;
 import com.authmat.application.token.exception.TokenException;
+import com.authmat.application.token.model.AccessToken;
 import com.authmat.application.token.model.RefreshTokenRecord;
 import com.authmat.application.token.service.TokenService;
 import com.authmat.application.user.service.UserService;
@@ -108,9 +109,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         tokenService.blackListToken(token);
     }
 
-    private CompletableFuture<V> generateAuthenticationResponse(String subject){
-        CompletableFuture<U> accessToken = tokenService.generateAccessToken(subject);
-        CompletableFuture<T> refreshToken = CompletableFuture.supplyAsync(
+    private CompletableFuture<AuthenticationResponse> generateAuthenticationResponse(String subject){
+        CompletableFuture<AccessToken> accessToken = tokenService.generateAccessToken(subject);
+        CompletableFuture<String> refreshToken = CompletableFuture.supplyAsync(
                 () -> tokenService.generateRefreshToken(subject).newRefreshToken()
         );
 

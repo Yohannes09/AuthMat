@@ -1,10 +1,12 @@
 package com.authmat.application.token.service;
 
-import com.authmat.application.token.config.TokenProperties;
+import com.authmat.application.exception.UnkownServiceIdentityException;
+import com.authmat.application.token.JwtSigner;
 import com.authmat.application.token.exception.TokenException;
-import com.authmat.application.token.localsigner.JwtSigner;
 import com.authmat.application.token.model.AccessToken;
 import com.authmat.application.token.model.RefreshTokenRecord;
+import com.authmat.application.token.properties.ServiceProperties;
+import com.authmat.application.token.properties.TokenProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +20,7 @@ import java.time.Instant;
 import java.util.Base64;
 import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 @Service
@@ -32,20 +35,55 @@ public class TokenService {
     private final RedisTemplate<String,String> redisTemplate;
     private final JwtSigner jwtSigner;
     private final TokenProperties tokenProperties;
-
+    private final ServiceProperties serviceProperties;
 
     public TokenService(
             RedisTemplate<String, String> redisTemplate,
             JwtSigner jwtSigner,
-            TokenProperties tokenProperties
-    ) {
+            TokenProperties tokenProperties,
+            ServiceProperties serviceProperties) {
         this.redisTemplate = redisTemplate;
         this.jwtSigner = jwtSigner;
         this.tokenProperties = tokenProperties;
+        this.serviceProperties = serviceProperties;
     }
 
     public CompletableFuture<AccessToken> generateAccessToken(String subject){
-        return jwtSigner.sign(subject);
+        Instant now = Instant.now();
+        Instant expiresIn = now.plus(tokenProperties.accessTokenTtl());
+        String jti = UUID.randomUUID().toString();
+
+        Map<String,Object> payload = Map.of(
+                "sub", subject,
+                "iss", tokenProperties.issuer(),
+                "aud", tokenProperties.audience(),
+                "iat", now.getEpochSecond(),
+                "exp", expiresIn.getEpochSecond(),
+                "jti", jti,
+                "type", "ACCESS");
+
+        return jwtSigner.sign(payload, expiresIn);
+    }
+
+    public CompletableFuture<AccessToken> generateServiceToken(String spiffeId){
+        Instant now = Instant.now();
+        Instant expiresIn = now.plus(tokenProperties.accessTokenTtl());
+        String jti = UUID.randomUUID().toString();
+
+        ServiceProperties.ServiceDefinition definition = serviceProperties.services().get(spiffeId);
+        if(definition == null){ throw new UnkownServiceIdentityException("spiffeId not found"); }
+
+        Map<String,Object> payload = Map.of(
+                "sub", spiffeId,
+                "iss", tokenProperties.issuer(),
+                "aud", tokenProperties.audience(),
+                "iat", now.getEpochSecond(),
+                "exp", expiresIn.getEpochSecond(),
+                "jti", jti,
+                "token_type", "service",
+                "scope", definition.scopes());
+
+        return jwtSigner.sign(payload, expiresIn);
     }
 
     // getEpochSecond() is easier to parse on retrieval, i.e., Instant.ofEpochSecond(Long.parseLong(value))
