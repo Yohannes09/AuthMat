@@ -1,9 +1,13 @@
 package com.authmat.application.token.properties;
 
+import com.authmat.application.token.constant.SigningType;
+import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.convert.DurationUnit;
+import org.springframework.util.StringUtils;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
@@ -20,17 +24,39 @@ public record TokenProperties(
         @Positive
         Duration refreshTokenTtl,
 
-        @NotBlank
-        String issuer,
+        @NotNull AlgorithmProperties algorithm,
 
-        @NotBlank
-        String audience,
+        @NotBlank String issuer,
 
-        // TODO: this will fail for local signer
-        @NotBlank
-        String kmsKeyId,
+        @NotBlank String audience,
 
-        //TODO: figure out if this is the right spot to keep this. Add to YAML as well
+        @NotNull SigningType signer,
+
+        String keyId,
+
+        @DurationUnit(ChronoUnit.MINUTES)
         @Positive
-        Duration publicKeyTtl
-) {}
+        Duration publicKeyTtl)
+{
+
+        public record AlgorithmProperties(
+                @NotBlank String keyAlgorithm, // EC
+                @NotBlank String signatureAlgorithm, // ES256
+                @NotBlank String curve // P-256
+        ){}
+
+
+        // KMS PRESENT -> FALSE, KID PRESENT -> (FALSE, TRUE) -> TRUE
+        // KMS PRESENT -> FALSE, KID ABSENT -> (FALSE, FALSE) -> FALSE
+        // LOCAL PRESENT -> TRUE, (SKIPS NEXT CONDITION) -> TRUE
+        @AssertTrue(message = "KMS KID must be provided if using signing-type KMS")
+        public boolean isKidPresentForKmsSigner(){
+                return signer != SigningType.KMS || StringUtils.hasText(keyId);
+        }
+
+        @AssertTrue(message = "KID must be blank if using signing-type LOCAL")
+        public boolean isKidAbsentForLocalSigner(){
+                return signer != SigningType.LOCAL && !StringUtils.hasText(keyId);
+        }
+
+}

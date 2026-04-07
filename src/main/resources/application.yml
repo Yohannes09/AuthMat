@@ -76,12 +76,16 @@ authmat:
     provider: ${PROVIDER:LOCAL}
     provider-id: ${PROVIDER_ID:authmat}
   token:
+    algorithm:
+      key-algorithm: ${:EC}
+      signature-algorithm: ${:ES256}
+      curve: {:P-256}
     signer: ${TOKEN_SIGNER}
     access-token-ttl: ${ACCESS_TOKEN_TTL}
     refresh-token-ttl: ${REFRESH_TOKEN_TTL}
     issuer: ${ISSUER}
     audience: ${AUDIENCE}
-    kms-key-id: ${AWS_KMS_KEY_ID}
+    key-id: ${KEY_ID}
   endpoints:
     auth: ${AUTH_ENDPOINT:/auth}
   public-paths:

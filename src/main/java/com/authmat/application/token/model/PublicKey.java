@@ -1,17 +1,16 @@
 package com.authmat.application.token.model;
 
-import java.time.Instant;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
 
 public record PublicKey(
         String kid,
         String publicKey,
         String keyAlgorithm,
         String signatureAlgorithm,
-        String curve,
-        Instant createdAt
+        String curve
 ){
-    public static PublicKey of(
+    public static CompletableFuture<PublicKey> of(
             String publicKey,
             String keyAlgorithm,
             String signatureAlgorithm,
@@ -21,8 +20,7 @@ public record PublicKey(
                 publicKey,
                 keyAlgorithm,
                 signatureAlgorithm,
-                curve,
-                Instant.now()
+                curve
         );
     }
 }

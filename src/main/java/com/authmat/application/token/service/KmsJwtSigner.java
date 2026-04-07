@@ -11,6 +11,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.kms.KmsAsyncClient;
+import software.amazon.awssdk.services.kms.model.GetPublicKeyRequest;
+import software.amazon.awssdk.services.kms.model.GetPublicKeyResponse;
 import software.amazon.awssdk.services.kms.model.SignRequest;
 import software.amazon.awssdk.services.kms.model.SigningAlgorithmSpec;
 
@@ -33,10 +35,12 @@ public final class KmsJwtSigner implements JwtSigner {
 
     private final KmsAsyncClient kmsClient;
     private final TokenProperties tokenProperties;
+    private final CompletableFuture<PublicKey> publicKey;
 
     public KmsJwtSigner(KmsAsyncClient kmsClient, TokenProperties tokenProperties) {
         this.kmsClient = kmsClient;
         this.tokenProperties = tokenProperties;
+        publicKey = fetchPublicKeyFromKms();
     }
 
     /*
@@ -57,14 +61,14 @@ public final class KmsJwtSigner implements JwtSigner {
         String header = encodeJson(Map.of(
                 "alg", "ES256",
                 "typ", "JWT",
-                "kid", tokenProperties.kmsKeyId()));
+                "keyId", tokenProperties.keyId()));
 
         String signingInput = header + "." + encodeJson(payload);
         byte[] signingInputBytes = signingInput.getBytes(StandardCharsets.UTF_8);
         SdkBytes messageBytes = SdkBytes.fromByteArray(signingInputBytes);
 
         SignRequest signRequest = SignRequest.builder()
-                .keyId(tokenProperties.kmsKeyId())
+                .keyId(tokenProperties.keyId())
                 .message(messageBytes)
                 .signingAlgorithm(SigningAlgorithmSpec.ECDSA_SHA_256)
                 .build();
@@ -81,9 +85,27 @@ public final class KmsJwtSigner implements JwtSigner {
     }
 
     @Override
-    public PublicKey getPublicKey() {
+    public CompletableFuture<PublicKey> getPublicKey() {
         // TODO: Fetch Public Key from KMS and cache (TokenService)
-        return null;
+        return publicKey;
+    }
+
+    private CompletableFuture<PublicKey> fetchPublicKeyFromKms(){
+        GetPublicKeyRequest pkRequest = GetPublicKeyRequest.builder()
+                                                        .keyId(tokenProperties.keyId())
+                                                        .build();
+
+        CompletableFuture<GetPublicKeyResponse> pkResponse = kmsClient.getPublicKey(pkRequest);
+
+        return pkResponse.thenApply(response -> {
+            String publicKey = response.publicKey().toString();
+            return new PublicKey(
+                    tokenProperties.keyId(),
+                    publicKey,
+                    tokenProperties.algorithm().keyAlgorithm(),
+                    tokenProperties.algorithm().signatureAlgorithm(),
+                    tokenProperties.algorithm().curve());
+        });
     }
 
     // TODO: Most of what is below could be its own class

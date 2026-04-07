@@ -5,6 +5,7 @@ import com.authmat.application.properties.ServiceProperties;
 import com.authmat.application.token.constant.TokenType;
 import com.authmat.application.token.exception.TokenException;
 import com.authmat.application.token.model.AccessToken;
+import com.authmat.application.token.model.PublicKey;
 import com.authmat.application.token.model.RefreshToken;
 import com.authmat.application.token.properties.TokenProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -86,6 +87,9 @@ public class TokenService {
         return jwtSigner.sign(payload, expiresIn);
     }
 
+    public CompletableFuture<PublicKey> getPublicKey(){
+        return jwtSigner.getPublicKey();
+    }
 
     // getEpochSecond() is easier to parse on retrieval, i.e., Instant.ofEpochSecond(Long.parseLong(value))
     // And timezone unambiguous

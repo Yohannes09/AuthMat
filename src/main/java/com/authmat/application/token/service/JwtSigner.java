@@ -9,5 +9,5 @@ import java.util.concurrent.CompletableFuture;
 
 public interface JwtSigner {
     CompletableFuture<AccessToken> sign(Map<String,Object> payload, Instant expiration);
-    PublicKey getPublicKey();
+    CompletableFuture<PublicKey> getPublicKey();
 }

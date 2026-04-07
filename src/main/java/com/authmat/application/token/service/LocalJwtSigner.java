@@ -24,22 +24,26 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 @ConditionalOnProperty(name = "authmat.token.signer", havingValue = "local")
 public final class LocalJwtSigner implements JwtSigner{
-    private static final String KEY_ALGORITHM = "EC";
-    private static final String SIGNATURE_ALGORITHM = "ES256";
-    private static final String CURVE = "P-256";
-
     private final KeyPair keyPair;
-    private final PublicKey publicKey;
+    private final CompletableFuture<PublicKey> publicKey;
+    private final TokenProperties tokenProperties;
 
 
     public LocalJwtSigner(TokenProperties tokenProperties){
         try {
-            KeyPairGenerator keyPairGenerator = KeyPairGenerator.getInstance(KEY_ALGORITHM);
+            this.tokenProperties = tokenProperties;
+
+            KeyPairGenerator keyPairGenerator =
+                    KeyPairGenerator.getInstance(tokenProperties.algorithm().keyAlgorithm());
             keyPairGenerator.initialize(new ECGenParameterSpec("secp256r1"));
             keyPair = keyPairGenerator.generateKeyPair();
 
             String publicKey = Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
-            this.publicKey = PublicKey.of(publicKey, KEY_ALGORITHM, SIGNATURE_ALGORITHM,  CURVE);
+            this.publicKey = PublicKey.of(
+                    publicKey,
+                    tokenProperties.algorithm().keyAlgorithm(),
+                    tokenProperties.algorithm().signatureAlgorithm(),
+                    tokenProperties.algorithm().curve());
 
             log.info("Key Pair initialized successfully");
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {
@@ -55,7 +59,8 @@ public final class LocalJwtSigner implements JwtSigner{
     public CompletableFuture<AccessToken> sign(Map<String,Object> payload, Instant expiration) {
         return CompletableFuture.supplyAsync(() -> {
                     String token = Jwts.builder()
-                            .setHeaderParam("kid", publicKey.kid())
+                            // TODO: CODE REVIEW THIS
+                            .setHeaderParam("keyId", publicKey.thenApply(PublicKey::kid))
                             .setHeaderParam("typ", "JWT")
                             .setClaims(payload)
                             .signWith(keyPair.getPrivate(), SignatureAlgorithm.ES256)
@@ -65,7 +70,7 @@ public final class LocalJwtSigner implements JwtSigner{
         );
     }
 
-    public PublicKey getPublicKey(){
+    public CompletableFuture<PublicKey> getPublicKey(){
         return publicKey;
     }
 }
