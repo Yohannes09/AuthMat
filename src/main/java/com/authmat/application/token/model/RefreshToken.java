@@ -4,7 +4,7 @@ import java.time.Instant;
 /**
  *  CURRENT DESIGN INTENTION:
  *  - CANNOT LEAVE SERVER*/
-public record RefreshTokenRecord(
+public record RefreshToken(
         String newRefreshToken,
         String externalId,
         Instant issuedAt

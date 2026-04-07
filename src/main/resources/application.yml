@@ -76,6 +76,7 @@ authmat:
     provider: ${PROVIDER:LOCAL}
     provider-id: ${PROVIDER_ID:authmat}
   token:
+    signer: ${TOKEN_SIGNER}
     access-token-ttl: ${ACCESS_TOKEN_TTL}
     refresh-token-ttl: ${REFRESH_TOKEN_TTL}
     issuer: ${ISSUER}
@@ -83,3 +84,8 @@ authmat:
     kms-key-id: ${AWS_KMS_KEY_ID}
   endpoints:
     auth: ${AUTH_ENDPOINT:/auth}
+  public-paths:
+    login: ${AUTH_ENDPOINT:/auth}/login
+    register: ${AUTH_ENDPOINT:/auth}/register
+    jwks: /.well-known/jwks.json
+#    TODO: ACTUATOR????

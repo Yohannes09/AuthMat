@@ -1,11 +1,11 @@
 package com.authmat.application.token.service;
 
 import com.authmat.application.exception.UnkownServiceIdentityException;
-import com.authmat.application.token.JwtSigner;
+import com.authmat.application.properties.ServiceProperties;
+import com.authmat.application.token.constant.TokenType;
 import com.authmat.application.token.exception.TokenException;
 import com.authmat.application.token.model.AccessToken;
-import com.authmat.application.token.model.RefreshTokenRecord;
-import com.authmat.application.token.properties.ServiceProperties;
+import com.authmat.application.token.model.RefreshToken;
 import com.authmat.application.token.properties.TokenProperties;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -60,7 +60,7 @@ public class TokenService {
                 "iat", now.getEpochSecond(),
                 "exp", expiresIn.getEpochSecond(),
                 "jti", jti,
-                "type", "ACCESS");
+                "type", TokenType.ACCESS.name());
 
         return jwtSigner.sign(payload, expiresIn);
     }
@@ -80,15 +80,16 @@ public class TokenService {
                 "iat", now.getEpochSecond(),
                 "exp", expiresIn.getEpochSecond(),
                 "jti", jti,
-                "token_type", "service",
+                "token_type", TokenType.SERVICE.name(),
                 "scope", definition.scopes());
 
         return jwtSigner.sign(payload, expiresIn);
     }
 
+
     // getEpochSecond() is easier to parse on retrieval, i.e., Instant.ofEpochSecond(Long.parseLong(value))
     // And timezone unambiguous
-    public RefreshTokenRecord generateRefreshToken(String subject){
+    public RefreshToken generateRefreshToken(String subject){
         byte[] raw = new byte[32];
         SECURE_RANDOM.nextBytes(raw);
 
@@ -107,10 +108,10 @@ public class TokenService {
         redisTemplate.opsForHash().putAll(key, payload);
         redisTemplate.expire(key, tokenProperties.refreshTokenTtl());
 
-        return new RefreshTokenRecord(token, subject, now);
+        return new RefreshToken(token, subject, now);
     }
 
-    public Optional<RefreshTokenRecord> rotateRefreshToken(String oldToken){
+    public Optional<RefreshToken> rotateRefreshToken(String oldToken){
         String key = REFRESH_TOKEN_PREFIX + oldToken;
 
         Map<Object,Object> data = redisTemplate.opsForHash().entries(key);
@@ -126,7 +127,7 @@ public class TokenService {
 
         redisTemplate.delete(key);
 
-        RefreshTokenRecord newToken = generateRefreshToken(subject);
+        RefreshToken newToken = generateRefreshToken(subject);
         redisTemplate.opsForHash().put(
                 REFRESH_TOKEN_PREFIX + newToken,
                 "rotationCount",
@@ -179,7 +180,7 @@ public class TokenService {
             if (parts.length != 3) throw new IllegalArgumentException("Invalid JWT structure");
 
             byte[] payloadBytes = Base64.getUrlDecoder().decode(parts[1]);
-            return MAPPER.readValue(payloadBytes, new TypeReference<Map<String, Object>>() {});
+            return MAPPER.readValue(payloadBytes, new TypeReference<>() {});
         } catch (IOException e) {
             throw new TokenException("Failed to parse access token", e);
         }

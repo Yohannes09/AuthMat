@@ -26,6 +26,11 @@ public record TokenProperties(
         @NotBlank
         String audience,
 
+        // TODO: this will fail for local signer
         @NotBlank
-        String kmsKeyId
+        String kmsKeyId,
+
+        //TODO: figure out if this is the right spot to keep this. Add to YAML as well
+        @Positive
+        Duration publicKeyTtl
 ) {}

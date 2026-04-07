@@ -5,9 +5,3 @@ Taking DDL away from JPA and giving it to Flyway. (spring.jpa.hibernate.ddl-auto
    - Gives zero audit trail of schema changes
    - The industry standard is ddl-auto=validate (Hibernate checks that entities match the schema but touches nothing) with Flyway owning all DDL
    - Spring Boot + Flyway auto-discovers classpath:db/migration by default, so no extra config needed
-
-
-AuthMat Security Filter
-    - AuthMat is the identity provider. It has endpoints that the gateway calls directly (/auth/login,
-      /auth/refresh, /jwks). It has internal admin endpoints. It may receive service-to-service calls
-      that never go through the gateway at all.

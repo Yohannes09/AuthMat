@@ -1,7 +1,7 @@
 package com.authmat.application.config;
 
-import com.authmat.application.authentication.component.Filter;
 import com.authmat.application.authorization.constant.DefaultRole;
+import com.authmat.application.properties.PublicPathsProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -20,19 +20,39 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @EnableMethodSecurity
 @Slf4j
 public class SecurityConfig {
-    private final Filter filter;
+    private final MtlsEnforcementFilter mtlsEnforcementFilter;
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationProvider authenticationProvider;
     private final CorsConfigurationSource corsConfig;
+    private final PublicPathsProperties publicPathsProperties;
 
-    public SecurityConfig(Filter filter, AuthenticationProvider authenticationProvider, CorsConfigurationSource corsConfig) {
-        this.filter = filter;
+//    public SecurityConfig(
+//            MtlsEnforcementFilter mtlsEnforcementFilter,
+//            JwtAuthenticationFilter jwtAuthenticationFilter,
+//            AuthenticationProvider authenticationProvider,
+//            CorsConfigurationSource corsConfig) {
+//        this.mtlsEnforcementFilter = mtlsEnforcementFilter;
+//        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
+//        this.authenticationProvider = authenticationProvider;
+//        this.corsConfig = corsConfig;
+//    }
+
+
+    public SecurityConfig(MtlsEnforcementFilter mtlsEnforcementFilter, JwtAuthenticationFilter jwtAuthenticationFilter, AuthenticationProvider authenticationProvider, CorsConfigurationSource corsConfig, PublicPathsProperties publicPathsProperties) {
+        this.mtlsEnforcementFilter = mtlsEnforcementFilter;
+        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.authenticationProvider = authenticationProvider;
         this.corsConfig = corsConfig;
+        this.publicPathsProperties = publicPathsProperties;
     }
-
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+        String[] publicPaths = publicPathsProperties
+                                    .publicPaths()
+                                    .values()
+                                    .toArray(String[]::new);
+
         return http
                 .securityMatcher(request ->
                         !request.getRequestURI().startsWith("/oauth2/") &&
@@ -41,22 +61,24 @@ public class SecurityConfig {
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request ->
                         request
-                                .requestMatchers("**/login").permitAll()
+                                .requestMatchers(publicPaths).permitAll()
                                 .requestMatchers("/swagger-ui/**","/v3/api-docs/**")
                                 .hasAnyRole(
+                                        DefaultRole.SUPPORT.getName(),
                                         DefaultRole.ADMIN.getName(),
-                                        DefaultRole.SUPER_ADMIN.getName())
+                                        DefaultRole.SUPER_ADMIN.getName()
+                                )
                                 .anyRequest().authenticated())
-                .sessionManagement(session->
-                        session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(
+                        session-> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                )
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(
-                        filter,
+                        mtlsEnforcementFilter,
                         UsernamePasswordAuthenticationFilter.class)
-                // TODO: Gateway filter before, Jwt after
                 .addFilterAfter(
-                        filter,
-                        UsernamePasswordAuthenticationFilter.class)
+                        jwtAuthenticationFilter,
+                        MtlsEnforcementFilter.class)
                 .build();
     }
 

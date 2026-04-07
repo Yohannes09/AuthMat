@@ -1,11 +1,13 @@
-package com.authmat.application.token;
+package com.authmat.application.token.service;
 
-import com.authmat.application.token.properties.TokenProperties;
 import com.authmat.application.token.exception.TokenException;
 import com.authmat.application.token.model.AccessToken;
+import com.authmat.application.token.model.PublicKey;
+import com.authmat.application.token.properties.TokenProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.context.annotation.Profile;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Component;
 import software.amazon.awssdk.core.SdkBytes;
 import software.amazon.awssdk.services.kms.KmsAsyncClient;
@@ -23,7 +25,8 @@ import java.util.concurrent.CompletableFuture;
  * DOCS:
  * <a href="https://docs.aws.amazon.com/sdk-for-java/latest/developer-guide/java_kms_code_examples.html">...</a>*/
 @Component
-@Profile("prod")
+@Slf4j
+@ConditionalOnProperty(name = "authmat.token.signer", havingValue = "kms")
 public final class KmsJwtSigner implements JwtSigner {
     private static final Base64.Encoder B64URL = Base64.getUrlEncoder().withoutPadding();
     private static final ObjectMapper MAPPER = new ObjectMapper();
@@ -75,6 +78,12 @@ public final class KmsJwtSigner implements JwtSigner {
                     String token = signingInput + "." + encodedJwtSignature;
                     return AccessToken.of(token, expiration.getEpochSecond());
                 });
+    }
+
+    @Override
+    public PublicKey getPublicKey() {
+        // TODO: Fetch Public Key from KMS and cache (TokenService)
+        return null;
     }
 
     // TODO: Most of what is below could be its own class

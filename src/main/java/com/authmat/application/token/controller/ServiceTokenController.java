@@ -1,4 +1,4 @@
-package com.authmat.application.token;
+package com.authmat.application.token.controller;
 
 import com.authmat.application.token.model.AccessToken;
 import com.authmat.application.token.service.TokenService;

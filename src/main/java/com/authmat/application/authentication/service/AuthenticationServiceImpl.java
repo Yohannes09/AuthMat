@@ -9,7 +9,7 @@ import com.authmat.application.authentication.response.AuthenticationResponse;
 import com.authmat.application.authentication.response.RegistrationResponse;
 import com.authmat.application.token.exception.TokenException;
 import com.authmat.application.token.model.AccessToken;
-import com.authmat.application.token.model.RefreshTokenRecord;
+import com.authmat.application.token.model.RefreshToken;
 import com.authmat.application.token.service.TokenService;
 import com.authmat.application.user.service.UserService;
 import com.authmat.application.user.dto.UserDto;
@@ -89,7 +89,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
     //  to map those into proper HTTP responses before they hit exception handler as unwrapped noise.
     @Override
     public CompletableFuture<AuthenticationResponse> refresh(String refreshToken){
-        CompletableFuture<RefreshTokenRecord> newRefreshToken = CompletableFuture.supplyAsync(() ->
+        CompletableFuture<RefreshToken> newRefreshToken = CompletableFuture.supplyAsync(() ->
             tokenService.rotateRefreshToken(refreshToken)
                     .orElseThrow(() -> new TokenException("User must reauthenticate"))
         );
