@@ -39,11 +39,12 @@ public final class LocalJwtSigner implements JwtSigner{
             keyPair = keyPairGenerator.generateKeyPair();
 
             String publicKey = Base64.getEncoder().encodeToString(keyPair.getPublic().getEncoded());
-            this.publicKey = PublicKey.of(
-                    publicKey,
-                    tokenProperties.algorithm().keyAlgorithm(),
-                    tokenProperties.algorithm().signatureAlgorithm(),
-                    tokenProperties.algorithm().curve());
+            this.publicKey = CompletableFuture.completedFuture(
+                    PublicKey.of(
+                            publicKey,
+                            tokenProperties.algorithm().keyAlgorithm(),
+                            tokenProperties.algorithm().signatureAlgorithm(),
+                            tokenProperties.algorithm().curve()));
 
             log.info("Key Pair initialized successfully");
         } catch (NoSuchAlgorithmException | InvalidAlgorithmParameterException e) {

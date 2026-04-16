@@ -33,7 +33,6 @@ public class User{
     )
     private Long id;
 
-    // TODO refactor as String and pass UUID.toString()???
     @Column(name = "external_id", unique = true)
     private String externalId;
 

@@ -192,10 +192,10 @@ public class UserCache {
 
 
     public Optional<UserDto> findByExternalId(String userId) {
-        return findByIdentifier(
+        return Optional.ofNullable(findByIdentifier(
                 EXTERNAL_ID_KEY + userId,
                 userId,
                 userRepository::findByExternalId
-        );
+        ));
     }
 }

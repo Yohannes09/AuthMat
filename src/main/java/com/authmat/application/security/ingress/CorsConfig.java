@@ -1,4 +1,4 @@
-package com.authmat.application.config;
+package com.authmat.application.security.ingress;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.web.cors.CorsConfiguration;

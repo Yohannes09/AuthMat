@@ -79,7 +79,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 loginAttemptManager.loginFailed(identifier);
                 throw e;
             }
-        }).thenCompose(principal -> generateAuthenticationResponse(principal.getExternalId()));
+        }).thenCompose(principal ->
+                generateAuthenticationResponse(principal.getExternalId())
+        );
 
     }
 
@@ -109,7 +111,8 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         tokenService.blackListToken(token);
     }
 
-    private CompletableFuture<AuthenticationResponse> generateAuthenticationResponse(String subject){
+    @Override
+    public CompletableFuture<AuthenticationResponse> generateAuthenticationResponse(String subject){
         CompletableFuture<AccessToken> accessToken = tokenService.generateAccessToken(subject);
         CompletableFuture<String> refreshToken = CompletableFuture.supplyAsync(
                 () -> tokenService.generateRefreshToken(subject).newRefreshToken()

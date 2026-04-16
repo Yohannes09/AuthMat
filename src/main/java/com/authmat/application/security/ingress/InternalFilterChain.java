@@ -1,10 +1,11 @@
-package com.authmat.application.config;
+package com.authmat.application.security.ingress;
 
 import com.authmat.application.authorization.constant.DefaultRole;
-import com.authmat.application.properties.PublicPathsProperties;
+import com.authmat.application.security.properties.PublicPathsProperties;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -19,26 +20,20 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @EnableWebSecurity
 @EnableMethodSecurity
 @Slf4j
-public class SecurityConfig {
+public class InternalFilterChain {
     private final MtlsEnforcementFilter mtlsEnforcementFilter;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationProvider authenticationProvider;
     private final CorsConfigurationSource corsConfig;
     private final PublicPathsProperties publicPathsProperties;
 
-//    public SecurityConfig(
-//            MtlsEnforcementFilter mtlsEnforcementFilter,
-//            JwtAuthenticationFilter jwtAuthenticationFilter,
-//            AuthenticationProvider authenticationProvider,
-//            CorsConfigurationSource corsConfig) {
-//        this.mtlsEnforcementFilter = mtlsEnforcementFilter;
-//        this.jwtAuthenticationFilter = jwtAuthenticationFilter;
-//        this.authenticationProvider = authenticationProvider;
-//        this.corsConfig = corsConfig;
-//    }
 
-
-    public SecurityConfig(MtlsEnforcementFilter mtlsEnforcementFilter, JwtAuthenticationFilter jwtAuthenticationFilter, AuthenticationProvider authenticationProvider, CorsConfigurationSource corsConfig, PublicPathsProperties publicPathsProperties) {
+    public InternalFilterChain(
+            MtlsEnforcementFilter mtlsEnforcementFilter,
+            JwtAuthenticationFilter jwtAuthenticationFilter,
+            AuthenticationProvider authenticationProvider,
+            CorsConfigurationSource corsConfig,
+            PublicPathsProperties publicPathsProperties) {
         this.mtlsEnforcementFilter = mtlsEnforcementFilter;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.authenticationProvider = authenticationProvider;
@@ -47,16 +42,16 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    @Order(1)
+    public SecurityFilterChain internalChain(HttpSecurity http) throws Exception {
         String[] publicPaths = publicPathsProperties
                                     .publicPaths()
                                     .values()
                                     .toArray(String[]::new);
 
         return http
-                .securityMatcher(request ->
-                        !request.getRequestURI().startsWith("/oauth2/") &&
-                        !request.getRequestURI().startsWith("/login/oauth2/"))
+                // TODO: eventually come up with organized way of giving each filter chain a dedicated path matcher
+                .securityMatcher("/auth/**", "/api/**")
                 .cors(cors-> cors.configurationSource(corsConfig))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request ->

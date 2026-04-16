@@ -1,7 +1,7 @@
-package com.authmat.application.config;
+package com.authmat.application.security.ingress;
 
-import com.authmat.application.properties.PublicPathsProperties;
-import com.authmat.application.properties.ServiceProperties;
+import com.authmat.application.security.properties.PublicPathsProperties;
+import com.authmat.application.security.properties.ServiceProperties;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

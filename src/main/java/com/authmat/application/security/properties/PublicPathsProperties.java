@@ -1,4 +1,4 @@
-package com.authmat.application.properties;
+package com.authmat.application.security.properties;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 

@@ -42,7 +42,7 @@ public final class KmsJwtSigner implements JwtSigner {
         this.tokenProperties = tokenProperties;
         publicKey = fetchPublicKeyFromKms();
     }
-
+    // TODO: CODE REVIEW
     /*
      * NOTES:
      *  - UTF-8 is a character encoding standard used to represent text (letters, symbols, emojis)
@@ -86,7 +86,7 @@ public final class KmsJwtSigner implements JwtSigner {
 
     @Override
     public CompletableFuture<PublicKey> getPublicKey() {
-        // TODO: Fetch Public Key from KMS and cache (TokenService)
+
         return publicKey;
     }
 
@@ -98,6 +98,7 @@ public final class KmsJwtSigner implements JwtSigner {
         CompletableFuture<GetPublicKeyResponse> pkResponse = kmsClient.getPublicKey(pkRequest);
 
         return pkResponse.thenApply(response -> {
+            // TODO: ENCODE BASE 64???
             String publicKey = response.publicKey().toString();
             return new PublicKey(
                     tokenProperties.keyId(),

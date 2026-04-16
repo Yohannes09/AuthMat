@@ -1,7 +1,7 @@
 package com.authmat.application.token.service;
 
 import com.authmat.application.exception.UnkownServiceIdentityException;
-import com.authmat.application.properties.ServiceProperties;
+import com.authmat.application.security.properties.ServiceProperties;
 import com.authmat.application.token.constant.TokenType;
 import com.authmat.application.token.exception.TokenException;
 import com.authmat.application.token.model.AccessToken;
@@ -81,7 +81,7 @@ public class TokenService {
                 "iat", now.getEpochSecond(),
                 "exp", expiresIn.getEpochSecond(),
                 "jti", jti,
-                "token_type", TokenType.SERVICE.name(),
+                "type", TokenType.SERVICE.name(),
                 "scope", definition.scopes());
 
         return jwtSigner.sign(payload, expiresIn);

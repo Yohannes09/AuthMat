@@ -15,4 +15,6 @@ public interface AuthenticationService {
     CompletableFuture<AuthenticationResponse> refresh(String refreshToken);
 
     void logout(String token);
+
+    CompletableFuture<AuthenticationResponse> generateAuthenticationResponse(String id);
 }
