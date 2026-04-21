@@ -7,6 +7,7 @@ spring:
     hibernate:
       ddl-auto: validate
   flyway:
+    repair-on-migrate: true
     enabled: true
     locations: classpath:db/migration
     baseline-on-migrate: false   # only set true if migrating an existing DB
@@ -16,7 +17,7 @@ spring:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
   redis:
     host: ${REDIS_HOST}
-    port: ${REDIS_PORT}
+    port: ${REDIS_PORT:6379}
   output:
     ansi:
       enabled: ALWAYS
@@ -66,6 +67,11 @@ aws:
     key-id: ${AWS_KMS_KEY_ID}
     kid: ${AWS_KMS_KID:authmat-kms-v1}
 
+security:
+  login-attempt:
+    max-failed-login-attempts: ${MAX_FAILED_LOGIN_ATTEMPTS:5}
+    failed-login-lockout-mins: ${FAILED_LOGIN_LOCKOUT_MINS:10}
+
 authmat:
   services:
     spiffe://authdoc.internal/dockeep:
@@ -77,15 +83,15 @@ authmat:
     provider-id: ${PROVIDER_ID:authmat}
   token:
     algorithm:
-      key-algorithm: ${:EC}
-      signature-algorithm: ${:ES256}
-      curve: {:P-256}
+      key-algorithm: ${TOKEN_KEY_ALGORITHM:EC}
+      signature-algorithm: ${TOKEN_SIGNATURE_ALGORITHM:ES256}
+      curve: ${ALGORITHM_CURVE:P-256}
     signer: ${TOKEN_SIGNER}
-    access-token-ttl: ${ACCESS_TOKEN_TTL}
-    refresh-token-ttl: ${REFRESH_TOKEN_TTL}
+    access-token-ttl: ${ACCESS_TOKEN_TTL:5}
+    refresh-token-ttl: ${REFRESH_TOKEN_TTL:20}
     issuer: ${ISSUER}
     audience: ${AUDIENCE}
-    key-id: ${KEY_ID}
+    key-id: ${KEY_ID:}
   endpoints:
     auth: ${AUTH_ENDPOINT:/auth}
   public-paths:

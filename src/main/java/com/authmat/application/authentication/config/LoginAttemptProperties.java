@@ -1,26 +1,34 @@
 package com.authmat.application.authentication.config;
 
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
+import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.convert.DurationUnit;
 import org.springframework.validation.annotation.Validated;
 
 import java.time.Duration;
+import java.time.temporal.ChronoUnit;
 
 @Validated
 @ConfigurationProperties(prefix = "security.login-attempt")
 public class LoginAttemptProperties {
     @Min(value = 1, message = "A value of at least 1 must be set for maxFailedAttempts")
-    private int maxFailedAttempts;
+    private int maxFailedLoginAttempts;
 
-    @NotNull
-    private Duration lockoutDuration = Duration.ofMinutes(15);
+    @DurationUnit(ChronoUnit.MINUTES)
+    @DurationMin(minutes = 1)
+    private Duration failedLoginLockoutMins;
 
-    public int getMaxFailedAttempts() {
-        return maxFailedAttempts;
+    public LoginAttemptProperties(int  maxFailedLoginAttempts, Duration failedLoginLockoutMins) {
+        this.maxFailedLoginAttempts = maxFailedLoginAttempts;
+        this.failedLoginLockoutMins = failedLoginLockoutMins;
     }
 
-    public Duration getLockoutDuration() {
-        return lockoutDuration;
+
+    public int getMaxFailedLoginAttempts() {
+        return maxFailedLoginAttempts;
+    }
+    public Duration getFailedLoginLockoutMins() {
+        return failedLoginLockoutMins;
     }
 }

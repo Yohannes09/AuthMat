@@ -3,7 +3,7 @@ package com.authmat.application.token.service;
 import com.authmat.application.token.exception.TokenException;
 import com.authmat.application.token.model.AccessToken;
 import com.authmat.application.token.model.PublicKey;
-import com.authmat.application.token.properties.TokenProperties;
+import com.authmat.application.token.TokenProperties;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;

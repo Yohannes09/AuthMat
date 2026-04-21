@@ -27,8 +27,8 @@ public class OutboxEvent {
     private String aggregateType;
 
     // Entity's ID: userId, orderId, etc.
-    @Column(nullable = false, updatable = false)
-    private UUID aggregateId;
+    @Column(name = "aggregate_id", nullable = false, updatable = false)
+    private String aggregateId;
 
     @Column(nullable = false, updatable = false, length = 255)
     private String eventType;
@@ -55,7 +55,8 @@ public class OutboxEvent {
 
     public OutboxEvent(
             String aggregateType,
-            UUID aggregateId, String eventType,
+            String aggregateId,
+            String eventType,
             String payload
     ) {
         this.id = UUID.randomUUID();
@@ -96,7 +97,7 @@ public class OutboxEvent {
         return aggregateType;
     }
 
-    public UUID getAggregateId() {
+    public String getAggregateId() {
         return aggregateId;
     }
 

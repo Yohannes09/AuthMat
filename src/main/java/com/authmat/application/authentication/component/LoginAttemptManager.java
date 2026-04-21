@@ -2,8 +2,8 @@ package com.authmat.application.authentication.component;
 
 import com.authmat.application.authentication.config.LoginAttemptProperties;
 import com.authmat.application.util.StrUtil;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
@@ -12,14 +12,20 @@ import java.util.Collections;
 
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class LoginAttemptManager {
     private static final String LOGIN_ATTEMPTS_KEY_PREFIX = "login:attempts:";
 
     private final LoginAttemptProperties properties;
     private final RedisTemplate<String, String> redisTemplate;
 
+    public LoginAttemptManager(
+            LoginAttemptProperties properties,
+            @Qualifier("strRedisTemplate") RedisTemplate<String, String> redisTemplate) {
+        this.properties = properties;
+        this.redisTemplate = redisTemplate;
+    }
 
+    // TODO: either replace StrUtil with a proper implementation, or enhance functionality
     public void loginSucceeded(String usernameOrEmail){
         if(StrUtil.isNullOrBlank(usernameOrEmail)) return;
         try {
@@ -63,10 +69,10 @@ public class LoginAttemptManager {
             Long loginAttempts = redisTemplate.execute(
                     RedisLoginAttemptScript.INCREMENT_EXPIRE,
                     Collections.singletonList(key),
-                    properties.getLockoutDuration().toSeconds()
+                    properties.getFailedLoginLockoutMins().toSeconds()
             );
 
-            if(loginAttempts >= properties.getMaxFailedAttempts()) {
+            if(loginAttempts >= properties.getMaxFailedLoginAttempts()) {
                 log.warn("User [{}] login failed, max login attempts reached.", usernameOrEmail);
             }
         } catch (RedisConnectionFailureException e) {
@@ -111,7 +117,7 @@ public class LoginAttemptManager {
         if(value == null) return false;
 
         try {
-            return Integer.parseInt(value) >= properties.getMaxFailedAttempts();
+            return Integer.parseInt(value) >= properties.getMaxFailedLoginAttempts();
         } catch (NumberFormatException e) {
             log.error("Failed to parse login attempt counter.");
             redisTemplate.delete(buildKey(usernameOrEmail));

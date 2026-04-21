@@ -1,7 +1,7 @@
 package com.authmat.application.security.registry;
 
 import com.authmat.application.token.service.TokenService;
-import com.authmat.validation.TokenResolver;
+import com.authmat.validation.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -14,7 +14,7 @@ import java.util.concurrent.CompletionException;
 @Slf4j
 @Component
 public class VerifierRegistryTask {
-    private static final TokenResolver RESOLVER = new TokenResolver();
+    private static final JwtUtil RESOLVER = new JwtUtil();
 
     private final VerifierRegistry verifierRegistry;
     private final TokenService tokenService;

@@ -3,9 +3,12 @@ package com.authmat.application.authorization.entity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.Generated;
 import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.generator.EventType;
 
 import java.time.Instant;
+import java.util.UUID;
 
 @Table(name = "permissions")
 @Entity
@@ -22,6 +25,10 @@ public class Permission {
             allocationSize = 39
     )
     private Long id;
+
+    @Column(name = "external_id", nullable = false)
+    @Generated(event = {EventType.INSERT})
+    private UUID externalId;
 
     @Column(nullable = false)
     @Size(min = 4, max = 50)
@@ -49,7 +56,9 @@ public class Permission {
         return this.id;
     }
 
-    public @Size(min = 4, max = 50) String getName() {
+    public UUID getExternalId() { return this.externalId; }
+
+    public String getName() {
         return this.name;
     }
 

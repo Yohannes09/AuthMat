@@ -4,7 +4,7 @@ import com.authmat.application.authentication.exception.DuplicateCredentialExcep
 import com.authmat.application.authorization.exception.PermissionNotFoundException;
 import com.authmat.application.authorization.exception.RoleNotFoundException;
 import com.authmat.application.user.exception.CredentialUpdateException;
-import com.authmat.tool.exception.UserNotFoundException;
+import com.authmat.application.user.exception.UserNotFoundException;
 import io.lettuce.core.RedisConnectionException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -18,7 +18,6 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.Instant;
-import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -26,9 +25,9 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(UnkownServiceIdentityException.class)
+    @ExceptionHandler(UnknownServiceIdentityException.class)
     public ResponseEntity<ErrorResponse> handleUnkownServiceIdentityException(
-            UnkownServiceIdentityException ex, HttpServletRequest request) {
+            UnknownServiceIdentityException ex, HttpServletRequest request) {
 
         log.warn("Service Token Request from an unknown identity on {}:{}",
                 request.getRequestURI(), ex.getMessage());

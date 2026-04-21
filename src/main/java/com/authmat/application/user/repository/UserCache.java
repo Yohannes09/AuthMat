@@ -37,7 +37,7 @@ public class UserCache {
     public UserCache(
             UserMapper userMapper,
             UserRepository userRepository,
-            @Qualifier("userCacheRedisTemplate") RedisTemplate<String,UserDto> redisTemplate) {
+            @Qualifier("userRedisTemplate") RedisTemplate<String,UserDto> redisTemplate) {
         this.userMapper = userMapper;
         this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;

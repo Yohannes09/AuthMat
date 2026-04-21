@@ -3,7 +3,7 @@ package com.authmat.application.token.service;
 import com.authmat.application.token.exception.KeyInitializationException;
 import com.authmat.application.token.model.AccessToken;
 import com.authmat.application.token.model.PublicKey;
-import com.authmat.application.token.properties.TokenProperties;
+import com.authmat.application.token.TokenProperties;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;

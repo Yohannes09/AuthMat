@@ -5,8 +5,8 @@ import com.authmat.application.authorization.entity.Role;
 import com.authmat.application.authorization.util.RoleMapper;
 import io.lettuce.core.RedisException;
 import jakarta.persistence.EntityManager;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
@@ -19,7 +19,6 @@ import java.util.function.Function;
 
 @Component
 @Slf4j
-@RequiredArgsConstructor
 public class RoleCache {
     private final RoleRepository roleRepository;
     private final RoleMapper roleMapper;
@@ -32,6 +31,16 @@ public class RoleCache {
     private static final Duration BASE_TTL_MINUTES = Duration.ofMinutes(15);
     private static final Duration NEGATIVE_TTL_MINUTES = Duration.ofMinutes(2);
 
+    public RoleCache(
+            RoleRepository roleRepository,
+            RoleMapper roleMapper,
+            EntityManager entityManager,
+            @Qualifier("roleRedisTemplate") RedisTemplate<String, RoleDto> redisTemplate) {
+        this.roleRepository = roleRepository;
+        this.roleMapper = roleMapper;
+        this.entityManager = entityManager;
+        this.redisTemplate = redisTemplate;
+    }
 
     public Optional<RoleDto> findRoleByName(String roleName){
         return Optional.ofNullable(

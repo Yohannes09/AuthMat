@@ -10,9 +10,9 @@ import com.authmat.application.security.registry.VerifierRegistry;
 import com.authmat.application.token.constant.TokenType;
 import com.authmat.application.token.service.TokenService;
 import com.authmat.application.user.dto.UserDto;
+import com.authmat.application.user.exception.UserNotFoundException;
 import com.authmat.application.user.repository.UserCache;
-import com.authmat.tool.exception.UserNotFoundException;
-import com.authmat.validation.TokenResolver;
+import com.authmat.validation.JwtUtil;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.jsonwebtoken.Claims;
@@ -45,7 +45,7 @@ import java.util.stream.Stream;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
     private static final String BEARER_PREFIX = "Bearer ";
     private static final ObjectMapper MAPPER = new ObjectMapper();
-    private static final TokenResolver RESOLVER = new TokenResolver();
+    private static final JwtUtil RESOLVER = new JwtUtil();
 
     private final PublicPathsProperties publicPathsProperties;
     private final UserCache userCache;

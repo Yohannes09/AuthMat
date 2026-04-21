@@ -1,10 +1,11 @@
-package com.authmat.application.token.properties;
+package com.authmat.application.token;
 
 import com.authmat.application.token.constant.SigningType;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import org.hibernate.validator.constraints.time.DurationMin;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.convert.DurationUnit;
 import org.springframework.util.StringUtils;
@@ -13,18 +14,19 @@ import org.springframework.validation.annotation.Validated;
 import java.time.Duration;
 import java.time.temporal.ChronoUnit;
 
+//@Component
 @ConfigurationProperties(prefix = "authmat.token")
 @Validated
 public record TokenProperties(
-        @DurationUnit(ChronoUnit.SECONDS)
-        @Positive
+        @DurationUnit(ChronoUnit.MINUTES)
+        @DurationMin(minutes = 1)
         Duration accessTokenTtl,
 
-        @DurationUnit(ChronoUnit.SECONDS)
-        @Positive
+        @DurationUnit(ChronoUnit.MINUTES)
+        @DurationMin(minutes = 1)
         Duration refreshTokenTtl,
 
-        @NotNull AlgorithmProperties algorithm,
+        @NotNull @Valid AlgorithmProperties algorithm,
 
         @NotBlank String issuer,
 
@@ -35,8 +37,8 @@ public record TokenProperties(
         String keyId,
 
         @DurationUnit(ChronoUnit.MINUTES)
-        @Positive
-        Duration publicKeyTtl)
+        @DurationMin(minutes = 1)
+        Duration publicKeyTtl) // todo, i dont think i need this
 {
 
         public record AlgorithmProperties(
@@ -56,7 +58,7 @@ public record TokenProperties(
 
         @AssertTrue(message = "KID must be blank if using signing-type LOCAL")
         public boolean isKidAbsentForLocalSigner(){
-                return signer != SigningType.LOCAL && !StringUtils.hasText(keyId);
+                return signer != SigningType.LOCAL || !StringUtils.hasText(keyId);
         }
 
 }
