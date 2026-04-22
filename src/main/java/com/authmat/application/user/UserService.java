@@ -1,4 +1,4 @@
-package com.authmat.application.user.service;
+package com.authmat.application.user;
 
 import com.authmat.application.authentication.exception.DuplicateCredentialException;
 import com.authmat.application.authorization.constant.DefaultRole;
@@ -6,14 +6,11 @@ import com.authmat.application.authorization.entity.Role;
 import com.authmat.application.authorization.exception.SystemConfigurationException;
 import com.authmat.application.authorization.repository.RoleCache;
 import com.authmat.application.user.exception.CredentialUpdateException;
-import com.authmat.application.user.entity.User;
-import com.authmat.application.user.dto.UserDto;
 import com.authmat.application.outbox.UserEventPublisher;
 import com.authmat.application.user.repository.UserCache;
 import com.authmat.application.user.request.EmailUpdateRequest;
 import com.authmat.application.user.request.PasswordUpdateRequest;
 import com.authmat.application.user.request.UsernameUpdateRequest;
-import com.authmat.application.user.util.UserMapper;
 import com.authmat.events.NewUserEvent;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

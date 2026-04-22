@@ -1,6 +1,6 @@
 package com.authmat.application.security.registry;
 
-import com.authmat.application.token.service.TokenService;
+import com.authmat.application.token.TokenService;
 import com.authmat.validation.JwtUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.annotation.Scheduled;

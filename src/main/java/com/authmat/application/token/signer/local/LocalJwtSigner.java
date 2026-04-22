@@ -1,9 +1,10 @@
-package com.authmat.application.token.service;
+package com.authmat.application.token.signer.local;
 
 import com.authmat.application.token.exception.KeyInitializationException;
 import com.authmat.application.token.model.AccessToken;
-import com.authmat.application.token.model.PublicKey;
+import com.authmat.application.token.jwks.PublicKey;
 import com.authmat.application.token.TokenProperties;
+import com.authmat.application.token.signer.JwtSigner;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +24,7 @@ import java.util.concurrent.CompletableFuture;
 @Component
 @Slf4j
 @ConditionalOnProperty(name = "authmat.token.signer", havingValue = "local")
-public final class LocalJwtSigner implements JwtSigner{
+public final class LocalJwtSigner implements JwtSigner {
     private final KeyPair keyPair;
     private final CompletableFuture<PublicKey> publicKey;
     private final TokenProperties tokenProperties;

@@ -1,4 +1,4 @@
-package com.authmat.application.token;
+package com.authmat.application.token.signer.kms;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

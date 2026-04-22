@@ -3,6 +3,7 @@ package com.authmat.application.security.ingress;
 import com.authmat.application.authorization.constant.DefaultRole;
 import com.authmat.application.security.properties.PublicPathsProperties;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -20,18 +21,22 @@ import org.springframework.web.cors.CorsConfigurationSource;
 @EnableWebSecurity
 @EnableMethodSecurity
 @Slf4j
-public class InternalFilterChain {
+@ConditionalOnProperty(name = "security.mtls-enabled", havingValue = "true")
+public class InternalMtlsFilterChain {
+    private final MtlsEnforcementFilter mtlsEnforcementFilter;
     private final JwtAuthenticationFilter jwtAuthenticationFilter;
     private final AuthenticationProvider authenticationProvider;
     private final CorsConfigurationSource corsConfig;
     private final PublicPathsProperties publicPathsProperties;
 
 
-    public InternalFilterChain(
+    public InternalMtlsFilterChain(
+            MtlsEnforcementFilter mtlsEnforcementFilter,
             JwtAuthenticationFilter jwtAuthenticationFilter,
             AuthenticationProvider authenticationProvider,
             CorsConfigurationSource corsConfig,
             PublicPathsProperties publicPathsProperties) {
+        this.mtlsEnforcementFilter = mtlsEnforcementFilter;
         this.jwtAuthenticationFilter = jwtAuthenticationFilter;
         this.authenticationProvider = authenticationProvider;
         this.corsConfig = corsConfig;
@@ -42,9 +47,9 @@ public class InternalFilterChain {
     @Order(2)
     public SecurityFilterChain internalChain(HttpSecurity http) throws Exception {
         String[] publicPaths = publicPathsProperties
-                                    .publicPaths()
-                                    .values()
-                                    .toArray(String[]::new);
+                .publicPaths()
+                .values()
+                .toArray(String[]::new);
 
         return http
                 // TODO: eventually come up with organized way of giving each filter chain a dedicated path matcher
@@ -66,9 +71,11 @@ public class InternalFilterChain {
                 )
                 .authenticationProvider(authenticationProvider)
                 .addFilterBefore(
-                        jwtAuthenticationFilter,
+                        mtlsEnforcementFilter,
                         UsernamePasswordAuthenticationFilter.class)
+                .addFilterAfter(
+                        jwtAuthenticationFilter,
+                        MtlsEnforcementFilter.class)
                 .build();
     }
-
 }

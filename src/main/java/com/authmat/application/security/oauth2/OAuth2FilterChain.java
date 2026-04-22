@@ -1,10 +1,9 @@
-package com.authmat.application.security.ingress;
+package com.authmat.application.security.oauth2;
 
-import com.authmat.application.security.oauth2.OAuth2SuccessHandler;
-import com.authmat.application.security.oauth2.OAuth2UserService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -28,6 +27,7 @@ public class OAuth2FilterChain {
     }
 
     @Bean
+    @Order(1)
     public SecurityFilterChain oAuth2Chain(HttpSecurity http) throws Exception{
         return http
                 .securityMatcher("/oauth2/**", "/login/oauth2/**")

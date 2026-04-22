@@ -3,6 +3,7 @@ package com.authmat.application.exception;
 import com.authmat.application.authentication.exception.DuplicateCredentialException;
 import com.authmat.application.authorization.exception.PermissionNotFoundException;
 import com.authmat.application.authorization.exception.RoleNotFoundException;
+import com.authmat.application.token.exception.UnknownServiceIdentityException;
 import com.authmat.application.user.exception.CredentialUpdateException;
 import com.authmat.application.user.exception.UserNotFoundException;
 import io.lettuce.core.RedisConnectionException;

@@ -1,7 +1,7 @@
 package com.authmat.application.security.registry;
 
 import com.authmat.application.security.exception.NoVerifierForKidException;
-import com.authmat.application.token.model.PublicKey;
+import com.authmat.application.token.jwks.PublicKey;
 import org.springframework.stereotype.Component;
 
 import java.util.List;

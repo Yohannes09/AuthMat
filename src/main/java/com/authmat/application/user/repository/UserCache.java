@@ -1,8 +1,8 @@
 package com.authmat.application.user.repository;
 
-import com.authmat.application.user.dto.UserDto;
-import com.authmat.application.user.entity.User;
-import com.authmat.application.user.util.UserMapper;
+import com.authmat.application.user.UserDto;
+import com.authmat.application.user.User;
+import com.authmat.application.user.UserMapper;
 import io.lettuce.core.RedisException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;

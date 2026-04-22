@@ -1,7 +1,6 @@
-package com.authmat.application.token.controller;
+package com.authmat.application.token.jwks;
 
-import com.authmat.application.token.model.PublicKey;
-import com.authmat.application.token.service.TokenService;
+import com.authmat.application.token.TokenService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

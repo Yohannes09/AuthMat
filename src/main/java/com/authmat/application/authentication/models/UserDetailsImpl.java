@@ -1,7 +1,7 @@
 package com.authmat.application.authentication.models;
 
 import com.authmat.application.authorization.entity.Role;
-import com.authmat.application.user.entity.User;
+import com.authmat.application.user.User;
 import org.springframework.security.authentication.AccountExpiredException;
 import org.springframework.security.authentication.CredentialsExpiredException;
 import org.springframework.security.authentication.DisabledException;

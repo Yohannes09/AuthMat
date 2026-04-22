@@ -1,13 +1,13 @@
-package com.authmat.application.token.service;
+package com.authmat.application.token;
 
-import com.authmat.application.exception.UnknownServiceIdentityException;
+import com.authmat.application.token.exception.UnknownServiceIdentityException;
 import com.authmat.application.security.properties.ServiceProperties;
 import com.authmat.application.token.constant.TokenType;
 import com.authmat.application.token.exception.TokenException;
 import com.authmat.application.token.model.AccessToken;
-import com.authmat.application.token.model.PublicKey;
+import com.authmat.application.token.jwks.PublicKey;
 import com.authmat.application.token.model.RefreshToken;
-import com.authmat.application.token.TokenProperties;
+import com.authmat.application.token.signer.JwtSigner;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -88,6 +88,7 @@ public class TokenService {
         return jwtSigner.sign(payload, expiresIn);
     }
 
+    // TODO this could be a jwks service method
     public CompletableFuture<PublicKey> getPublicKey(){
         return jwtSigner.getPublicKey();
     }

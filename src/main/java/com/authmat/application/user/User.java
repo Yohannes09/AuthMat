@@ -1,4 +1,4 @@
-package com.authmat.application.user.entity;
+package com.authmat.application.user;
 
 import com.authmat.application.authorization.entity.Role;
 import com.authmat.application.constant.ValidationConstants;

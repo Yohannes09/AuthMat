@@ -1,4 +1,4 @@
-package com.authmat.application.exception;
+package com.authmat.application.token.exception;
 
 public class UnknownServiceIdentityException extends RuntimeException {
     public UnknownServiceIdentityException(String message) {

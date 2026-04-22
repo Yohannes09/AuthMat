@@ -1,6 +1,5 @@
-package com.authmat.application.authentication.component;
+package com.authmat.application.authentication.loginAttemptManager;
 
-import com.authmat.application.authentication.config.LoginAttemptProperties;
 import com.authmat.application.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -67,7 +66,7 @@ public class LoginAttemptManager {
         // non-zero based list (i.e., KEYS[1] = arr[0])
         try {
             Long loginAttempts = redisTemplate.execute(
-                    RedisLoginAttemptScript.INCREMENT_EXPIRE,
+                    LoginAttemptManagerScripts.INCREMENT_EXPIRE,
                     Collections.singletonList(key),
                     properties.getFailedLoginLockoutMins().toSeconds()
             );

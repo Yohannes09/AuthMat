@@ -5,7 +5,6 @@ import com.authmat.application.authentication.request.RegistrationRequest;
 import com.authmat.application.authentication.response.AuthenticationResponse;
 import com.authmat.application.authentication.response.RegistrationResponse;
 import com.authmat.application.authentication.service.AuthenticationService;
-import com.authmat.application.util.UserPrincipalExtractor;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -25,7 +24,6 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class AuthenticationController {
     private final AuthenticationService authenticationService;
-    private final UserPrincipalExtractor userPrincipalExtractor;
 
 
     @PostMapping("/login")

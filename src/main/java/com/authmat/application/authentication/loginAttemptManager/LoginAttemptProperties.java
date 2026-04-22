@@ -1,4 +1,4 @@
-package com.authmat.application.authentication.config;
+package com.authmat.application.authentication.loginAttemptManager;
 
 import jakarta.validation.constraints.Min;
 import org.hibernate.validator.constraints.time.DurationMin;
@@ -19,9 +19,9 @@ public class LoginAttemptProperties {
     @DurationMin(minutes = 1)
     private Duration failedLoginLockoutMins;
 
-    public LoginAttemptProperties(int  maxFailedLoginAttempts, Duration failedLoginLockoutMins) {
+    public LoginAttemptProperties(int  maxFailedLoginAttempts, int failedLoginLockoutMins) {
         this.maxFailedLoginAttempts = maxFailedLoginAttempts;
-        this.failedLoginLockoutMins = failedLoginLockoutMins;
+        this.failedLoginLockoutMins = Duration.ofMinutes(failedLoginLockoutMins);
     }
 
 

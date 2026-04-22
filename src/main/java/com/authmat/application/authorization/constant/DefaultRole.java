@@ -95,4 +95,9 @@ public enum DefaultRole {
         return EnumSet.allOf(DefaultRole.class);
     }
 
+    public String trimmedName(){
+        String rolePrefix = "ROLE_";
+        return this.name.substring(rolePrefix.length()-1);
+    }
+
 }

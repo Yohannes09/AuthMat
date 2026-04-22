@@ -1,4 +1,4 @@
-package com.authmat.application.user.dto;
+package com.authmat.application.user;
 
 import com.authmat.application.authorization.dto.RoleDto;
 

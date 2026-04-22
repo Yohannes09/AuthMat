@@ -3,7 +3,7 @@ package com.authmat.application.security.oauth2;
 import com.authmat.application.authentication.service.AuthenticationService;
 import com.authmat.application.security.exception.InvalidPrincipalException;
 import com.authmat.application.user.repository.UserCache;
-import com.authmat.application.user.service.UserService;
+import com.authmat.application.user.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.AsyncContext;
 import jakarta.servlet.ServletException;

@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -22,6 +23,7 @@ import java.util.List;
 
 @Component
 @Slf4j
+@ConditionalOnProperty(name = "security.mtls-enabled", havingValue = "true")
 public class MtlsEnforcementFilter extends OncePerRequestFilter {
     private static final Logger AUDIT = LoggerFactory.getLogger("AUDIT");
 
@@ -50,7 +52,7 @@ public class MtlsEnforcementFilter extends OncePerRequestFilter {
         X509Certificate[] certs =
                 (X509Certificate[]) request.getAttribute("javax.servlet.request.X509Certificate");
 
-        if(certs==null || certs.length==0) {
+        if(certs == null || certs.length == 0) {
             AUDIT.warn("No X509 certificate found in request");
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Client certificate required");
             return;
@@ -67,7 +69,7 @@ public class MtlsEnforcementFilter extends OncePerRequestFilter {
 
         String spiffeId = extractSpiffeIdFromSan(cert);
 
-        if(spiffeId==null || !properties.serviceNames().contains(spiffeId)) {
+        if(spiffeId == null || !properties.serviceNames().contains(spiffeId)) {
             log.warn("Invalid spiffe id {}", spiffeId);
             response.sendError(HttpServletResponse.SC_FORBIDDEN, "Untrusted spiffeId");
             return;
@@ -85,7 +87,7 @@ public class MtlsEnforcementFilter extends OncePerRequestFilter {
             if(sans == null) return null;
 
             return sans.stream()
-                    .filter(san -> Integer.valueOf(sanUriCode).equals(san.get(0)))
+                    .filter(san -> Integer.valueOf(sanUriCode).equals(san.getFirst()))
                     .map(san -> (String) san.get(1))
                     .filter(uri -> uri.startsWith("spiffe://"))
                     .findFirst()

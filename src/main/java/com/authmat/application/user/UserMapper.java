@@ -1,8 +1,6 @@
-package com.authmat.application.user.util;
+package com.authmat.application.user;
 
 import com.authmat.application.authentication.models.UserDetailsImpl;
-import com.authmat.application.user.entity.User;
-import com.authmat.application.user.dto.UserDto;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 

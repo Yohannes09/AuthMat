@@ -1,9 +1,9 @@
-package com.authmat.application.authentication.component;
+package com.authmat.application.authentication.loginAttemptManager;
 
 import org.springframework.data.redis.core.script.RedisScript;
 
 /**
- * <p>The atomic nature of Redis Lua scripts guarantees that the increment
+ * <p>Redis Lua script guarantees that the increment
  * and conditional expiration are executed as a single, indivisible operation,
  * preventing race conditions under concurrent access.</p>
  *
@@ -18,11 +18,10 @@ import org.springframework.data.redis.core.script.RedisScript;
  *   <li>The current login attempt count after incrementing</li>
  * </ul>
  */
-public final class RedisLoginAttemptScript {
-    private RedisLoginAttemptScript(){}
+public final class LoginAttemptManagerScripts {
+    private LoginAttemptManagerScripts(){}
 
 
-    // Unfortunately can't be written in Bash
     public static final RedisScript<Long> INCREMENT_EXPIRE = RedisScript.of(
             """
             local current = redis.call('INCR', KEYS[1])

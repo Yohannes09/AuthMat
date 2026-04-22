@@ -1,7 +1,6 @@
-package com.authmat.application.token.controller;
+package com.authmat.application.token;
 
 import com.authmat.application.token.model.AccessToken;
-import com.authmat.application.token.service.TokenService;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

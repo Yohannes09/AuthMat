@@ -1,21 +1,10 @@
 FROM maven:3.9.9 as builder
 WORKDIR /build
-ARG REPO_USERNAME
-ARG REPO_TOKEN
-RUN mkdir -p /root/.m2 && \
-    cat > /root/.m2/settings.xml <<EOF
-<settings>
-  <servers>
-    <server>
-      <keyId>github</keyId>
-      <username>${REPO_USERNAME}</username>
-      <password>${REPO_TOKEN}</password>
-    </server>
-  </servers>
-</settings>
-EOF
+
 COPY . .
-RUN mvn clean package
+
+RUN --mount=type=secret,id=gh_token,target=/root/.m2/settings.xml \
+    mvn clean package
 
 FROM eclipse-temurin:21-jre-alpine as runtime
 RUN adduser -D -s /bin/sh appuser

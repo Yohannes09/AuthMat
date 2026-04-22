@@ -68,9 +68,10 @@ aws:
     kid: ${AWS_KMS_KID:authmat-kms-v1}
 
 security:
+  mtls-enabled: ${MTLS_ENABLED:}
   login-attempt:
     max-failed-login-attempts: ${MAX_FAILED_LOGIN_ATTEMPTS:5}
-    failed-login-lockout-mins: ${FAILED_LOGIN_LOCKOUT_MINS:10}
+    failed-login-lockout-mins: ${FAILED_LOGIN_LOCKOUT_MINS:1}
 
 authmat:
   services:
@@ -79,17 +80,17 @@ authmat:
     spiffe://authdoc.internal/gateway:
       scopes: ["auth:validate"]
   registration:
-    provider: ${PROVIDER:LOCAL}
-    provider-id: ${PROVIDER_ID:authmat}
+    provider: ${AUTHENTICATION_PROVIDER:LOCAL}
+    provider-id: ${AUTHENTICATION_PROVIDER_ID:authmat}
   token:
     algorithm:
-      key-algorithm: ${TOKEN_KEY_ALGORITHM:EC}
-      signature-algorithm: ${TOKEN_SIGNATURE_ALGORITHM:ES256}
+      key-algorithm: ${KEY_ALGORITHM:EC}
+      signature-algorithm: ${SIGNATURE_ALGORITHM:ES256}
       curve: ${ALGORITHM_CURVE:P-256}
     signer: ${TOKEN_SIGNER}
     access-token-ttl: ${ACCESS_TOKEN_TTL:5}
     refresh-token-ttl: ${REFRESH_TOKEN_TTL:20}
-    issuer: ${ISSUER}
+    issuer: ${AUTHENTICATION_PROVIDER_ID:authmat}
     audience: ${AUDIENCE}
     key-id: ${KEY_ID:}
   endpoints:

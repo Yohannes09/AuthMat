@@ -1,7 +1,7 @@
 package com.authmat.application.config;
 
 import com.authmat.application.authorization.dto.RoleDto;
-import com.authmat.application.user.dto.UserDto;
+import com.authmat.application.user.UserDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
