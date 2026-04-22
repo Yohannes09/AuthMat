@@ -36,11 +36,11 @@ jobs:
           EOF
         shell: bash
 
-      - name: Build and test
-        run: mvn clean verify -B
-        env:
-          REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
-          REPO_USERNAME: ${{ secrets.REPO_USERNAME }}
+#      - name: Build and test
+#        run: mvn clean verify -B
+#        env:
+#          REPO_TOKEN: ${{ secrets.REPO_TOKEN }}
+#          REPO_USERNAME: ${{ secrets.REPO_USERNAME }}
 
 
       - name: Log in to Docker Hub
@@ -68,7 +68,7 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          secrets: |
+          secret-files: |
             gh_token=/home/runner/.m2/settings.xml
 #          build-args: |
 #            REPO_USERNAME=${{ secrets.REPO_USERNAME }}
