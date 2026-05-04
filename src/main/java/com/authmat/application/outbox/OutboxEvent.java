@@ -2,6 +2,8 @@ package com.authmat.application.outbox;
 
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -33,6 +35,7 @@ public class OutboxEvent {
     @Column(nullable = false, updatable = false, length = 255)
     private String eventType;
 
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(nullable = false, updatable = false, columnDefinition = "jsonb")
     private String payload;
 
@@ -69,8 +72,6 @@ public class OutboxEvent {
         this.lastError = null;
     }
 
-    // Avoid a no args constructor from being created in by other classes
-    // forcing other classes to use parameterized constructor
     protected OutboxEvent(){}
 
     public void setLastError(String lastError) {

@@ -1,4 +1,4 @@
-package com.authmat.application.authentication.loginAttemptManager;
+package com.authmat.application.authentication.LoginAttemptManager;
 
 import jakarta.validation.constraints.Min;
 import org.hibernate.validator.constraints.time.DurationMin;

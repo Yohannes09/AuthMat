@@ -1,6 +1,6 @@
 package com.authmat.application.authentication.service;
 
-import com.authmat.application.authentication.loginAttemptManager.LoginAttemptManager;
+import com.authmat.application.authentication.LoginAttemptManager.LoginAttemptManager;
 import com.authmat.application.authentication.config.RegistrationProperties;
 import com.authmat.application.authentication.models.UserDetailsImpl;
 import com.authmat.application.authentication.request.LoginRequest;
@@ -36,7 +36,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     @Override
     public RegistrationResponse register(RegistrationRequest registrationRequest){
-        UserDto user = userService.registerUser(
+        UserDto user = userService.register(
                 registrationRequest.username(),
                 registrationRequest.email(),
                 registrationRequest.password(),

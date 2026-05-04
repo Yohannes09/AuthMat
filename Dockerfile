@@ -3,8 +3,8 @@ WORKDIR /build
 
 COPY . .
 
-RUN --mount=type=secret,id=gh_token,target=/root/.m2/settings.xml \
-    mvn clean package
+RUN --mount=type=secret,id=maven_settings,target=/run/secrets/maven_settings \
+    mvn --settings /run/secrets/maven_settings clean package
 
 FROM eclipse-temurin:21-jre-alpine as runtime
 RUN adduser -D -s /bin/sh appuser

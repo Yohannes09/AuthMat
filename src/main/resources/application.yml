@@ -50,7 +50,7 @@ spring:
 management:
   endpoints:
     web:
-      base-path: /authmat-actuator
+      base-path: /actuator
       exposure:
         include: health, metrics, prometheus
   endpoint:
@@ -74,6 +74,7 @@ security:
     failed-login-lockout-mins: ${FAILED_LOGIN_LOCKOUT_MINS:1}
 
 authmat:
+  base-path: ${BASE_PATH:}
   services:
     spiffe://authdoc.internal/dockeep:
       scopes: ["auth:validate", "auth:introspect"]
@@ -93,10 +94,8 @@ authmat:
     issuer: ${AUTHENTICATION_PROVIDER_ID:authmat}
     audience: ${AUDIENCE}
     key-id: ${KEY_ID:}
-  endpoints:
-    auth: ${AUTH_ENDPOINT:/auth}
   public-paths:
-    login: ${AUTH_ENDPOINT:/auth}/login
-    register: ${AUTH_ENDPOINT:/auth}/register
+    login: ${BASE_PATH:}/login
+    register: ${BASE_PATH:}/register
     jwks: /.well-known/jwks.json
-#    TODO: ACTUATOR????
+    ping: /ping

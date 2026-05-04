@@ -24,7 +24,7 @@ public class OutboxUserEventPublisher implements UserEventPublisher{
                     userEvent.aggregateType(),
                     userEvent.userId(),
                     userEvent.eventType(),
-                    objectMapper.writeValueAsString(userEvent)
+                    objectMapper.writer().writeValueAsString(userEvent)
             );
 
             outboxRepository.save(outbox);

@@ -1,4 +1,4 @@
-package com.authmat.application.authentication.loginAttemptManager;
+package com.authmat.application.authentication.LoginAttemptManager;
 
 import org.springframework.data.redis.core.script.RedisScript;
 

@@ -1,4 +1,4 @@
-package com.authmat.application.authentication.loginAttemptManager;
+package com.authmat.application.authentication.LoginAttemptManager;
 
 import com.authmat.application.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;

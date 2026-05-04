@@ -30,4 +30,6 @@ public record RegistrationRequest(
         @Schema(
                 description = ValidationConstants.PASSWORD_PATTERN,
                 example = "Password123@")
-        String password){}
+        String password){
+
+}

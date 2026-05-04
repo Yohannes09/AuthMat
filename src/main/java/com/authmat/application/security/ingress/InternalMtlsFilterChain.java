@@ -46,10 +46,7 @@ public class InternalMtlsFilterChain {
     @Bean
     @Order(2)
     public SecurityFilterChain internalChain(HttpSecurity http) throws Exception {
-        String[] publicPaths = publicPathsProperties
-                .publicPaths()
-                .values()
-                .toArray(String[]::new);
+        String[] publicPaths = publicPathsProperties.getPublicPathsArr();
 
         return http
                 // TODO: eventually come up with organized way of giving each filter chain a dedicated path matcher

@@ -41,20 +41,16 @@ public class InternalFilterChain {
     @Bean
     @Order(2)
     public SecurityFilterChain internalChain(HttpSecurity http) throws Exception {
-        String[] publicPaths = publicPathsProperties
-                                    .publicPaths()
-                                    .values()
-                                    .toArray(String[]::new);
+        String[] publicPaths = this.publicPathsProperties.getPublicPathsArr();
 
         return http
-                // TODO: eventually come up with organized way of giving each filter chain a dedicated path matcher
-                .securityMatcher("/auth/**", "/api/**")
+                .securityMatcher("/**")
                 .cors(cors-> cors.configurationSource(corsConfig))
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request ->
                         request
                                 .requestMatchers(publicPaths).permitAll()
-                                .requestMatchers("/swagger-ui/**","/v3/api-docs/**")
+                                .requestMatchers("/swagger-ui/**","/v3/api-docs/**", "/actuator/**")
                                 .hasAnyRole(
                                         DefaultRole.SUPPORT.trimmedName(),
                                         DefaultRole.ADMIN.trimmedName(),

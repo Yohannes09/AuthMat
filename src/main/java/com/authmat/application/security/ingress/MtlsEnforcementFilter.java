@@ -39,7 +39,7 @@ public class MtlsEnforcementFilter extends OncePerRequestFilter {
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
         String path = request.getRequestURI();
-        return publicPathsProperties.publicPaths().containsValue(path);
+        return publicPathsProperties.getPublicPaths().containsValue(path);
     }
 
 

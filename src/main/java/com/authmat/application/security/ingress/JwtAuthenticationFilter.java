@@ -69,7 +69,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Override
     protected boolean shouldNotFilter(HttpServletRequest request) {
-        return publicPathsProperties.publicPaths().containsValue(request.getServletPath());
+        return publicPathsProperties.getPublicPaths().containsValue(request.getServletPath());
     }
 
     @Override

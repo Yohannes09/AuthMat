@@ -1,67 +1,54 @@
 package com.authmat.application.user;
 
 import com.authmat.application.authentication.exception.DuplicateCredentialException;
-import com.authmat.application.authorization.constant.DefaultRole;
-import com.authmat.application.authorization.entity.Role;
-import com.authmat.application.authorization.exception.SystemConfigurationException;
-import com.authmat.application.authorization.repository.RoleCache;
-import com.authmat.application.user.exception.CredentialUpdateException;
 import com.authmat.application.outbox.UserEventPublisher;
+import com.authmat.application.user.exception.CredentialUpdateException;
 import com.authmat.application.user.repository.UserCache;
 import com.authmat.application.user.request.EmailUpdateRequest;
 import com.authmat.application.user.request.PasswordUpdateRequest;
 import com.authmat.application.user.request.UsernameUpdateRequest;
 import com.authmat.events.NewUserEvent;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collection;
-import java.util.List;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class UserService {
     private final UserMapper userMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserCache userCache;
-    private final RoleCache roleCache;
     private final UserEventPublisher eventPublisher;
 
+    public UserService(
+            UserMapper userMapper,
+            PasswordEncoder passwordEncoder,
+            UserCache userCache,
+            UserEventPublisher eventPublisher) {
+        this.userMapper = userMapper;
+        this.passwordEncoder = passwordEncoder;
+        this.userCache = userCache;
+        this.eventPublisher = eventPublisher;
+    }
 
     @Transactional
-    public UserDto registerUser(
+    public UserDto register(
             String username,
             String email,
             String password,
             String provider,
             String providerId){
-        Role userRole = roleCache.findRoleProxyByName(DefaultRole.USER.getName())
-                .orElseThrow(() -> new SystemConfigurationException("Default USER role not found"));
 
-        return provisionUser(username, email, password, provider, providerId, List.of(userRole));
-    }
-
-
-    @Transactional
-    public UserDto provisionUser(
-            String username,
-            String email,
-            String password,
-            String provider,
-            String providerId,
-            Collection<Role> roles){
         if(userCache.existsByUsernameOrEmail(username, email)){
             throw new DuplicateCredentialException("User creation failed - username or email already in use");
         }
 
         User savedUser = userCache.save(
-                new User(username, passwordEncoder.encode(password), email, provider, providerId, roles)
+                new User(username, passwordEncoder.encode(password), email, provider, providerId)
         );
 
         eventPublisher.userCreatedEvent(
