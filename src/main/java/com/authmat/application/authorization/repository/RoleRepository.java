@@ -1,6 +1,6 @@
 package com.authmat.application.authorization.repository;
 
-import com.authmat.application.authorization.entity.Role;
+import com.authmat.application.authorization.model.Role;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;

@@ -1,4 +1,4 @@
-package com.authmat.application.token.jwks;
+package com.authmat.application.jwks;
 
 import java.util.UUID;
 

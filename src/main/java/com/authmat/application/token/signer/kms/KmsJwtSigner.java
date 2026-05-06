@@ -2,7 +2,7 @@ package com.authmat.application.token.signer.kms;
 
 import com.authmat.application.token.exception.TokenException;
 import com.authmat.application.token.model.AccessToken;
-import com.authmat.application.token.jwks.PublicKey;
+import com.authmat.application.jwks.PublicKey;
 import com.authmat.application.token.TokenProperties;
 import com.authmat.application.token.signer.JwtSigner;
 import com.fasterxml.jackson.core.JsonProcessingException;

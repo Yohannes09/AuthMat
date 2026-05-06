@@ -1,8 +1,8 @@
 package com.authmat.application.authentication.service;
 
-import com.authmat.application.authentication.LoginAttemptManager.LoginAttemptManager;
+import com.authmat.application.authentication.loginattemptmanager.LoginAttemptManager;
 import com.authmat.application.authentication.config.RegistrationProperties;
-import com.authmat.application.authentication.models.UserDetailsImpl;
+import com.authmat.application.user.model.UserDetailsImpl;
 import com.authmat.application.authentication.request.LoginRequest;
 import com.authmat.application.authentication.request.RegistrationRequest;
 import com.authmat.application.authentication.response.AuthenticationResponse;
@@ -12,7 +12,7 @@ import com.authmat.application.token.model.AccessToken;
 import com.authmat.application.token.model.RefreshToken;
 import com.authmat.application.token.TokenService;
 import com.authmat.application.user.UserService;
-import com.authmat.application.user.UserDto;
+import com.authmat.application.user.model.UserDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;

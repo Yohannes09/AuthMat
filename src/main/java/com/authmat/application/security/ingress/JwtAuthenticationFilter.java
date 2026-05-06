@@ -1,6 +1,6 @@
 package com.authmat.application.security.ingress;
 
-import com.authmat.application.authorization.dto.PermissionDto;
+import com.authmat.application.authorization.model.PermissionDto;
 import com.authmat.application.security.exception.NoVerifierForKidException;
 import com.authmat.application.security.principal.SecurityContextPrincipal;
 import com.authmat.application.security.principal.ServiceContextPrincipal;
@@ -9,7 +9,7 @@ import com.authmat.application.security.properties.PublicPathsProperties;
 import com.authmat.application.security.registry.VerifierRegistry;
 import com.authmat.application.token.constant.TokenType;
 import com.authmat.application.token.TokenService;
-import com.authmat.application.user.UserDto;
+import com.authmat.application.user.model.UserDto;
 import com.authmat.application.user.exception.UserNotFoundException;
 import com.authmat.application.user.repository.UserCache;
 import com.authmat.validation.JwtUtil;

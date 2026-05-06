@@ -14,6 +14,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.validation.FieldError;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -54,7 +55,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(AuthenticationException.class)
     public ResponseEntity<ErrorResponse> handleAuthenticationException(
             AuthenticationException exception, HttpServletRequest servletRequest){
-        log.error("Authentication failed: {}", exception.getMessage());
+        log.debug("Authentication failed: {}", exception.getMessage(), exception);
 
         String message = switch (exception){
             case DisabledException disabledException-> "Account is disabled.";
@@ -75,7 +76,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFoundExceptions(
             UserNotFoundException ex, HttpServletRequest request){
-        log.warn("Resource not found on {}: ", request.getRequestURI(), ex);
+        log.debug("Resource not found on {}: ", request.getRequestURI(), ex);
 
         return generateErrorResponse(
                 "User not found.",
@@ -87,7 +88,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({DuplicateCredentialException.class, CredentialUpdateException.class})
     public ResponseEntity<ErrorResponse> handleDuplicateCredentialException(
             RuntimeException ex, HttpServletRequest request){
-        log.warn("Bad request on {}: ", request.getRequestURI(), ex);
+        log.debug("Bad request on {}: ", request.getRequestURI(), ex);
 
         String message = switch (ex){
             case DuplicateCredentialException e-> "Credential already exists.";
@@ -133,6 +134,16 @@ public class GlobalExceptionHandler {
                 validationErrors);
     }
 
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleHttpRequestMethodNotSupportedException(
+            HttpRequestMethodNotSupportedException ex, HttpServletRequest request){
+        log.info("Wrong HTTP method {} for endpoint {}", request.getMethod(), request.getRequestURI());
+
+        return generateErrorResponse(
+                "Method not supported.",
+                HttpStatus.METHOD_NOT_ALLOWED,
+                request);
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ErrorResponse> handleUnexpectedException(

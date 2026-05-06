@@ -1,11 +1,9 @@
-package com.authmat.application.user;
+package com.authmat.application.user.model;
 
-import com.authmat.application.authorization.entity.Role;
+import com.authmat.application.authorization.model.Role;
 import com.authmat.application.constant.ValidationConstants;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 
@@ -17,8 +15,6 @@ import java.util.UUID;
 
 @Table(name = "users")
 @Entity
-@Getter
-@NoArgsConstructor
 public class User{
     @Id
     @GeneratedValue(
@@ -117,13 +113,79 @@ public class User{
         this.providerId = providerId;
     }
 
+    protected User(){}
+
+
+    public Long getId() {
+        return id;
+    }
+
+    public String getExternalId() {
+        return externalId;
+    }
+
+    public String getUsername() {
+        return username;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public Set<Role> getRoles() {
+        return roles;
+    }
+
+    public Instant getCreatedAt() {
+        return createdAt;
+    }
+
+    public Instant getUpdatedAt() {
+        return updatedAt;
+    }
+
+    public boolean isAccountNonExpired() {
+        return accountNonExpired;
+    }
+
+    public boolean isAccountNonLocked() {
+        return accountNonLocked;
+    }
+
+    public boolean isCredentialsNonExpired() {
+        return credentialsNonExpired;
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
+    public String getProvider() {
+        return provider;
+    }
+
+    public String getProviderId() {
+        return providerId;
+    }
+
+    public String getHashedPassword() {
+        return hashedPassword;
+    }
+
+    public Long getVersion() {
+        return version;
+    }
+
     public void lockAccount() { this.accountNonLocked = false; }
     public void unlockAccount() { this.accountNonLocked = true; }
+
     public void disableAccount() { this.enabled = false; }
     public void enableAccount() { this.enabled = true; }
+
     public void updatePassword(String newHashedPassword) { this.hashedPassword = newHashedPassword; }
     public void updateUsername(String newUsername) { this.username = newUsername; }
     public void updateEmail(String newEmail){ this.email = email;}
+
     public void addRole(Role role){this.roles.add(role);}
     public void addRoles(Collection<Role> roles){this.roles.addAll(roles);}
 }

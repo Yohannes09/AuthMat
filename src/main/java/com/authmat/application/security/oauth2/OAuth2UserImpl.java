@@ -1,6 +1,6 @@
 package com.authmat.application.security.oauth2;
 
-import com.authmat.application.authorization.dto.RoleDto;
+import com.authmat.application.authorization.model.RoleDto;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.core.user.OAuth2User;

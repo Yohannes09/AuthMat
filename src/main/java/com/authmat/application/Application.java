@@ -1,7 +1,7 @@
 package com.authmat.application;
 
 import com.authmat.application.authentication.config.RegistrationProperties;
-import com.authmat.application.authentication.LoginAttemptManager.LoginAttemptProperties;
+import com.authmat.application.authentication.loginattemptmanager.LoginAttemptProperties;
 import com.authmat.application.security.properties.PublicPathsProperties;
 import com.authmat.application.security.properties.ServiceProperties;
 import com.authmat.application.token.TokenProperties;

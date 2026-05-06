@@ -1,16 +1,13 @@
 package com.authmat.application.config;
 
-import com.authmat.application.authorization.dto.RoleDto;
-import com.authmat.application.user.UserDto;
+import com.authmat.application.authorization.model.RoleDto;
+import com.authmat.application.user.model.UserDto;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.RedisStandaloneConfiguration;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.Jackson2JsonRedisSerializer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
@@ -53,14 +50,14 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 public class RedisConfig {
 
-    @Bean
-    public RedisConnectionFactory redisConnectionFactory(
-            @Value("${spring.redis.host}") String hostName,
-            @Value("${spring.redis.port:6379}") int port) {
-        return new LettuceConnectionFactory(
-                new RedisStandaloneConfiguration(hostName, port)
-        );
-    }
+//    @Bean
+//    public RedisConnectionFactory redisConnectionFactory(
+//            @Value("${spring.redis.host}") String hostName,
+//            @Value("${spring.redis.port:6379}") int port) {
+//        return new LettuceConnectionFactory(
+//                new RedisStandaloneConfiguration(hostName, port)
+//        );
+//    }
 
     @Bean(name = "strRedisTemplate")
     public RedisTemplate<String, String> strRedisTemplate(RedisConnectionFactory connectionFactory) {
@@ -77,16 +74,23 @@ public class RedisConfig {
     }
 
     @Bean(name = "userRedisTemplate")
-    public RedisTemplate<String, UserDto> userRedisTemplate(RedisConnectionFactory connectionFactory) {
+    public RedisTemplate<String, UserDto> userRedisTemplate(
+            RedisConnectionFactory connectionFactory,
+            ObjectMapper objectMapper) {
+
         RedisTemplate<String, UserDto> template = new RedisTemplate<>();
-
         template.setConnectionFactory(connectionFactory);
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new Jackson2JsonRedisSerializer<>(UserDto.class));
-        template.setHashKeySerializer(new StringRedisSerializer());
-        template.setHashValueSerializer(new StringRedisSerializer());
-        template.afterPropertiesSet();
 
+        Jackson2JsonRedisSerializer<UserDto> serializer =
+                new Jackson2JsonRedisSerializer<>(objectMapper, UserDto.class);
+
+        template.setKeySerializer(new StringRedisSerializer());
+        template.setValueSerializer(serializer);
+
+        template.setHashKeySerializer(new StringRedisSerializer());
+        template.setHashValueSerializer(serializer);
+
+        template.afterPropertiesSet();
         return template;
     }
 

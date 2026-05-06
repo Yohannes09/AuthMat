@@ -2,7 +2,7 @@ package com.authmat.application.token.signer.local;
 
 import com.authmat.application.token.exception.KeyInitializationException;
 import com.authmat.application.token.model.AccessToken;
-import com.authmat.application.token.jwks.PublicKey;
+import com.authmat.application.jwks.PublicKey;
 import com.authmat.application.token.TokenProperties;
 import com.authmat.application.token.signer.JwtSigner;
 import io.jsonwebtoken.Jwts;

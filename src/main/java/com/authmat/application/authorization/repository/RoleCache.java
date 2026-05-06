@@ -1,8 +1,8 @@
 package com.authmat.application.authorization.repository;
 
-import com.authmat.application.authorization.dto.RoleDto;
-import com.authmat.application.authorization.entity.Role;
-import com.authmat.application.authorization.util.RoleMapper;
+import com.authmat.application.authorization.model.RoleDto;
+import com.authmat.application.authorization.model.Role;
+import com.authmat.application.authorization.model.RoleMapper;
 import io.lettuce.core.RedisException;
 import jakarta.persistence.EntityManager;
 import lombok.extern.slf4j.Slf4j;

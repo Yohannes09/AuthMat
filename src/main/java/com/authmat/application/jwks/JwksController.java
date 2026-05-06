@@ -1,4 +1,4 @@
-package com.authmat.application.token.jwks;
+package com.authmat.application.jwks;
 
 import com.authmat.application.token.TokenService;
 import lombok.extern.slf4j.Slf4j;

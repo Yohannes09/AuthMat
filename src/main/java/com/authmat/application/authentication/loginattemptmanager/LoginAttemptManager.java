@@ -1,6 +1,5 @@
-package com.authmat.application.authentication.LoginAttemptManager;
+package com.authmat.application.authentication.loginattemptmanager;
 
-import com.authmat.application.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.RedisConnectionFailureException;
@@ -24,9 +23,8 @@ public class LoginAttemptManager {
         this.redisTemplate = redisTemplate;
     }
 
-    // TODO: either replace StrUtil with a proper implementation, or enhance functionality
+
     public void loginSucceeded(String usernameOrEmail){
-        if(StrUtil.isNullOrBlank(usernameOrEmail)) return;
         try {
             redisTemplate.delete(buildKey(usernameOrEmail));
             log.debug("Cleared ");
@@ -59,17 +57,16 @@ public class LoginAttemptManager {
      * correctness and deterministic behavior.</p>
      */
     public void loginFailed(String usernameOrEmail){
-        if(StrUtil.isNullOrBlank(usernameOrEmail)) return;
         String key = buildKey(usernameOrEmail);
 
-        // We pass a list for param 2 of the script since Lua is expecting a
-        // non-zero based list (i.e., KEYS[1] = arr[0])
         try {
+            String timeoutSeconds = String.valueOf(
+                    properties.getFailedLoginLockoutMins().toSeconds());
+
             Long loginAttempts = redisTemplate.execute(
                     LoginAttemptManagerScripts.INCREMENT_EXPIRE,
                     Collections.singletonList(key),
-                    properties.getFailedLoginLockoutMins().toSeconds()
-            );
+                    timeoutSeconds);
 
             if(loginAttempts >= properties.getMaxFailedLoginAttempts()) {
                 log.warn("User [{}] login failed, max login attempts reached.", usernameOrEmail);
@@ -110,8 +107,6 @@ public class LoginAttemptManager {
      * @throws IllegalArgumentException if {@code usernameOrEmail} is {@code null} or blank
      */
     public boolean isBlocked(String usernameOrEmail){
-        if(StrUtil.isNullOrBlank(usernameOrEmail)) return true;
-
         String value = redisTemplate.opsForValue().get(buildKey(usernameOrEmail));
         if(value == null) return false;
 

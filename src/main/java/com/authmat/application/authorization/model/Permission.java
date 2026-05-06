@@ -1,4 +1,4 @@
-package com.authmat.application.authorization.entity;
+package com.authmat.application.authorization.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Size;

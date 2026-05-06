@@ -1,5 +1,4 @@
 services:
-
   authmat-db:
     image: postgres:15
     environment:
@@ -69,6 +68,11 @@ services:
         condition: service_started
       kafka:
         condition: service_started
+    healthcheck:
+      test: ["CMD", "curl http://localhost:8080/ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
 secrets:
   maven_settings:

@@ -1,7 +1,5 @@
-package com.authmat.application.authorization.util;
+package com.authmat.application.authorization.model;
 
-import com.authmat.application.authorization.dto.RoleDto;
-import com.authmat.application.authorization.entity.Role;
 import org.mapstruct.Mapper;
 import org.mapstruct.ReportingPolicy;
 

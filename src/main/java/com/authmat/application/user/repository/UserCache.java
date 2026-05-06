@@ -1,7 +1,7 @@
 package com.authmat.application.user.repository;
 
-import com.authmat.application.user.UserDto;
-import com.authmat.application.user.User;
+import com.authmat.application.user.model.UserDto;
+import com.authmat.application.user.model.User;
 import com.authmat.application.user.UserMapper;
 import io.lettuce.core.RedisException;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +26,7 @@ public class UserCache {
     private static final Duration BASE_TTL_MINUTES = Duration.ofMinutes(30);
 
     // Prevents DB storms on repeated cache/db misses
-    private static final UserDto NOT_FOUND = UserDto.of(-1L, "__NOT_FOUND__");
+    private static final UserDto NOT_FOUND = UserDto.sentinel(-1L, "__NOT_FOUND__");
     private static final Duration NOT_FOUND_TTL = Duration.ofMinutes(2);
 
     private final UserMapper userMapper;
@@ -42,6 +42,7 @@ public class UserCache {
         this.userRepository = userRepository;
         this.redisTemplate = redisTemplate;
     }
+
 
 
     public Optional<UserDto> findByEmail(String email){
@@ -183,7 +184,7 @@ public class UserCache {
     private <I> boolean existsByIdentifier(
             I identifier, String key, Predicate<I> repositoryFunction){
         try {
-            return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+            return redisTemplate.hasKey(key);
         } catch (Exception e) {
             log.warn("Redis unavailable during existence check - falling back to DB");
         }

@@ -1,4 +1,4 @@
-package com.authmat.application.authorization.dto;
+package com.authmat.application.authorization.model;
 
 import java.time.Instant;
 

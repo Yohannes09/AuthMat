@@ -1,7 +1,7 @@
 package com.authmat.application.token.signer;
 
 import com.authmat.application.token.model.AccessToken;
-import com.authmat.application.token.jwks.PublicKey;
+import com.authmat.application.jwks.PublicKey;
 
 import java.time.Instant;
 import java.util.Map;

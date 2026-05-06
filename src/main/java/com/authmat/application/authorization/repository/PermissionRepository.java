@@ -1,6 +1,6 @@
 package com.authmat.application.authorization.repository;
 
-import com.authmat.application.authorization.entity.Permission;
+import com.authmat.application.authorization.model.Permission;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.Optional;

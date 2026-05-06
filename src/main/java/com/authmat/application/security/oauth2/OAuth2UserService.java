@@ -1,6 +1,6 @@
 package com.authmat.application.security.oauth2;
 
-import com.authmat.application.user.UserDto;
+import com.authmat.application.user.model.UserDto;
 import com.authmat.application.user.UserService;
 import com.authmat.application.user.repository.UserCache;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
