@@ -24,6 +24,9 @@ public class OutboxEvent {
     @Id
     private UUID id;
 
+    @Column(nullable = false, updatable = false, unique = true)
+    private String idempotencyKey;
+
     // The entity: User, Order, etc.
     @Column(nullable = false, updatable = false, length = 255)
     private String aggregateType;
@@ -31,6 +34,9 @@ public class OutboxEvent {
     // Entity's ID: userId, orderId, etc.
     @Column(name = "aggregate_id", nullable = false, updatable = false)
     private String aggregateId;
+
+    @Column(nullable = false, updatable = false)
+    private String topic;
 
     @Column(nullable = false, updatable = false, length = 255)
     private String eventType;
@@ -60,12 +66,14 @@ public class OutboxEvent {
             String aggregateType,
             String aggregateId,
             String eventType,
-            String payload
-    ) {
+            String topic,
+            String payload ) {
         this.id = UUID.randomUUID();
         this.aggregateType = aggregateType;
         this.eventType = eventType;
         this.aggregateId = aggregateId;
+        this.topic = topic;
+        this.idempotencyKey = aggregateType + ":" + aggregateId +  ":" + eventType;
         this.payload = payload;
         this.status = OutboxStatus.PENDING;
         this.retryCount = 0;
@@ -73,6 +81,10 @@ public class OutboxEvent {
     }
 
     protected OutboxEvent(){}
+
+    public void incrementRetryCount(){
+        this.retryCount++;
+    }
 
     public void setLastError(String lastError) {
         this.lastError = lastError;
@@ -88,6 +100,14 @@ public class OutboxEvent {
 
     public void setStatus(OutboxStatus status) {
         this.status = status;
+    }
+
+    public String getIdempotencyKey() {
+        return idempotencyKey;
+    }
+
+    public String getTopic() {
+        return topic;
     }
 
     public UUID getId() {

@@ -76,8 +76,6 @@ public class UserCache {
     }
 
 
-    /**
-     * Persists to DB first, then assuming all goes well, cache the user.*/
     public User save(User user) {
         try {
             User savedUser =  userRepository.save(user);
