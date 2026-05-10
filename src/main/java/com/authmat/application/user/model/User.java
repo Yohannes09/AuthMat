@@ -1,7 +1,8 @@
 package com.authmat.application.user.model;
 
 import com.authmat.application.authorization.model.Role;
-import com.authmat.application.constant.ValidationConstants;
+import com.authmat.application.util.ValidationConstants;
+import com.github.f4b6a3.uuid.UuidCreator;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import org.hibernate.annotations.CreationTimestamp;
@@ -30,7 +31,7 @@ public class User{
     private Long id;
 
     @Column(name = "external_id", unique = true)
-    private String externalId;
+    private UUID externalId;
 
     @Column(unique = true, nullable = false)
     private String username;
@@ -81,7 +82,7 @@ public class User{
 
     @PrePersist
     private void generateExternalId(){
-        if(this.externalId == null) this.externalId = UUID.randomUUID().toString();
+        if(this.externalId == null) this.externalId = UuidCreator.getTimeOrderedEpoch();
     }
 
 
@@ -120,7 +121,7 @@ public class User{
         return id;
     }
 
-    public String getExternalId() {
+    public UUID getExternalId() {
         return externalId;
     }
 

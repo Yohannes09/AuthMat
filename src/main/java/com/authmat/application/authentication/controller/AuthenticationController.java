@@ -1,4 +1,4 @@
-package com.authmat.application.authentication;
+package com.authmat.application.authentication.controller;
 
 import com.authmat.application.authentication.request.LoginRequest;
 import com.authmat.application.authentication.request.RegistrationRequest;

@@ -11,8 +11,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.concurrent.CompletionException;
 
-@Slf4j
 @Component
+@Slf4j
 public class VerifierRegistryTask {
     private static final JwtUtil RESOLVER = new JwtUtil();
 
@@ -22,11 +22,13 @@ public class VerifierRegistryTask {
     public VerifierRegistryTask(VerifierRegistry verifierRegistry, TokenService tokenService) {
         this.verifierRegistry = verifierRegistry;
         this.tokenService = tokenService;
+        log.info("VerifierRegistryTask init");
     }
 
 
-    @Scheduled(fixedRate = 1000 * 60 * 5)
+    @Scheduled(fixedRate = 1000 * 20)
     public void run(){
+
         tokenService.getPublicKey()
                 .thenAccept(pk -> {
                     try {
@@ -37,6 +39,7 @@ public class VerifierRegistryTask {
                         if(verifierRegistry.get(pk.kid()) == null) {
                             Key key = RESOLVER.buildKey(pk.publicKey(), pk.keyAlgorithm());
                             verifierRegistry.put(pk.kid(), key);
+                            log.info("verifier registry updated: [{}]", pk.kid());
                         }
 
                     } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {

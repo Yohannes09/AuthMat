@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.Optional;
+import java.util.UUID;
 
 public interface UserRepository extends JpaRepository<User, Long> {
 
@@ -17,6 +18,13 @@ public interface UserRepository extends JpaRepository<User, Long> {
             OR LOWER(user.email) = LOWER(:usernameOrEmail)
             """)
     Optional<User> findByUsernameOrEmail(@Param("usernameOrEmail") String usernameOrEmail);
+
+    @EntityGraph(attributePaths = {"roles", "roles.permissions"})
+    @Query("""
+            SELECT user FROM User user
+            WHERE user.externalId = :externalId
+            """)
+    Optional<User> findByExternalId(UUID externalId);
 
     @Query("""
             SELECT CASE WHEN COUNT(user) > 0 THEN true ELSE false END
@@ -33,6 +41,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     boolean existsByEmailIgnoreCase(String email);
 
-    // TODO: externalId is of type UUID, maybe user's externalId should be of type String for flexibility
-    Optional<User> findByExternalId(String externalId);
 }

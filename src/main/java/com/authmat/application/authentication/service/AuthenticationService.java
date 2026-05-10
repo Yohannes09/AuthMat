@@ -1,20 +1,130 @@
 package com.authmat.application.authentication.service;
 
+import com.authmat.application.authentication.config.RegistrationProperties;
+import com.authmat.application.authentication.loginattemptmanager.LoginAttemptManager;
 import com.authmat.application.authentication.request.LoginRequest;
 import com.authmat.application.authentication.request.RegistrationRequest;
 import com.authmat.application.authentication.response.AuthenticationResponse;
 import com.authmat.application.authentication.response.RegistrationResponse;
+import com.authmat.application.token.TokenService;
+import com.authmat.application.token.exception.TokenException;
+import com.authmat.application.token.model.AccessToken;
+import com.authmat.application.token.model.RefreshToken;
+import com.authmat.application.user.UserService;
+import com.authmat.application.user.model.UserDetailsImpl;
+import com.authmat.application.user.model.UserDto;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.LockedException;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.AuthenticationException;
+import org.springframework.stereotype.Service;
 
 import java.util.concurrent.CompletableFuture;
 
-public interface AuthenticationService {
-    CompletableFuture<AuthenticationResponse> login(LoginRequest loginRequest);
+@Service
+@Slf4j
+public class AuthenticationService {
+    private final UserService userService;
+    private final TokenService tokenService;
+    private final AuthenticationManager authenticationManager;
+    private final LoginAttemptManager loginAttemptManager;
+    private final RegistrationProperties registrationProperties;
 
-    RegistrationResponse register(RegistrationRequest registrationRequest);
+    public AuthenticationService(
+            UserService userService,
+            TokenService tokenService,
+            AuthenticationManager authenticationManager,
+            LoginAttemptManager loginAttemptManager,
+            RegistrationProperties registrationProperties ) {
+        this.userService = userService;
+        this.tokenService = tokenService;
+        this.authenticationManager = authenticationManager;
+        this.loginAttemptManager = loginAttemptManager;
+        this.registrationProperties = registrationProperties;
+    }
 
-    CompletableFuture<AuthenticationResponse> refresh(String refreshToken);
+    public RegistrationResponse register(RegistrationRequest registrationRequest){
+        UserDto user = userService.register(
+                registrationRequest.username(),
+                registrationRequest.email(),
+                registrationRequest.password(),
+                registrationProperties.provider(),
+                registrationProperties.providerId());
 
-    void logout(String token);
+        log.info("User registered successfully: externalId={}", user.externalId());
+        return new RegistrationResponse(user.externalId(), user.username(), user.email());
+    }
 
-    CompletableFuture<AuthenticationResponse> generateAuthenticationResponse(String id);
+
+    public CompletableFuture<AuthenticationResponse> login(LoginRequest loginRequest) {
+        String identifier = loginRequest.usernameOrEmail();
+
+        return CompletableFuture.supplyAsync(() -> {
+            if(loginAttemptManager.isBlocked(identifier)){
+                log.warn("User account temporarily locked after many failed login attempts");
+                throw new LockedException("User account temporarily locked after many failed login attempts");
+            }
+
+            try {
+                Authentication authentication = authenticationManager.authenticate(
+                        new UsernamePasswordAuthenticationToken(identifier, loginRequest.password())
+                );
+
+                if(!(authentication.getPrincipal() instanceof UserDetailsImpl principal)){
+                    throw new IllegalStateException(
+                            "Expected UserPrincipal but got: " + authentication.getPrincipal().getClass().getName()
+                    );
+                }
+
+                principal.validateAccount();
+
+                loginAttemptManager.loginSucceeded(identifier);
+                log.debug("Successful login: {}", principal.getExternalId());
+
+                return principal;
+            }catch (AuthenticationException e){
+                loginAttemptManager.loginFailed(identifier);
+                throw e;
+            }
+        }).thenCompose(principal ->
+                generateAuthenticationResponse(principal.getExternalId())
+        );
+
+    }
+
+    // TODO:
+    //  Right now exceptions from either stage will propagate as CompletionException,
+    //  need to handle or exceptionally somewhere up the chain — either here or at the controller level —
+    //  to map those into proper HTTP responses before they hit exception handler as unwrapped noise.
+    public CompletableFuture<AuthenticationResponse> refresh(String refreshToken){
+        CompletableFuture<RefreshToken> newRefreshToken = CompletableFuture.supplyAsync(() ->
+            tokenService.rotateRefreshToken(refreshToken)
+                    .orElseThrow(() -> new TokenException("User must reauthenticate"))
+        );
+
+        return newRefreshToken
+                .thenCompose(refreshTokenRecord ->
+                        tokenService.generateAccessToken(refreshTokenRecord.externalId())
+                                .thenApply(newAccessToken ->
+                                        new AuthenticationResponse(newAccessToken, refreshTokenRecord.newRefreshToken())
+                                )
+                );
+    }
+
+    public void logout(String token){
+        // No logic here yet.
+        tokenService.blackListToken(token);
+    }
+
+    public CompletableFuture<AuthenticationResponse> generateAuthenticationResponse(String subject){
+        CompletableFuture<AccessToken> accessToken = tokenService.generateAccessToken(subject);
+        CompletableFuture<String> refreshToken = CompletableFuture.supplyAsync(
+                () -> tokenService.generateRefreshToken(subject).newRefreshToken()
+        );
+
+        return accessToken.thenCombine(refreshToken, AuthenticationResponse::new);
+    }
+
 }

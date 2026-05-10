@@ -20,7 +20,7 @@ public record UserDto(
                 id,
                 "SENTINEL_USER",
                 username,
-                null,
+                "",
                 List.of(),
                 null);
     }

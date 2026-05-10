@@ -1,5 +1,6 @@
 package com.authmat.application.outbox;
 
+import com.authmat.application.util.UuidV7;
 import jakarta.persistence.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.JdbcTypeCode;
@@ -22,6 +23,7 @@ import java.util.UUID;
 @Table(name = "outbox_events")
 public class OutboxEvent {
     @Id
+    @UuidV7
     private UUID id;
 
     @Column(nullable = false, updatable = false, unique = true)

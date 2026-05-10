@@ -1,11 +1,9 @@
 package com.authmat.application.token;
 
-import com.authmat.application.token.exception.UnknownServiceIdentityException;
-import com.authmat.application.security.properties.ServiceProperties;
+import com.authmat.application.jwks.PublicKey;
 import com.authmat.application.token.constant.TokenType;
 import com.authmat.application.token.exception.TokenException;
 import com.authmat.application.token.model.AccessToken;
-import com.authmat.application.jwks.PublicKey;
 import com.authmat.application.token.model.RefreshToken;
 import com.authmat.application.token.signer.JwtSigner;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -31,23 +29,20 @@ public class TokenService {
     private static final String BLACKLISTED_TOKEN_PREFIX = "blacklist:jti:";
     private static final String REFRESH_TOKEN_PREFIX = "refresh:token:";
     private static final Base64.Encoder B64URL = Base64.getUrlEncoder().withoutPadding();
-    private static final SecureRandom SECURE_RANDOM =  new SecureRandom(); // create an instance of this to avoid reinitializing the RNG
+    private static final SecureRandom SECURE_RANDOM =  new SecureRandom();
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
     private final RedisTemplate<String,String> redisTemplate;
     private final JwtSigner jwtSigner;
     private final TokenProperties tokenProperties;
-    private final ServiceProperties serviceProperties;
 
     public TokenService(
             @Qualifier("strRedisTemplate") RedisTemplate<String, String> redisTemplate,
             JwtSigner jwtSigner,
-            TokenProperties tokenProperties,
-            ServiceProperties serviceProperties) {
+            TokenProperties tokenProperties) {
         this.redisTemplate = redisTemplate;
         this.jwtSigner = jwtSigner;
         this.tokenProperties = tokenProperties;
-        this.serviceProperties = serviceProperties;
     }
 
     public CompletableFuture<AccessToken> generateAccessToken(String subject){
@@ -55,7 +50,7 @@ public class TokenService {
         Instant expiresIn = now.plus(tokenProperties.accessTokenTtl());
         String jti = UUID.randomUUID().toString();
 
-        Map<String,Object> payload = Map.of(
+        Map<String, Object> payload = Map.of(
                 "sub", subject,
                 "iss", tokenProperties.issuer(),
                 "aud", tokenProperties.audience(),
@@ -67,34 +62,10 @@ public class TokenService {
         return jwtSigner.sign(payload, expiresIn);
     }
 
-    public CompletableFuture<AccessToken> generateServiceToken(String spiffeId){
-        Instant now = Instant.now();
-        Instant expiresIn = now.plus(tokenProperties.accessTokenTtl());
-        String jti = UUID.randomUUID().toString();
-
-        ServiceProperties.ServiceDefinition definition = serviceProperties.services().get(spiffeId);
-        if(definition == null){ throw new UnknownServiceIdentityException("spiffeId not found"); }
-
-        Map<String,Object> payload = Map.of(
-                "sub", spiffeId,
-                "iss", tokenProperties.issuer(),
-                "aud", tokenProperties.audience(),
-                "iat", now.getEpochSecond(),
-                "exp", expiresIn.getEpochSecond(),
-                "jti", jti,
-                "type", TokenType.SERVICE.name(),
-                "scope", definition.scopes());
-
-        return jwtSigner.sign(payload, expiresIn);
-    }
-
-    // TODO this could be a jwks service method
     public CompletableFuture<PublicKey> getPublicKey(){
         return jwtSigner.getPublicKey();
     }
 
-    // getEpochSecond() is easier to parse on retrieval, i.e., Instant.ofEpochSecond(Long.parseLong(value))
-    // And timezone unambiguous
     public RefreshToken generateRefreshToken(String subject){
         byte[] raw = new byte[32];
         SECURE_RANDOM.nextBytes(raw);
@@ -104,7 +75,7 @@ public class TokenService {
         Instant expiresAt = now.plus(tokenProperties.refreshTokenTtl());
 
         String key = REFRESH_TOKEN_PREFIX + token;
-        Map<String,Object> payload = Map.of(
+        Map<String, Object> payload = Map.of(
                 "subject",subject,
                 "issuedAt", String.valueOf(now.getEpochSecond()),
                 "expiresAt",String.valueOf(expiresAt.getEpochSecond()),
@@ -152,20 +123,16 @@ public class TokenService {
         // If you cast directly to Long you get a ClassCastException at runtime.
         // Number is the common parent of both Integer and Long in Java, and .longValue() is defined on Number
         Instant tokenExpiration = Instant.ofEpochSecond(
-                ((Number) tokenParts.get("exp")).longValue()
-        );
+                ((Number) tokenParts.get("exp")).longValue());
 
         Duration remainingBeforeExpiration = Duration.between(Instant.now(), tokenExpiration);
 
-        if(remainingBeforeExpiration.isNegative() || remainingBeforeExpiration.isZero()){
-            return;
-        }
+        if(remainingBeforeExpiration.isNegative() || remainingBeforeExpiration.isZero()) return;
 
         redisTemplate.opsForValue().set(
                 BLACKLISTED_TOKEN_PREFIX + jti,
                 "1",
-                remainingBeforeExpiration
-        );
+                remainingBeforeExpiration);
     }
 
     /**

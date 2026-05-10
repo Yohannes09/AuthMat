@@ -3,7 +3,6 @@ package com.authmat.application.security.registry;
 import java.security.Key;
 import java.util.Map;
 
-
 public class InMemoryVerifierRegistry implements VerifierRegistry {
     private final Map<String, Key> verifiers;
 

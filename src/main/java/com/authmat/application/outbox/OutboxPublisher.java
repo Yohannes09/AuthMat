@@ -21,13 +21,13 @@ public class OutboxPublisher {
 
 
     @Scheduled(fixedRate = 60000)
-    public void publishPendingEvent() {
+    public void publishPendingEvents() {
         List<OutboxEvent> batch = outboxRepository.fetchPendingEvents();
         if(batch.isEmpty()) { return; }
 
         List<CompletableFuture<Void>> futures = batch.stream()
                 .map(event -> kafkaTemplate
-                                .send("TOPIC", "", event.getPayload())
+                                .send(event.getTopic(), event.getIdempotencyKey(), event.getPayload())
                                 .thenRun(() -> event.setStatus(OutboxStatus.PUBLISHED))
                                 .exceptionally(e -> {
                                     event.setStatus(OutboxStatus.FAILED);

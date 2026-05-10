@@ -8,6 +8,6 @@ import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 
 public interface JwtSigner {
-    CompletableFuture<AccessToken> sign(Map<String,Object> payload, Instant expiration);
+    CompletableFuture<AccessToken> sign(Map<String, Object> payload, Instant expiration);
     CompletableFuture<PublicKey> getPublicKey();
 }

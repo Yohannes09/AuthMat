@@ -2,25 +2,8 @@ package com.authmat.application.authentication.loginattemptmanager;
 
 import org.springframework.data.redis.core.script.RedisScript;
 
-/**
- * <p>Redis Lua script guarantees that the increment
- * and conditional expiration are executed as a single, indivisible operation,
- * preventing race conditions under concurrent access.</p>
- *
- * <p>Arguments:</p>
- * <ul>
- *   <li>{@code KEYS[1]} – Redis key used to store the login attempt count</li>
- *   <li>{@code ARGV[1]} – Expiration time in seconds for the counter</li>
- * </ul>
- *
- * <p>Returns:</p>
- * <ul>
- *   <li>The current login attempt count after incrementing</li>
- * </ul>
- */
 public final class LoginAttemptManagerScripts {
     private LoginAttemptManagerScripts(){}
-
 
     public static final RedisScript<Long> INCREMENT_EXPIRE = RedisScript.of(
             """

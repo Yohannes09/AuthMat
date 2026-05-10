@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 import java.time.Duration;
 import java.util.Locale;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -25,7 +26,6 @@ public class UserCache {
     private static final String EXTERNAL_ID_KEY = "users:external:";
     private static final Duration BASE_TTL_MINUTES = Duration.ofMinutes(30);
 
-    // Prevents DB storms on repeated cache/db misses
     private static final UserDto NOT_FOUND = UserDto.sentinel(-1L, "__NOT_FOUND__");
     private static final Duration NOT_FOUND_TTL = Duration.ofMinutes(2);
 
@@ -43,7 +43,13 @@ public class UserCache {
         this.redisTemplate = redisTemplate;
     }
 
-
+    public Optional<UserDto> findByExternalId(String externalId) {
+        return Optional.ofNullable(findByIdentifier(
+                EXTERNAL_ID_KEY + externalId,
+                UUID.fromString(externalId),
+                userRepository::findByExternalId
+        ));
+    }
 
     public Optional<UserDto> findByEmail(String email){
         return Optional.ofNullable(
@@ -139,15 +145,13 @@ public class UserCache {
     private <I> UserDto findByIdentifier(
             String key,
             I identifier,
-            Function<I, Optional<User>> identifierFunction
-    ){
-        if(key == null) throw new IllegalStateException("Cache key must not be null");
+            Function<I, Optional<User>> identifierFunction ){
 
         try {
             UserDto cached = redisTemplate.opsForValue().get(key);
-            //TODO: Ensure sentinel will work
+
             if(cached != null) {
-                return cached == NOT_FOUND ?
+                return NOT_FOUND.equals(cached) ?
                         null : cached;
             }
 
@@ -189,12 +193,4 @@ public class UserCache {
         return repositoryFunction.test(identifier);
     }
 
-
-    public Optional<UserDto> findByExternalId(String userId) {
-        return Optional.ofNullable(findByIdentifier(
-                EXTERNAL_ID_KEY + userId,
-                userId,
-                userRepository::findByExternalId
-        ));
-    }
 }

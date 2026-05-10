@@ -4,7 +4,7 @@ CREATE SEQUENCE IF NOT EXISTS user_id_sequence
 
 CREATE TABLE IF NOT EXISTS users (
     id                      BIGINT          PRIMARY KEY DEFAULT nextval('user_id_sequence'),
-    external_id             VARCHAR         NOT NULL UNIQUE,
+    external_id             UUID            NOT NULL UNIQUE,
     username                VARCHAR(50)     NOT NULL UNIQUE,
     hashed_password         VARCHAR(255),
     email                   VARCHAR(255)    UNIQUE,

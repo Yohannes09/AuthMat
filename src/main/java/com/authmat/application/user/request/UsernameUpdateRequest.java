@@ -1,6 +1,6 @@
 package com.authmat.application.user.request;
 
-import com.authmat.application.constant.ValidationConstants;
+import com.authmat.application.util.ValidationConstants;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Pattern;
 

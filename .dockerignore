@@ -1,1 +1,8 @@
 .github
+.gitignore
+
+docker-compose.yaml
+
+qodana.yaml
+
+README.md

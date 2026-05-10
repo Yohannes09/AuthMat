@@ -35,9 +35,10 @@ public class OAuth2UserService extends DefaultOAuth2UserService {
                         email,
                         email,
                         null,
-                        providerName,
+                        "GOOGLE",
                         providerName)
                 );
         return new OAuth2UserImpl(user.externalId(), user.roles(), attributes);
     }
+
 }

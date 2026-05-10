@@ -52,7 +52,7 @@ public class UserService {
 
         eventPublisher.userCreatedEvent(
                 NewUserEvent.of(
-                        savedUser.getExternalId(),
+                        savedUser.getExternalId().toString(),
                         savedUser.getUsername(),
                         savedUser.getEmail()));
 

@@ -2,14 +2,11 @@ package com.authmat.application.security.oauth2;
 
 import com.authmat.application.authentication.service.AuthenticationService;
 import com.authmat.application.security.exception.InvalidPrincipalException;
-import com.authmat.application.user.repository.UserCache;
-import com.authmat.application.user.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.AsyncContext;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -19,11 +16,13 @@ import java.io.IOException;
 import java.util.concurrent.CompletionException;
 
 @Component
-@RequiredArgsConstructor
 public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
-    private final UserCache userCache;
-    private final UserService userService;
     private final AuthenticationService authenticationService;
+
+    public OAuth2SuccessHandler(AuthenticationService authenticationService) {
+        this.authenticationService = authenticationService;
+    }
+
 
     @Override
     public void onAuthenticationSuccess(

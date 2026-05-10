@@ -1,10 +1,9 @@
-package com.authmat.application.token.signer.kms;
+package com.authmat.application.token.signer;
 
 import com.authmat.application.token.exception.TokenException;
 import com.authmat.application.token.model.AccessToken;
 import com.authmat.application.jwks.PublicKey;
 import com.authmat.application.token.TokenProperties;
-import com.authmat.application.token.signer.JwtSigner;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
@@ -43,26 +42,13 @@ public final class KmsJwtSigner implements JwtSigner {
         this.tokenProperties = tokenProperties;
         publicKey = fetchPublicKeyFromKms();
     }
-    // TODO: CODE REVIEW
-    /*
-     * NOTES:
-     *  - UTF-8 is a character encoding standard used to represent text (letters, symbols, emojis)
-     *    as binary data (bytes)
-     *
-     *
-     * SHA-256 is used to produce a fixed-size digest of the signingInput(header+payload) before
-     * cryptographic operation happens.
-     *
-     * ECDSA provides the asymmetric property. KMS uses ECC_NIST_P256 private key to sign the
-     * SHA-256 digest
-     *
-     * FLOW:
-     * header.payload  →  SHA-256 digest  →  ECDSA sign with private key  →  signature*/
-    public CompletableFuture<AccessToken> sign(Map<String,Object> payload, Instant expiration) {
+
+
+    public CompletableFuture<AccessToken> sign(Map<String, Object> payload, Instant expiration) {
         String header = encodeJson(Map.of(
                 "alg", "ES256",
                 "typ", "JWT",
-                "keyId", tokenProperties.keyId()));
+                "kid", tokenProperties.keyId()));
 
         String signingInput = header + "." + encodeJson(payload);
         byte[] signingInputBytes = signingInput.getBytes(StandardCharsets.UTF_8);
@@ -87,9 +73,9 @@ public final class KmsJwtSigner implements JwtSigner {
 
     @Override
     public CompletableFuture<PublicKey> getPublicKey() {
-
         return publicKey;
     }
+
 
     private CompletableFuture<PublicKey> fetchPublicKeyFromKms(){
         GetPublicKeyRequest pkRequest = GetPublicKeyRequest.builder()
@@ -99,7 +85,6 @@ public final class KmsJwtSigner implements JwtSigner {
         CompletableFuture<GetPublicKeyResponse> pkResponse = kmsClient.getPublicKey(pkRequest);
 
         return pkResponse.thenApply(response -> {
-            // TODO: ENCODE BASE 64???
             String publicKey = response.publicKey().toString();
             return new PublicKey(
                     tokenProperties.keyId(),
@@ -110,8 +95,7 @@ public final class KmsJwtSigner implements JwtSigner {
         });
     }
 
-    // TODO: Most of what is below could be its own class
-    private String encodeJson(Map<String,Object> claims){
+    private String encodeJson(Map<String, Object> claims){
         try {
             byte[] json = MAPPER.writeValueAsBytes(claims);
             return B64URL.encodeToString(json);

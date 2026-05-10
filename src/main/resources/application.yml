@@ -71,7 +71,7 @@ security:
   mtls-enabled: ${MTLS_ENABLED:}
   login-attempt:
     max-failed-login-attempts: ${MAX_FAILED_LOGIN_ATTEMPTS:5}
-    failed-login-lockout-mins: ${FAILED_LOGIN_LOCKOUT_MINS:1}
+    failed-login-lockout-mins: ${FAILED_LOGIN_LOCKOUT_MINS:10}
 
 authmat:
   base-path: ${BASE_PATH:}

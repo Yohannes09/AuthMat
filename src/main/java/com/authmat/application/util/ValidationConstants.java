@@ -1,4 +1,4 @@
-package com.authmat.application.constant;
+package com.authmat.application.util;
 
 public class ValidationConstants {
 

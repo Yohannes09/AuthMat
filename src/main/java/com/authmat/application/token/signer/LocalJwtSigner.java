@@ -1,10 +1,9 @@
-package com.authmat.application.token.signer.local;
+package com.authmat.application.token.signer;
 
 import com.authmat.application.token.exception.KeyInitializationException;
 import com.authmat.application.token.model.AccessToken;
 import com.authmat.application.jwks.PublicKey;
 import com.authmat.application.token.TokenProperties;
-import com.authmat.application.token.signer.JwtSigner;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import lombok.extern.slf4j.Slf4j;
@@ -58,11 +57,11 @@ public final class LocalJwtSigner implements JwtSigner {
     }
 
     @Override
-    public CompletableFuture<AccessToken> sign(Map<String,Object> payload, Instant expiration) {
+    public CompletableFuture<AccessToken> sign(Map<String, Object> payload, Instant expiration) {
         return CompletableFuture.supplyAsync(() -> {
                     String token = Jwts.builder()
                             // TODO: CODE REVIEW THIS
-                            .setHeaderParam("keyId", publicKey.thenApply(PublicKey::kid))
+                            .setHeaderParam("kid", publicKey.thenApply(PublicKey::kid).join())
                             .setHeaderParam("typ", "JWT")
                             .setClaims(payload)
                             .signWith(keyPair.getPrivate(), SignatureAlgorithm.ES256)

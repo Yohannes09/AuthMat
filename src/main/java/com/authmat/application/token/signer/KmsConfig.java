@@ -1,4 +1,4 @@
-package com.authmat.application.token.signer.kms;
+package com.authmat.application.token.signer;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -8,7 +8,7 @@ import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.kms.KmsAsyncClient;
 
 @Configuration
-public class AwsKmsConfig {
+public class KmsConfig {
     // NOTE: DefaultCredentialsProvider will automatically pick up AWS_ACCESS_KEY_ID and
     // AWS_SECRET_ACCESS_KEY env variables
 //    @Bean

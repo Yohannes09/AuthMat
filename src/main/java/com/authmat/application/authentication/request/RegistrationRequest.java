@@ -1,6 +1,6 @@
 package com.authmat.application.authentication.request;
 
-import com.authmat.application.constant.ValidationConstants;
+import com.authmat.application.util.ValidationConstants;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
